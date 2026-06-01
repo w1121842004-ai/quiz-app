@@ -1,0 +1,793 @@
+{
+  "module": "nlp",
+  "module_name": "NLP自然语言处理",
+  "total": 57,
+  "subtopics": [
+    {
+      "id": "preprocessing",
+      "name_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "target": 8
+    },
+    {
+      "id": "embeddings",
+      "name_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "target": 8
+    },
+    {
+      "id": "seq_models",
+      "name_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "target": 8
+    },
+    {
+      "id": "transformers",
+      "name_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "target": 8
+    },
+    {
+      "id": "pretrain_ft",
+      "name_zh": "预训练范式（MLM / CLM / 全量微调 / 灾难性遗忘）",
+      "target": 8
+    },
+    {
+      "id": "evaluation",
+      "name_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "target": 8
+    },
+    {
+      "id": "peft_methods",
+      "name_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "target": 12
+    }
+  ],
+  "questions": [
+    {
+      "question": "在Hugging Face Transformers的文本预处理流程中，tokenizer的主要作用是什么？请列出至少三个核心功能。",
+      "reference_answer": "Tokenizer负责将原始文本转换为模型可理解的数字形式。核心功能包括：1) 将输入文本分割成词、子词或符号（如标点）等'令牌'；2) 将每个令牌映射到一个唯一的整数ID；3) 添加模型可能需要的额外输入，如attention_mask和token_type_ids。",
+      "tags": [
+        "分词",
+        "tokenizer",
+        "预处理"
+      ],
+      "id": "nlp_preprocessing_basic_001",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在使用tokenizer处理多个句子时，padding和truncation参数的作用分别是什么？",
+      "reference_answer": "Padding用于将批次中较短的句子填充到与最长句子相同的长度，通常使用特殊令牌（如[PAD]）填充，以确保批次内所有序列长度一致，便于张量运算。Truncation用于将超过模型最大输入长度的句子截断，通常从末尾删除多余令牌，以满足模型的长度限制。",
+      "tags": [
+        "分词",
+        "归一化",
+        "padding",
+        "truncation"
+      ],
+      "id": "nlp_preprocessing_basic_002",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Hugging Face Transformers中，tokenizer对输入文本进行编码后返回的字典包含哪三个关键字段？其中'input_ids'字段的含义是什么？",
+      "reference_answer": "返回字典包含三个关键字段：input_ids、token_type_ids和attention_mask。input_ids是输入文本中每个令牌对应的唯一整数ID序列，是模型的主要数值输入。token_type_ids用于区分不同句子（如句子对任务），attention_mask则指示哪些令牌是真实内容（1）哪些是填充（0），避免模型关注填充部分。",
+      "tags": [
+        "词表",
+        "input_ids",
+        "编码"
+      ],
+      "id": "nlp_preprocessing_basic_003",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Hugging Face的tokenizer中，padding和truncation参数分别解决什么问题？请结合文本预处理中的序列长度不统一场景说明。",
+      "reference_answer": "padding通过填充特殊标记（如0）使同批次序列长度对齐，truncation通过截断超长序列至模型最大长度（如512）来避免OOM。两者确保批量输入形状一致，是文本预处理中处理变长输入的标准操作。",
+      "tags": [
+        "分词",
+        "归一化",
+        "词表"
+      ],
+      "id": "nlp_preprocessing_medium_007",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "当使用BERT的tokenizer处理OOV（未登录词）时，它是如何利用子词分词（如WordPiece）来解决的？请举例说明。",
+      "reference_answer": "BERT的WordPiece将OOV词拆分为已知子词。例如'waiting'可能拆为'wait'和'##ing'，每个子词在词表中存在，从而避免OOV。若仍无法拆分，则用[UNK]标记表示。这减少了OOV对模型的影响。",
+      "tags": [
+        "分词",
+        "OOV处理",
+        "词表"
+      ],
+      "id": "nlp_preprocessing_medium_008",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在文本预处理中，attention_mask的作用是什么？它如何处理padding token以避免模型对填充位置产生错误关注？",
+      "reference_answer": "attention_mask是一个与input_ids等长的二进制掩码，标记1表示真实token需参与注意力计算，0表示padding token应被忽略。在模型前向传播时，注意力机制会屏蔽掩码为0的位置，防止模型对无意义填充产生关注。",
+      "tags": [
+        "归一化",
+        "分词",
+        "词表"
+      ],
+      "id": "nlp_preprocessing_medium_009",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Hugging Face的tokenizer中，当使用'bert-base-cased'和'bert-base-uncased'两种checkpoint时，它们对输入文本'Hello, I am a student.'的分词结果和token ID序列有何不同？请分析这种差异对下游任务（如情感分析）的潜在影响。",
+      "reference_answer": "'bert-base-cased'保留大小写，分词为['Hello', ',', 'I', 'am', 'a', 'student', '.']，token ID保持原样；'bert-base-uncased'会将所有字母转为小写，分词为['hello', ',', 'i', 'am', 'a', 'student', '.']，token ID对应小写形式。差异可能导致cased模型对专有名词或首字母缩略词更敏感，而uncased模型泛化性更强，但可能丢失大小写相关的语义信息，影响情感极性判断。",
+      "tags": [
+        "分词",
+        "归一化",
+        "词表",
+        "OOV处理"
+      ],
+      "id": "nlp_preprocessing_advanced_013",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在多语言或领域迁移场景下，Hugging Face tokenizer的OOV处理机制如何工作？请对比基于BPE的tokenizer（如BERT）和基于WordPiece的tokenizer（如DistilBERT）在处理未见词汇时的策略差异，并分析其优缺点。",
+      "reference_answer": "BPE和WordPiece均通过子词分割处理OOV：BPE从字符级合并高频子词，可处理任意OOV但可能产生过长序列；WordPiece基于概率选择最优子词，更节省词汇表但可能遗漏罕见组合。例如，OOV词'xylophone'在BPE中可能拆分为['xy', 'lo', 'phone']，在WordPiece中拆分为['x', '##yl', '##ophone']。BPE泛化性强但效率低，WordPiece效率高但OOV风险略高。",
+      "tags": [
+        "OOV处理",
+        "词表",
+        "分词",
+        "归一化"
+      ],
+      "id": "nlp_preprocessing_advanced_014",
+      "subtopic": "preprocessing",
+      "subtopic_zh": "文本预处理（分词 / 归一化 / 词表 / OOV处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "Word2Vec模型中，Skip-gram和CBOW两种架构的基本区别是什么？",
+      "reference_answer": "Skip-gram通过中心词预测上下文词，适合小数据集和稀有词；CBOW通过上下文词预测中心词，训练速度更快，对高频词效果较好。两者均基于神经网络学习词的低维稠密向量表示。",
+      "tags": [
+        "Word2Vec",
+        "Skip-gram",
+        "CBOW"
+      ],
+      "id": "nlp_embeddings_basic_009",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GloVe词嵌入方法的核心思想是什么？",
+      "reference_answer": "GloVe基于全局词-词共现矩阵，通过矩阵分解学习词向量。其核心是使词向量的点积等于共现概率的对数，从而同时利用全局统计信息和局部上下文信息。",
+      "tags": [
+        "GloVe",
+        "共现矩阵",
+        "词嵌入"
+      ],
+      "id": "nlp_embeddings_basic_010",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "FastText相比Word2Vec的主要改进是什么？",
+      "reference_answer": "FastText将每个词视为由字符n-gram组成，学习子词级别的向量表示。这使其能处理未登录词，并捕捉词形相似性，尤其适合形态丰富的语言。",
+      "tags": [
+        "FastText",
+        "子词",
+        "未登录词"
+      ],
+      "id": "nlp_embeddings_basic_011",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Word2Vec的CBOW和Skip-gram两种架构在训练目标和效率上有何区别？在什么场景下更适合使用Skip-gram？",
+      "reference_answer": "CBOW通过上下文词预测中心词，训练速度快，对高频词效果好；Skip-gram通过中心词预测上下文词，训练更慢，但能更好地捕捉低频词的语义。当语料中低频词较多或需要更精细的词义表示时，Skip-gram更合适。",
+      "tags": [
+        "Word2Vec",
+        "CBOW",
+        "Skip-gram"
+      ],
+      "id": "nlp_embeddings_medium_015",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "GloVe与Word2Vec在词嵌入的构建原理上有什么本质不同？请从全局统计和局部上下文的角度分析。",
+      "reference_answer": "Word2Vec基于局部上下文窗口，通过预测任务学习词向量，捕捉局部共现信息；GloVe则利用全局词共现矩阵的统计信息，通过矩阵分解最小化共现概率比误差，同时融合了全局和局部信息，训练效率更高。",
+      "tags": [
+        "GloVe",
+        "Word2Vec",
+        "词嵌入"
+      ],
+      "id": "nlp_embeddings_medium_016",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "FastText相比Word2Vec如何处理未登录词问题？其子词信息（n-gram）嵌入是如何实现的？",
+      "reference_answer": "FastText将词表示为字符n-gram的向量和，因此即使词未在训练集中出现，也能通过其子词n-gram组合得到向量。训练时，每个词被分解为多个n-gram（如3-6字符），每个n-gram有独立向量，词向量为所有n-gram向量之和。",
+      "tags": [
+        "FastText",
+        "子词嵌入",
+        "未登录词"
+      ],
+      "id": "nlp_embeddings_medium_017",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在情感分析任务中，使用Word2Vec和BERT的上下文嵌入分别作为特征，分析两者在处理‘I hate this so much!’中‘hate’一词时的关键差异，并说明为何BERT在情感极性判别上通常更优。",
+      "reference_answer": "Word2Vec为每个词分配固定向量，忽略上下文，‘hate’在所有句子中表示相同含义；BERT通过自注意力机制动态生成上下文嵌入，‘hate’在否定或强调语境中可被精准建模。因此，BERT能捕捉‘hate’在当前句子中的强烈负面极性，而Word2Vec无法区分语境，导致情感分类精度较低。",
+      "tags": [
+        "Word2Vec vs BERT",
+        "上下文嵌入",
+        "情感分析"
+      ],
+      "id": "nlp_embeddings_advanced_021",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "FastText引入子词信息以处理OOV（词表外）词，但在词义消歧任务中，若输入句子包含多义词‘bank’，FastText与GloVe谁更可能出错？请从架构角度分析原因。",
+      "reference_answer": "GloVe更可能出错，因为它基于全局共现统计学习固定词向量，无法区分‘bank’在不同语境下的含义；FastText虽利用子词信息缓解OOV，但同样依赖全局统计，缺乏上下文感知。两者均无法动态调整词义，但GloVe对多义词的固定表示误差更大，而FastText子词特征可能部分缓解词形差异。",
+      "tags": [
+        "FastText",
+        "GloVe",
+        "词义消歧",
+        "OOV"
+      ],
+      "id": "nlp_embeddings_advanced_022",
+      "subtopic": "embeddings",
+      "subtopic_zh": "词嵌入（Word2Vec / GloVe / FastText / 上下文嵌入对比）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "RNN在处理长序列时主要面临什么问题？请说明其产生原因。",
+      "reference_answer": "主要面临梯度消失问题。原因是在反向传播过程中，梯度需要通过时间步逐层相乘，当序列较长时，由于激活函数（如tanh或sigmoid）的导数小于1，梯度会指数级衰减，导致远离当前时间步的权重更新非常缓慢，模型难以学习长距离依赖关系。",
+      "tags": [
+        "RNN",
+        "梯度消失问题"
+      ],
+      "id": "nlp_seq_models_basic_017",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "LSTM通过什么机制解决RNN的梯度消失问题？请简要说明其核心设计。",
+      "reference_answer": "LSTM通过引入门控机制（遗忘门、输入门、输出门）和细胞状态来解决梯度消失问题。细胞状态作为信息传递的直通通道，允许梯度在时间步间近似恒等地流动，而门控机制控制信息的添加和移除，使得模型可以有效地学习长距离依赖。",
+      "tags": [
+        "LSTM",
+        "梯度消失问题"
+      ],
+      "id": "nlp_seq_models_basic_018",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GRU相比标准LSTM在结构上做了哪些简化？",
+      "reference_answer": "GRU将LSTM的遗忘门和输入门合并为更新门，并将细胞状态和隐藏状态合并为一个隐藏状态。GRU只有两个门（更新门和重置门），参数更少，计算效率更高，但在许多任务上性能与LSTM相当。",
+      "tags": [
+        "GRU",
+        "LSTM"
+      ],
+      "id": "nlp_seq_models_basic_019",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "RNN在处理长序列时容易出现梯度消失问题，请解释其原因，并说明LSTM和GRU分别通过什么机制缓解该问题？",
+      "reference_answer": "RNN在反向传播时，梯度随时间步连乘，若权重矩阵的范数小于1，长距离梯度会指数衰减消失。LSTM通过遗忘门、输入门和输出门控制细胞状态流动，使梯度能沿细胞状态直通；GRU简化门控结构，用重置门和更新门调节隐藏状态，减少梯度衰减。",
+      "tags": [
+        "RNN",
+        "梯度消失",
+        "LSTM",
+        "GRU"
+      ],
+      "id": "nlp_seq_models_medium_023",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在实现LSTM时，若输入序列长度为T，隐藏状态维度为h，请计算单个时间步中所有门控和候选状态的参数量（忽略偏置），并说明这些参数如何参与前向传播。",
+      "reference_answer": "输入x_t维度d，隐藏状态h_{t-1}维度h。每个门（遗忘、输入、输出）和候选状态c̃_t均有W_x（d×h）和W_h（h×h），共4组，参数量为4×(d×h + h×h)。前向传播时，先计算各门控值，再更新细胞状态c_t和隐藏状态h_t。",
+      "tags": [
+        "LSTM",
+        "实现细节",
+        "参数量计算"
+      ],
+      "id": "nlp_seq_models_medium_024",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在情感分析任务中，若采用单向RNN处理长句，模型可能忽略句子后部的关键信息。请分析原因，并给出至少两种基于序列模型的改进方案。",
+      "reference_answer": "单向RNN只能利用历史信息，长句后部信息无法影响前部表示。改进方案：1）使用双向RNN/LSTM/GRU，同时捕捉前后文；2）引入注意力机制，让模型动态聚焦重要时间步；3）采用Transformer替代RNN，消除序列依赖限制。",
+      "tags": [
+        "应用场景",
+        "情感分析",
+        "双向RNN",
+        "注意力机制"
+      ],
+      "id": "nlp_seq_models_medium_025",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RNN中，梯度消失问题如何影响长程依赖的捕获？LSTM和GRU分别通过什么机制缓解该问题？请对比两者在门控结构上的核心差异。",
+      "reference_answer": "梯度消失导致RNN无法有效学习序列中长距离依赖关系。LSTM通过遗忘门、输入门和输出门控制细胞状态流动，引入细胞状态持久化信息；GRU将遗忘门和输入门合并为更新门，并引入重置门，结构更简洁但参数更少，在较小数据集上可能更快收敛，但LSTM在复杂长程任务上通常表现更优。",
+      "tags": [
+        "梯度消失",
+        "LSTM",
+        "GRU",
+        "门控机制",
+        "长程依赖"
+      ],
+      "id": "nlp_seq_models_advanced_029",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在一个长序列分类任务中，你发现LSTM模型训练时loss下降缓慢且验证集准确率低，怀疑是梯度消失。请设计一个诊断方案，并说明如何通过调整架构或超参数来缓解。",
+      "reference_answer": "诊断：监控各层梯度范数，若靠近输出层梯度正常而靠近输入层梯度趋近0，则确认梯度消失。缓解方案：1) 改用GRU或LSTM；2) 设置梯度裁剪；3) 使用双向RNN增强梯度流；4) 调整权重初始化（如正交初始化）；5) 减少序列长度或使用截断BPTT；6) 增加层数时使用残差连接。",
+      "tags": [
+        "梯度消失诊断",
+        "梯度裁剪",
+        "双向RNN",
+        "权重初始化",
+        "截断BPTT"
+      ],
+      "id": "nlp_seq_models_advanced_030",
+      "subtopic": "seq_models",
+      "subtopic_zh": "序列模型（RNN / LSTM / GRU / 梯度消失问题）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Hugging Face的pipeline中，使用Transformer模型进行文本分类任务时，预处理阶段tokenizer的主要作用是什么？",
+      "reference_answer": "Tokenizer将原始文本转换为模型可处理的数字输入，具体包括：将文本分割成单词、子词或符号等token；将每个token映射为唯一的整数ID；并生成attention_mask等附加输入，指示哪些token需要被模型关注。",
+      "tags": [
+        "预处理",
+        "tokenizer",
+        "文本分类"
+      ],
+      "id": "nlp_transformers_basic_025",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Transformer模型中，hidden states（隐藏状态）通常具有哪三个维度，每个维度分别代表什么含义？",
+      "reference_answer": "隐藏状态通常有三个维度：1) Batch size（批次大小）：同一时间处理的序列数量；2) Sequence length（序列长度）：序列的数值表示长度；3) Hidden size（隐藏层大小）：每个token对应的向量维度。",
+      "tags": [
+        "hidden states",
+        "模型结构",
+        "维度"
+      ],
+      "id": "nlp_transformers_basic_026",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Hugging Face Transformers库中，使用AutoModel加载预训练模型时，save_pretrained()方法会保存哪两个文件，它们各自的作用是什么？",
+      "reference_answer": "会保存config.json和model.safetensors（或pytorch_model.bin）两个文件。config.json包含模型架构所需的全部属性（如层数、隐藏层大小等）及元数据；model.safetensors包含模型的所有权重参数，即模型的状态字典。",
+      "tags": [
+        "模型保存",
+        "AutoModel",
+        "配置文件"
+      ],
+      "id": "nlp_transformers_basic_027",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在基于Transformer的情感分类任务中，tokenizer返回的attention_mask字段具体作用是什么？请结合padding和truncation说明。",
+      "reference_answer": "attention_mask是一个与input_ids同形的二进制张量，标记哪些位置是真实token（1）哪些是padding（0）。当模型进行自注意力计算时，padding位置的注意力权重会被掩盖，避免无效信息影响分类结果。truncation则控制序列最大长度，超出部分被截断。",
+      "tags": [
+        "分类",
+        "tokenizer",
+        "attention_mask"
+      ],
+      "id": "nlp_transformers_medium_031",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在命名实体识别（NER）任务中，Transformer模型的输出通常需要接入什么结构的头部？为什么？",
+      "reference_answer": "通常接入一个线性分类层（Linear Layer）加Softmax，对每个token的隐藏状态进行独立分类，预测每个token的实体标签（如B-PER、I-LOC等）。因为NER是序列标注任务，需要为输入序列的每个位置分配一个标签，而Transformer编码器输出的每个token表示已包含上下文信息。",
+      "tags": [
+        "NER",
+        "模型头部",
+        "序列标注"
+      ],
+      "id": "nlp_transformers_medium_032",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在问答任务中，使用BERT等Transformer模型时，如何从模型输出中提取答案的起始和结束位置？",
+      "reference_answer": "模型头部通常包含两个线性层，分别计算每个token作为答案起始位置和结束位置的概率。对输出隐藏状态做点积后接Softmax，得到两个概率分布。然后选择起始位置和结束位置的所有合法组合中概率乘积最大的片段作为答案。",
+      "tags": [
+        "问答",
+        "输出解码",
+        "跨度提取"
+      ],
+      "id": "nlp_transformers_medium_033",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Transformer用于文本分类时，如果使用预训练模型（如BERT）的[CLS] token对应的隐藏状态作为句子表示进行微调，和直接使用平均池化（mean pooling）所有token的隐藏状态相比，各自的优缺点是什么？在何种边界情况下平均池化可能优于[CLS] token？",
+      "reference_answer": "[CLS] token专为分类设计，能捕获全局语义，但可能忽略局部关键信息；平均池化对所有token一视同仁，能保留更多细粒度特征，但会稀释重要token的贡献。在长文本或存在大量无关噪声时，平均池化更鲁棒；在短文本或情感极性集中于特定词时，[CLS]更优。",
+      "tags": [
+        "分类",
+        "架构权衡",
+        "池化策略"
+      ],
+      "id": "nlp_transformers_advanced_037",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在命名实体识别（NER）任务中，使用Transformer编码器（如BERT）后接线性分类器与使用CRF（条件随机场）层作为输出层，在解码时各有什么优劣？当出现实体边界模糊或长实体时，哪种结构更可能出现错误？",
+      "reference_answer": "线性分类器独立预测每个token的标签，速度快但忽略标签间的依赖关系，易出现非法标签序列（如I-ORG后接B-PER）。CRF通过转移矩阵建模标签顺序，能强制合法约束，在边界模糊时更准确，但训练和推理较慢。长实体中，CRF能利用转移概率保持连续性，线性分类器易断裂。",
+      "tags": [
+        "NER",
+        "架构对比",
+        "CRF",
+        "解码策略"
+      ],
+      "id": "nlp_transformers_advanced_038",
+      "subtopic": "transformers",
+      "subtopic_zh": "Transformer在NLP的应用（分类/NER/问答/生成任务）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在自然语言处理中，MLM（掩码语言建模）预训练范式的基本原理是什么？",
+      "reference_answer": "MLM（Masked Language Modeling）是一种预训练方法，在训练时随机掩盖输入文本中的部分token，然后让模型根据上下文预测被掩盖的token。这迫使模型学习双向上下文表示，从而更好地理解单词之间的关系。BERT是使用MLM的典型模型。",
+      "tags": [
+        "MLM",
+        "预训练范式",
+        "基本原理"
+      ],
+      "id": "nlp_pretrain_ft_basic_033",
+      "subtopic": "pretrain_ft",
+      "subtopic_zh": "预训练范式（MLM / CLM / 全量微调 / 灾难性遗忘）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "CLM（因果语言建模）预训练范式与MLM的主要区别是什么？",
+      "reference_answer": "CLM（Causal Language Modeling）是一种自回归预训练方法，模型只能根据左侧（过去）的token预测下一个token，不能访问右侧（未来）信息，因此是单向的。而MLM利用双向上下文预测被掩盖的token。CLM常用于生成任务，如GPT系列模型；MLM则更适合理解任务。",
+      "tags": [
+        "CLM",
+        "MLM",
+        "预训练范式",
+        "区别"
+      ],
+      "id": "nlp_pretrain_ft_basic_034",
+      "subtopic": "pretrain_ft",
+      "subtopic_zh": "预训练范式（MLM / CLM / 全量微调 / 灾难性遗忘）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在预训练语言模型的全量微调过程中，什么是灾难性遗忘？",
+      "reference_answer": "灾难性遗忘是指在预训练语言模型上针对特定下游任务进行全量微调时，模型可能会丢失在预训练阶段学到的通用语言知识。由于微调只优化目标任务，模型参数被大幅调整，导致对原始预训练能力的遗忘，从而影响模型在通用任务上的表现。",
+      "tags": [
+        "全量微调",
+        "灾难性遗忘",
+        "预训练范式"
+      ],
+      "id": "nlp_pretrain_ft_basic_035",
+      "subtopic": "pretrain_ft",
+      "subtopic_zh": "预训练范式（MLM / CLM / 全量微调 / 灾难性遗忘）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在预训练-微调范式中，全量微调（Full Fine-tuning）相比仅微调顶层分类器（如Linear Probing）通常在下游任务上表现更好，但会带来灾难性遗忘（Catastrophic Forgetting）风险。请从参数更新范围和特征表示的角度，分析全量微调为何更易引发灾难性遗忘，并给出一种缓解策略。",
+      "reference_answer": "全量微调更新所有参数，会大幅改变预训练模型学到的通用特征表示，导致模型遗忘预训练阶段的知识（如句法、语义），尤其在数据量少时更明显。缓解策略包括：使用混合训练（联合预训练任务和下游任务损失）或引入正则化（如EWC、L2正则化）约束参数变化。",
+      "tags": [
+        "全量微调",
+        "灾难性遗忘"
+      ],
+      "id": "nlp_pretrain_ft_advanced_042",
+      "subtopic": "pretrain_ft",
+      "subtopic_zh": "预训练范式（MLM / CLM / 全量微调 / 灾难性遗忘）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在MLM（掩码语言模型）预训练中，如BERT使用15%的掩码比例，而CLM（因果语言模型）如GPT使用自回归方式。请从训练目标和上下文利用角度，对比MLM和CLM在捕捉双向语义与序列依赖上的根本差异，并说明这种差异如何影响它们在自然语言理解（NLU）与自然语言生成（NLG）任务上的迁移效果。",
+      "reference_answer": "MLM通过预测掩码token利用双向上下文，能建模深层语义依赖，适合NLU任务（如分类、推理）。CLM仅利用左侧上下文自回归预测下一个token，擅长捕捉序列依赖，适合NLG任务（如生成、翻译）。这种差异源于MLM双向注意力可同时访问前后信息，而CLM受因果掩码限制。",
+      "tags": [
+        "MLM",
+        "CLM",
+        "预训练范式"
+      ],
+      "id": "nlp_pretrain_ft_advanced_043",
+      "subtopic": "pretrain_ft",
+      "subtopic_zh": "预训练范式（MLM / CLM / 全量微调 / 灾难性遗忘）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "BLEU指标中的n-gram精确率是如何计算的？为什么BLEU通常需要添加一个简短惩罚因子（Brevity Penalty）？",
+      "reference_answer": "BLEU计算候选译文与参考译文中n-gram匹配的比例，即精确率。由于精确率倾向于短句子（短句更容易匹配），因此引入简短惩罚因子，当候选译文长度小于参考译文时，惩罚其得分，避免高估短而精确的译文。",
+      "tags": [
+        "BLEU",
+        "n-gram",
+        "简短惩罚"
+      ],
+      "id": "nlp_evaluation_basic_038",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "ROUGE-L指标中，基于最长公共子序列（LCS）的召回率是如何定义的？它主要衡量译文的什么特性？",
+      "reference_answer": "ROUGE-L基于候选译文与参考译文的最长公共子序列计算召回率，即LCS长度除以参考译文长度。它主要衡量译文的流畅性和信息覆盖度，因为LCS能捕捉句子级别的词序结构，而不要求连续匹配。",
+      "tags": [
+        "ROUGE-L",
+        "LCS",
+        "召回率"
+      ],
+      "id": "nlp_evaluation_basic_039",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Perplexity（困惑度）在语言模型中是如何定义的？一个更小的Perplexity值表示什么？",
+      "reference_answer": "Perplexity是语言模型在测试集上概率的几何平均的倒数，等价于交叉熵的指数形式。更小的Perplexity表示模型对测试序列的预测更准确，不确定性更低，即模型性能更好。",
+      "tags": [
+        "Perplexity",
+        "语言模型",
+        "交叉熵"
+      ],
+      "id": "nlp_evaluation_basic_040",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "BLEU和ROUGE指标在评估文本生成任务时，分别侧重于哪些方面？在实现时，它们各自的主要计算公式是什么？",
+      "reference_answer": "BLEU侧重于评估生成文本的精确率，通过计算n-gram匹配的精确度来衡量，常用4-gram。ROUGE侧重于召回率，主要通过计算生成文本与参考文本的n-gram共现来评估，如ROUGE-N。",
+      "tags": [
+        "BLEU",
+        "ROUGE",
+        "实现细节"
+      ],
+      "id": "nlp_evaluation_medium_044",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在文本分类任务中，如何计算F1分数？请解释其与精确率和召回率的关系，并说明在多分类场景下如何使用宏平均和微平均。",
+      "reference_answer": "F1分数是精确率和召回率的调和平均数，公式为2*P*R/(P+R)。多分类时，宏平均计算每个类别的F1后取算术平均，微平均先计算全局的TP/FP/FN再算F1，适用于类别不平衡。",
+      "tags": [
+        "F1",
+        "实现细节",
+        "应用场景"
+      ],
+      "id": "nlp_evaluation_medium_045",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "BERTScore与传统n-gram指标（如BLEU）相比，在评估生成文本质量时有什么优势？它利用了BERT模型的哪些特性？",
+      "reference_answer": "BERTScore利用BERT的上下文嵌入计算生成文本与参考文本的相似度，能捕捉语义相似性和同义词，克服了n-gram指标对词汇重叠的依赖。它结合了精确率、召回率和F1，对词序变化更鲁棒。",
+      "tags": [
+        "BERTScore",
+        "BLEU",
+        "应用场景"
+      ],
+      "id": "nlp_evaluation_medium_046",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在机器翻译评估中，BLEU和ROUGE-L分别侧重什么？当参考译文包含多个合理译法时，单独使用BLEU可能漏掉哪些匹配，而ROUGE-L如何弥补？请结合n-gram精度和最长公共子序列（LCS）设计原理说明。",
+      "reference_answer": "BLEU基于n-gram精度，侧重词汇和短语的精确匹配，但惩罚过短译文，可能漏掉同义或语序不同的合理译法。ROUGE-L使用LCS，能捕获最长共现子序列，更关注召回率和内容完整性，从而弥补BLEU对同义表达和语序变化的敏感性不足。",
+      "tags": [
+        "BLEU",
+        "ROUGE-L",
+        "n-gram",
+        "LCS"
+      ],
+      "id": "nlp_evaluation_advanced_050",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在生成式文本评估中，Perplexity较低是否一定代表生成质量高？请从模型过拟合、重复文本和语义多样性角度分析Perplexity的局限性，并说明为何常需结合F1或BERTScore等指标。",
+      "reference_answer": "Perplexity低仅反映模型对测试数据的预测概率高，但可能源于过拟合（记忆训练集）或生成重复、退化的文本（如循环词句），导致语义贫乏。F1可评估关键信息召回与精确，BERTScore基于语义相似度，能弥补Perplexity对语义质量和多样性的忽略。",
+      "tags": [
+        "Perplexity",
+        "F1",
+        "BERTScore",
+        "过拟合"
+      ],
+      "id": "nlp_evaluation_advanced_051",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估指标（BLEU / ROUGE / Perplexity / F1 / BERTScore）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "LoRA（Low-Rank Adaptation）微调方法的基本原理是什么？",
+      "reference_answer": "LoRA通过引入低秩矩阵分解来近似模型权重的更新增量，即在预训练权重矩阵旁添加两个可训练的低秩矩阵（A和B），仅更新这些低秩矩阵的参数，而冻结原始权重。这样能大幅减少可训练参数量，实现高效微调。",
+      "tags": [
+        "LoRA",
+        "基本原理"
+      ],
+      "id": "nlp_peft_methods_basic_046",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "QLoRA相比LoRA的主要改进是什么？",
+      "reference_answer": "QLoRA在LoRA基础上引入4-bit量化（如NF4）和双重量化技术，将预训练模型权重压缩为4-bit精度，同时保持LoRA低秩适配器的全精度训练。这进一步降低了显存占用，使得在单张消费级GPU上也能微调65B等大模型。",
+      "tags": [
+        "QLoRA",
+        "改进"
+      ],
+      "id": "nlp_peft_methods_basic_047",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Adapter微调方法的核心思想是什么？",
+      "reference_answer": "Adapter在Transformer的每一层中插入小型可训练的瓶颈模块（通常包含下投影、非线性激活和上投影），冻结原始模型参数，仅训练这些适配器模块。每个任务只需添加少量额外参数，实现参数高效的多任务微调。",
+      "tags": [
+        "Adapter",
+        "基本原理"
+      ],
+      "id": "nlp_peft_methods_basic_048",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Prefix-Tuning和P-Tuning的核心区别是什么？",
+      "reference_answer": "Prefix-Tuning在Transformer的每一层前向传播时，在键（Key）和值（Value）前添加可训练的连续向量（前缀），影响注意力计算；而P-Tuning仅在输入层前添加可训练的连续提示向量（prompt embeddings），不修改中间层。两者都冻结原模型参数。",
+      "tags": [
+        "Prefix-Tuning",
+        "P-Tuning",
+        "区别"
+      ],
+      "id": "nlp_peft_methods_basic_049",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "IA³（Infused Adapter by Inhibiting and Amplifying Inner Activations）方法如何实现参数高效微调？",
+      "reference_answer": "IA³通过引入三个可学习的缩放向量（对键、值和前馈网络输出进行逐元素缩放），冻结原始模型参数，仅训练这些缩放向量。它用极少的额外参数（约0.01%原参数量）就能达到接近全参数微调的性能，特别适合资源受限场景。",
+      "tags": [
+        "IA³",
+        "基本原理"
+      ],
+      "id": "nlp_peft_methods_basic_050",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "LoRA 方法中，低秩矩阵的秩 r 如何影响模型的微调效果和参数效率？请从欠拟合和过拟合的角度分析。",
+      "reference_answer": "秩 r 控制低秩矩阵的参数量。r 过小（如1）会导致欠拟合，无法充分捕捉下游任务特征；r 过大（如128）会增加参数量，接近全参数微调，可能过拟合且降低参数效率。通常 r=8~64 在效果与效率间取得平衡。",
+      "tags": [
+        "LoRA",
+        "秩选择",
+        "欠拟合过拟合"
+      ],
+      "id": "nlp_peft_methods_medium_056",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "QLoRA 在量化基础上进行 LoRA 微调时，为什么需要采用双重量化（Double Quantization）和分页优化器（Paged Optimizer）？",
+      "reference_answer": "双重量化进一步压缩量化常数占用的内存，减少存储开销；分页优化器利用 CPU 与 GPU 之间的统一内存管理，在显存不足时将优化器状态分页到 CPU 内存，避免 OOM。两者共同使 QLoRA 能在单卡 48GB 显存上微调 65B 模型。",
+      "tags": [
+        "QLoRA",
+        "双重量化",
+        "分页优化器"
+      ],
+      "id": "nlp_peft_methods_medium_057",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Adapter 模块通常插入 Transformer 的哪些位置？其瓶颈结构（bottleneck）的设计目的是什么？",
+      "reference_answer": "Adapter 通常插入在 Transformer 每层的多头注意力（MHA）和前馈网络（FFN）之后。瓶颈结构先降维再升维，大幅减少新增参数量（通常为原模型的 3%~5%），同时保持模型容量，避免灾难性遗忘。",
+      "tags": [
+        "Adapter",
+        "瓶颈结构",
+        "插入位置"
+      ],
+      "id": "nlp_peft_methods_medium_058",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Prefix-Tuning 与 P-Tuning 在可训练参数的注入方式上有何本质区别？",
+      "reference_answer": "Prefix-Tuning 在 Transformer 每层的 key 和 value 前添加可学习的连续前缀向量，直接修改注意力机制。P-Tuning 仅在输入层前添加可学习的 prompt 嵌入，不修改内部层。因此 Prefix-Tuning 参数量更大，对深层语义影响更直接。",
+      "tags": [
+        "Prefix-Tuning",
+        "P-Tuning",
+        "注入方式"
+      ],
+      "id": "nlp_peft_methods_medium_059",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "IA³ 方法通过缩放激活值实现微调，其缩放向量通常作用于 Transformer 的哪些子层？与 LoRA 相比，IA³ 在推理时有何独特优势？",
+      "reference_answer": "IA³ 的缩放向量作用于注意力机制中的 key 和 value，以及前馈网络中的中间激活。与 LoRA 相比，IA³ 在推理时可将缩放向量融合进原始权重，实现零额外计算开销（zero-cost inference），而 LoRA 需额外合并或分支计算。",
+      "tags": [
+        "IA³",
+        "激活缩放",
+        "推理优势"
+      ],
+      "id": "nlp_peft_methods_medium_060",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LLaMA-7B上使用LoRA进行下游任务微调时，若选择rank=8与rank=64两种配置，请从参数量、训练速度、模型微调后泛化能力三个维度分析其权衡关系，并说明在什么边界情况下rank=64反而可能劣于rank=8？",
+      "reference_answer": "rank=8参数量少、训练快，但表达能力受限；rank=64参数量大、训练慢，但能更精细地适应下游任务。边界情况：当下游训练数据极少（如<100条）且任务与预训练分布差异不大时，rank=64因引入过多可训练参数易过拟合，泛化能力反而不如rank=8。",
+      "tags": [
+        "LoRA",
+        "Rank选择",
+        "过拟合边界",
+        "泛化权衡"
+      ],
+      "id": "nlp_peft_methods_advanced_066",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在QLoRA中，NF4量化与双重量化（Double Quantization）分别解决什么问题？若将QLoRA应用于一个32层、4096隐藏维度的LLaMA模型，请计算其显存节省的理论下限（假设原始权重为FP16，忽略其他开销）。",
+      "reference_answer": "NF4量化将权重压缩为4-bit，减少显存占用；双重量化进一步量化量化常数，降低额外存储开销。计算：原始FP16权重约32×4096×4096×2字节≈1.07GB；NF4后约1.07/4=0.268GB；双重量化再节省约0.5%常数存储，总节省至约1/4以下，即约0.267GB。实际加上LoRA权重和优化器状态，显存节省显著但略高于此值。",
+      "tags": [
+        "QLoRA",
+        "NF4量化",
+        "双重量化",
+        "显存计算"
+      ],
+      "id": "nlp_peft_methods_advanced_067",
+      "subtopic": "peft_methods",
+      "subtopic_zh": "参数高效微调（LoRA/QLoRA/Adapter/Prefix-Tuning/P-Tuning/IA³）",
+      "difficulty": "advanced"
+    }
+  ]
+}

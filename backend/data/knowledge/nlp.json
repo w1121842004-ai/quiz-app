@@ -1,0 +1,199 @@
+{
+  "module": "nlp",
+  "module_name": "NLP自然语言处理",
+  "total": 12,
+  "cards": [
+    {
+      "title": "AutoModel vs 特定模型类",
+      "summary": "AutoModel自动选择架构，特定类需手动指定。",
+      "points": [
+        "便捷性：AutoModel自动匹配checkpoint的架构；特定类需用户明确知道模型类型",
+        "灵活性：AutoModel可适配多种架构；特定类仅限一种架构（如BertModel）",
+        "推荐：快速实验用AutoModel；需精细控制架构时用特定类"
+      ],
+      "tip": "快速原型用AutoModel，生产环境或需定制时用特定模型类。",
+      "id": "nlp_compare_001",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "tokenizer预处理 vs 模型推理",
+      "summary": "tokenizer将文本转数字，模型输出隐藏状态。",
+      "points": [
+        "输入：tokenizer接收原始文本；模型接收input_ids等张量",
+        "输出：tokenizer返回input_ids、attention_mask等；模型返回隐藏状态或logits",
+        "核心：tokenizer是预处理步骤；模型是核心推理部分"
+      ],
+      "tip": "始终先调用tokenizer，再传入模型；注意padding和truncation参数。",
+      "id": "nlp_compare_002",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "模型保存 vs 模型加载",
+      "summary": "save_pretrained存权重和配置；from_pretrained加载。",
+      "points": [
+        "保存文件：config.json（架构）+ model.safetensors（权重）；加载时需两者同时存在",
+        "本地/远程：save_pretrained存本地；push_to_hub上传Hub；from_pretrained支持本地路径和Hub ID",
+        "复用：保存后可用from_pretrained直接加载；共享通过push_to_hub实现"
+      ],
+      "tip": "保存模型时确保目录包含config.json和权重文件；加载时优先使用Hub ID。",
+      "id": "nlp_compare_003",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "单句编码 vs 双句编码",
+      "summary": "单句编码添加[CLS][SEP]；双句编码区分句子A/B。",
+      "points": [
+        "输入：单句传一个字符串；双句传两个字符串或列表",
+        "输出：单句返回input_ids含[CLS]和[SEP]；双句返回token_type_ids区分句子",
+        "用途：单句用于分类；双句用于问答、推理等任务"
+      ],
+      "tip": "双句编码时注意token_type_ids是否正确；单句编码无需此字段。",
+      "id": "nlp_compare_004",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "交叉熵损失函数",
+      "summary": "L = -∑ y_i log(p_i) 衡量预测分布与真实分布的差异",
+      "points": [
+        "y_i: 真实标签的one-hot编码（1表示正确类别，0表示其他）",
+        "p_i: 模型预测的各类别概率（softmax输出）",
+        "损失值越小，预测分布越接近真实分布；最小化交叉熵等价于最大化正确类别的对数概率",
+        "直觉理解：模型对正确类别预测概率越接近1，损失越接近0"
+      ],
+      "tip": "交叉熵损失常用于分类任务，注意与KL散度的关系：交叉熵=熵+KL散度，最小化交叉熵等价于最小化KL散度",
+      "id": "nlp_formula_005",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "Softmax函数",
+      "summary": "p_i = e^{z_i} / ∑_j e^{z_j} 将logits转换为概率分布",
+      "points": [
+        "z_i: 模型输出的原始分数（logits）",
+        "p_i: 归一化后的概率，范围(0,1)且所有p_i之和为1",
+        "指数运算放大差异：较大logits对应更大概率，较小logits被压制",
+        "直觉理解：将任意实数向量转化为合法的概率分布，常用于多分类输出层"
+      ],
+      "tip": "Softmax对数值敏感，当logits差异很大时可能导致梯度消失；常用技巧：减去最大值保持数值稳定",
+      "id": "nlp_formula_006",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "注意力机制（缩放点积）",
+      "summary": "Attention(Q,K,V) = softmax(QK^T/√d_k)V 计算序列中元素间的相关性加权",
+      "points": [
+        "Q: 查询矩阵，表示当前关注的位置",
+        "K: 键矩阵，表示所有位置的特征",
+        "V: 值矩阵，表示所有位置的实际信息",
+        "√d_k: 缩放因子，d_k为键的维度，防止点积过大导致softmax梯度消失",
+        "直觉理解：通过Q与K的点积计算相似度，用softmax归一化为权重，再对V加权求和得到上下文表示"
+      ],
+      "tip": "自注意力中Q、K、V来自同一输入；缩放因子√d_k是关键设计，不缩放时大维度下softmax会趋于one-hot分布",
+      "id": "nlp_formula_007",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "使用AutoTokenizer预处理文本",
+      "summary": "将文本转换为模型可接受的数值张量。",
+      "points": [
+        "from transformers import AutoTokenizer  # 导入分词器类",
+        "checkpoint = \"distilbert-base-uncased-finetuned-sst-2-english\"  # 指定预训练模型名称",
+        "tokenizer = AutoTokenizer.from_pretrained(checkpoint)  # 自动下载并加载对应分词器",
+        "raw_inputs = [\"I've been waiting...\", \"I hate this so much!\"]  # 准备输入文本列表",
+        "inputs = tokenizer(raw_inputs, padding=True, truncation=True, return_tensors=\"pt\")  # 分词、填充、截断并返回PyTorch张量",
+        "print(inputs)  # 输出包含input_ids和attention_mask的字典"
+      ],
+      "tip": "必须使用与模型相同的checkpoint加载分词器，否则token映射不一致；padding和truncation通常设为True以处理变长序列。",
+      "id": "nlp_code_008",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "加载预训练模型并获取隐藏状态",
+      "summary": "从Hub加载模型，输入编码后得到高维特征向量。",
+      "points": [
+        "from transformers import AutoModel  # 导入自动模型类",
+        "checkpoint = \"distilbert-base-uncased-finetuned-sst-2-english\"  # 指定与分词器相同的checkpoint",
+        "model = AutoModel.from_pretrained(checkpoint)  # 自动下载并加载模型权重",
+        "outputs = model(**inputs)  # 将预处理后的inputs传入模型，返回包含last_hidden_state等属性的对象",
+        "hidden_states = outputs.last_hidden_state  # 提取形状为(batch_size, seq_len, hidden_size)的隐藏状态"
+      ],
+      "tip": "AutoModel只输出基础隐藏状态，如需分类需用AutoModelForSequenceClassification等带任务头的类；确保inputs与模型在同一设备上。",
+      "id": "nlp_code_009",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "保存与加载模型到本地或Hub",
+      "summary": "持久化模型权重和配置，便于复用和分享。",
+      "points": [
+        "model.save_pretrained(\"my_model_directory\")  # 将模型权重和config.json保存到本地目录",
+        "from transformers import AutoModel  # 重新导入",
+        "model = AutoModel.from_pretrained(\"my_model_directory\")  # 从本地目录加载模型",
+        "model.push_to_hub(\"my-awesome-model\")  # 将模型上传到Hugging Face Hub（需先登录）",
+        "# 他人加载：AutoModel.from_pretrained(\"your-username/my-awesome-model\")"
+      ],
+      "tip": "save_pretrained会保存config.json和model.safetensors两个文件，缺少任一文件将无法加载；上传前需通过notebook_login()或huggingface-cli login登录。",
+      "id": "nlp_code_010",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "Tokenizer输出可以直接输入模型",
+      "summary": "必须将输入ID转换为张量格式",
+      "points": [
+        "容易犯错：认为tokenizer返回的字典可直接输入模型，忽略框架要求。",
+        "正确理解：Transformer模型只接受张量（如PyTorch或TensorFlow）作为输入，需用return_tensors参数指定类型。"
+      ],
+      "tip": "tokenizer输出是字典，模型只吃张量",
+      "id": "nlp_gotcha_011",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "AutoModel输出就是最终预测结果",
+      "summary": "AutoModel输出隐藏状态，需配合任务头",
+      "points": [
+        "容易犯错：误以为AutoModel直接给出分类或回归结果，混淆基础模型和带任务头的模型。",
+        "正确理解：AutoModel仅输出隐藏状态（特征），需使用AutoModelForSequenceClassification等特定类才能得到预测。"
+      ],
+      "tip": "基础模型出特征，任务头出结果",
+      "id": "nlp_gotcha_012",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

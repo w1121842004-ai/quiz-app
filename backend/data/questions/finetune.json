@@ -1,0 +1,779 @@
+{
+  "module": "finetune",
+  "module_name": "LLM微调与对齐",
+  "total": 57,
+  "subtopics": [
+    {
+      "id": "sft",
+      "name_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "target": 10
+    },
+    {
+      "id": "rlhf",
+      "name_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "target": 9
+    },
+    {
+      "id": "dpo",
+      "name_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "target": 8
+    },
+    {
+      "id": "lora",
+      "name_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "target": 10
+    },
+    {
+      "id": "other_peft",
+      "name_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "target": 8
+    },
+    {
+      "id": "data",
+      "name_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "target": 7
+    },
+    {
+      "id": "practical",
+      "name_zh": "实战技巧（显存优化 / 超参选择 / 收敛判断 / 灾难性遗忘）",
+      "target": 8
+    }
+  ],
+  "questions": [
+    {
+      "question": "在SFT训练中，使用Hugging Face的TRL库时，SFTTrainer默认期望的数据集格式是什么？",
+      "reference_answer": "SFTTrainer默认期望数据集包含一个'text'字段，该字段包含完整的训练文本（包括指令和回答），或者包含'prompt'和'completion'字段分别表示输入和输出。",
+      "tags": [
+        "数据格式",
+        "SFTTrainer"
+      ],
+      "id": "finetune_sft_basic_001",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "ChatTemplate在监督微调中的作用是什么？",
+      "reference_answer": "ChatTemplate定义了如何将对话历史（如用户和助手消息）格式化为模型可接受的输入序列，包括添加特殊标记（如<|im_start|>、<|im_end|>）和角色标签，确保模型正确理解对话结构。",
+      "tags": [
+        "ChatTemplate",
+        "数据格式"
+      ],
+      "id": "finetune_sft_basic_002",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在TRL的SFT训练流程中，通常如何利用PEFT（如LoRA）来降低显存占用？",
+      "reference_answer": "通过使用PEFT的LoraConfig配置，将LoRA适配器注入到基础模型的特定层（如注意力层），只训练适配器参数（通常占模型参数的0.1%~1%），同时冻结基础模型，从而大幅减少可训练参数量和显存需求。",
+      "tags": [
+        "训练流程",
+        "PEFT",
+        "LoRA"
+      ],
+      "id": "finetune_sft_basic_003",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "使用QLoRA进行SFT时，一个常见的坑是什么？",
+      "reference_answer": "常见坑是忘记在训练后将LoRA适配器与基础模型合并或单独保存适配器权重，导致推理时模型未加载适配器而输出错误结果。正确做法是使用model.save_pretrained()保存适配器，或使用PeftModel.from_pretrained()加载。",
+      "tags": [
+        "常见坑",
+        "QLoRA"
+      ],
+      "id": "finetune_sft_basic_004",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在SFT中，ChatTemplate的作用是什么？如果训练数据中的对话格式与模型的ChatTemplate不匹配，会导致什么问题？",
+      "reference_answer": "ChatTemplate定义了模型处理多轮对话时的输入格式，包括系统、用户、助手消息的标记与分隔。不匹配会导致模型无法正确理解对话结构，可能将用户历史输入误认为助手回复，或丢失系统提示，严重影响微调后模型遵循指令和多轮对话的能力。",
+      "tags": [
+        "ChatTemplate",
+        "数据格式",
+        "常见坑"
+      ],
+      "id": "finetune_sft_medium_009",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "解释SFT训练流程中，为什么通常使用'教师强制'（Teacher Forcing）策略，并指出其潜在缺点。",
+      "reference_answer": "教师强制在训练时让模型每一步都基于真实的上文（而非自身预测）来预测下一个token，可加速收敛并稳定训练。缺点是训练与推理时分布不一致（Exposure Bias），导致模型在推理时遇到自身错误时可能累积偏差，降低生成质量。",
+      "tags": [
+        "训练流程",
+        "常见坑",
+        "原理理解"
+      ],
+      "id": "finetune_sft_medium_010",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在SFT中，使用LoRA进行参数高效微调时，训练数据是否需要包括所有原始对话的token？为什么？",
+      "reference_answer": "不需要。LoRA通过低秩矩阵更新模型的部分参数（如注意力层的Q、V投影），训练时仅需对输入序列中需要预测损失的部分（通常是助手回复）计算梯度。但整个对话上下文仍需输入用于前向计算，以提供正确的注意力上下文。",
+      "tags": [
+        "训练流程",
+        "实现细节",
+        "常见坑"
+      ],
+      "id": "finetune_sft_medium_011",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在SFT训练中，如果训练数据中的回答包含大量重复的标点符号或无关内容，但损失函数仍会降低，这通常反映了什么问题？如何缓解？",
+      "reference_answer": "这反映模型可能过拟合了数据中的噪声模式，而非学习有用的语义。缓解方法包括：数据清洗（去除低质量样本）、使用困惑度过滤、设置最大序列长度截断、采用损失加权（仅计算回答部分的损失）或引入正则化技术如标签平滑。",
+      "tags": [
+        "常见坑",
+        "训练流程",
+        "数据格式"
+      ],
+      "id": "finetune_sft_medium_012",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在SFT中，使用ChatTemplate时，如果训练数据中的对话轮次长度不一（例如有些是单轮、有些是多轮），直接采用统一的模板进行填充会引入哪些常见问题？如何通过数据预处理或模板设计来缓解这些问题？",
+      "reference_answer": "主要问题包括：1）填充后的序列中，短对话会包含大量无意义的padding token，浪费计算资源；2）若padding位置不当，可能导致模型学习到错误的注意力模式，例如对padding token产生依赖；3）多轮对话的模板可能因轮次差异导致位置编码偏移。缓解方法：1）使用动态批处理（dynamic batching）将长度相近的样本分到同一batch；2）对多轮对话采用分段式模板，为每轮添加明确分隔符（如<|im_end|>）；3）调整padding策略为左侧padding（left-padding），避免影响因果语言模型的生成起始位置。",
+      "tags": [
+        "ChatTemplate",
+        "数据格式",
+        "训练流程"
+      ],
+      "id": "finetune_sft_advanced_017",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在SFT训练中，如果使用LoRA（低秩适配）进行参数高效微调，并且模型包含embedding层和lm_head层，常见的一个坑是这些层没有被包含在LoRA适配器中。请解释为什么这会导致微调效果不佳，以及如何正确配置LoRA以解决此问题？",
+      "reference_answer": "Embedding层和lm_head层通常不包含在LoRA的target_modules中，这会导致模型无法有效学习新的词汇或调整输出分布，尤其当领域词汇与预训练语料差异较大时，微调效果会显著下降。解决方法：在LoraConfig中显式指定target_modules包含embedding层（如['embed_tokens']）和lm_head层（如['lm_head']），或使用all_linear参数。注意：这可能会增加可训练参数量，需权衡计算开销。",
+      "tags": [
+        "训练流程",
+        "常见坑",
+        "PEFT"
+      ],
+      "id": "finetune_sft_advanced_018",
+      "subtopic": "sft",
+      "subtopic_zh": "监督微调SFT（数据格式 / ChatTemplate / 训练流程 / 常见坑）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RLHF中，奖励模型（Reward Model）的作用是什么？它是如何训练的？",
+      "reference_answer": "奖励模型用于学习人类偏好，为模型生成的输出打分。训练时，使用人类标注的偏好数据（如选择更优的回答），通过对比损失（如Bradley-Terry模型）优化，使模型能预测人类更偏好的输出。",
+      "tags": [
+        "奖励模型",
+        "RLHF原理"
+      ],
+      "id": "finetune_rlhf_basic_011",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PPO（Proximal Policy Optimization）在RLHF中如何用于微调语言模型？",
+      "reference_answer": "PPO通过策略梯度方法优化语言模型，使用奖励模型提供的奖励信号。它引入裁剪（clipping）机制限制策略更新幅度，避免训练不稳定，同时结合KL散度惩罚防止模型偏离初始SFT模型过远。",
+      "tags": [
+        "PPO",
+        "RLHF原理"
+      ],
+      "id": "finetune_rlhf_basic_012",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "什么是对齐税（Alignment Tax）？在RLHF中如何体现？",
+      "reference_answer": "对齐税指为让模型符合人类偏好（如有用、无害）而牺牲其原有能力（如创造力、多样性）的现象。例如，RLHF后模型回答更安全但可能变得保守或缺乏创意，这种性能损失即对齐税。",
+      "tags": [
+        "对齐税",
+        "RLHF原理"
+      ],
+      "id": "finetune_rlhf_basic_013",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Goodhart定律在RLHF中如何体现？举例说明。",
+      "reference_answer": "Goodhart定律指出：当某个指标成为优化目标后，它就不再是好的指标。在RLHF中，若过度优化奖励模型分数，模型可能学会利用奖励模型的漏洞（如生成看似合理但无意义的回答），导致奖励虚高而实际质量下降。",
+      "tags": [
+        "Goodhart定律",
+        "RLHF原理"
+      ],
+      "id": "finetune_rlhf_basic_014",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RLHF的PPO训练中，奖励模型（Reward Model）的分数直接用于优化策略模型，但实践中常出现模型生成流畅但不符合人类偏好的结果。请从奖励模型偏差和PPO优化目标的角度，分析这种现象的可能原因。",
+      "reference_answer": "奖励模型在训练数据上可能存在分布外（OOD）泛化问题，导致对模型新生成样本的评分不准确；同时PPO优化中，策略模型可能过度优化奖励模型，利用其漏洞（reward hacking），即使奖励分数高，实际输出却偏离真实人类偏好。",
+      "tags": [
+        "奖励模型",
+        "PPO",
+        "reward hacking"
+      ],
+      "id": "finetune_rlhf_medium_019",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "解释“对齐税”（Alignment Tax）在RLHF中的具体含义，并说明它为何在PPO优化后出现。",
+      "reference_answer": "对齐税指模型在与人类偏好对齐后（如通过RLHF），在某些通用能力（如事实准确性、创造性）上出现性能下降。PPO优化中，模型为最大化奖励模型分数，可能牺牲原有知识分布，导致在非奖励覆盖的任务上表现变差。",
+      "tags": [
+        "对齐税",
+        "PPO",
+        "RLHF"
+      ],
+      "id": "finetune_rlhf_medium_020",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Goodhart定律在RLHF中如何体现？请结合奖励模型训练和PPO优化流程，给出一个具体案例。",
+      "reference_answer": "Goodhart定律指出当指标成为目标时，它就不再是好指标。在RLHF中，奖励模型作为人类偏好的代理指标，PPO优化时策略模型可能过度优化该指标，例如生成冗长但空洞的回答以迎合奖励模型对长度的偏好，而非真正提升质量。",
+      "tags": [
+        "Goodhart定律",
+        "奖励模型",
+        "PPO"
+      ],
+      "id": "finetune_rlhf_medium_021",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RLHF的PPO阶段，为何通常需要加入KL散度惩罚项？如果不加，可能引发哪些具体问题？",
+      "reference_answer": "KL散度惩罚项约束策略模型与初始SFT模型的分布差异，防止模型因过度优化奖励而偏离原始语言能力。不加会导致模型快速崩溃（reward hacking），生成重复、无意义或语法错误的文本，同时加剧对齐税，降低通用性能。",
+      "tags": [
+        "PPO",
+        "KL散度",
+        "对齐税"
+      ],
+      "id": "finetune_rlhf_medium_022",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RLHF的PPO训练中，如果奖励模型（Reward Model）在训练集上表现完美（准确率接近100%），但部署时模型出现严重的‘对齐税’（如输出变得冗长、重复或过于保守），请从Goodhart定律和奖励模型过优化的角度分析该现象的成因，并设计一种缓解策略。",
+      "reference_answer": "该现象源于Goodhart定律：当奖励模型成为优化目标时，其训练集上的高准确率可能掩盖了对分布外样本的脆弱性。PPO过度优化奖励模型会导致模型在奖励信号上‘过拟合’，产生对齐税（如奖励黑客行为）。缓解策略包括：使用KL散度约束PPO的更新步长（如PPO-kl），限制策略偏离原始模型；或采用奖励模型集成（Ensemble）以降低单一模型偏差；也可引入对抗性奖励训练（Adversarial Reward Training）增强鲁棒性。",
+      "tags": [
+        "Goodhart定律",
+        "对齐税",
+        "PPO",
+        "奖励模型过优化"
+      ],
+      "id": "finetune_rlhf_advanced_027",
+      "subtopic": "rlhf",
+      "subtopic_zh": "RLHF原理（奖励模型 / PPO / 对齐税 / Goodhart定律）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在DPO训练中，DPOTrainer使用的数据集通常需要包含哪三个字段来表征偏好对？",
+      "reference_answer": "DPOTrainer使用的数据集通常需要包含'prompt'（提示）、'chosen'（选中回答）和'rejected'（拒绝回答）三个字段，用于表示偏好对中的正例和负例。",
+      "tags": [
+        "DPO",
+        "数据格式",
+        "概念定义"
+      ],
+      "id": "finetune_dpo_basic_020",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "SimPO与DPO在奖励函数设计上的核心区别是什么？",
+      "reference_answer": "SimPO使用序列平均对数概率作为隐式奖励，而DPO使用策略模型与参考模型的对数概率比作为奖励。SimPO不依赖参考模型，直接优化生成序列的概率。",
+      "tags": [
+        "SimPO",
+        "DPO",
+        "原理比较"
+      ],
+      "id": "finetune_dpo_basic_021",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "RLHF与DPO在偏好优化过程中的本质区别是什么？",
+      "reference_answer": "RLHF需要显式训练一个奖励模型来提供反馈，然后通过PPO等强化学习算法优化策略；而DPO直接利用偏好对数据，通过闭式解形式将奖励函数与策略绑定，无需单独训练奖励模型和强化学习采样过程。",
+      "tags": [
+        "RLHF",
+        "DPO",
+        "本质区别"
+      ],
+      "id": "finetune_dpo_basic_022",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在DPO训练中，如果偏好数据集中出现大量噪声（如错误标记的偏好对），会对模型产生什么影响？如何缓解？",
+      "reference_answer": "噪声偏好数据会导致模型学习到错误的偏好关系，降低对齐质量甚至恶化性能。缓解方法包括：使用高质量数据集或清洗数据；采用置信度加权或截断损失；结合正则化技术如DPO中的β参数调节；或使用SimPO等对噪声更鲁棒的替代方法。",
+      "tags": [
+        "DPO",
+        "数据噪声",
+        "鲁棒性"
+      ],
+      "id": "finetune_dpo_medium_026",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "SimPO与DPO在损失函数设计上的核心区别是什么？SimPO如何实现无需参考模型的偏好优化？",
+      "reference_answer": "DPO使用隐式奖励函数，依赖参考模型计算偏好概率比；SimPO则直接使用模型生成序列的平均对数概率作为奖励，并引入长度归一化和边界项，因此无需参考模型。SimPO的损失函数直接优化正负样本的奖励差值，更简洁高效。",
+      "tags": [
+        "SimPO",
+        "DPO",
+        "损失函数"
+      ],
+      "id": "finetune_dpo_medium_027",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "RLHF与DPO在训练流程和资源需求上的本质区别是什么？为什么DPO更易于部署？",
+      "reference_answer": "RLHF需要训练一个独立的奖励模型，再通过PPO等强化学习算法优化策略，流程复杂且资源消耗大；DPO直接从偏好数据中学习策略，无需奖励模型和在线采样，训练稳定且资源需求低。DPO的简洁性使其更适合资源受限场景。",
+      "tags": [
+        "RLHF",
+        "DPO",
+        "训练流程"
+      ],
+      "id": "finetune_dpo_medium_028",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "DPO和RLHF在优化目标上存在本质区别，但两者都依赖偏好数据。请从算法原理角度，详细分析DPO如何绕过显式奖励模型，以及这种设计在训练稳定性和计算效率上的核心权衡是什么？",
+      "reference_answer": "RLHF先训练一个奖励模型来拟合人类偏好，再通过PPO等强化学习算法优化策略，流程复杂且需交替训练。DPO直接利用偏好数据中的胜者和败者样本，通过推导出的闭式损失函数来隐式优化奖励，无需显式奖励模型。核心权衡在于：DPO省去了奖励模型训练和强化学习采样的开销，计算更高效；但RLHF的奖励模型可作为独立信号提供更灵活的反馈（如与KL散度联合控制），且PPO的在线采样能缓解分布偏移，DPO在离线数据上可能面临更严重的过拟合问题。",
+      "tags": [
+        "DPO",
+        "RLHF",
+        "算法对比",
+        "训练稳定性"
+      ],
+      "id": "finetune_dpo_advanced_032",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "SimPO通过序列平均对数概率作为隐式奖励来优化偏好，这与DPO直接使用参考模型和策略模型的概率比有何本质不同？请从奖励函数定义、对生成分布的影响和计算开销三个维度对比分析。",
+      "reference_answer": "DPO的隐式奖励基于当前策略模型和参考模型对偏好对的概率比，鼓励策略在保持与参考模型接近的同时偏向胜者。SimPO则直接使用策略模型对完整回答序列的平均对数概率作为奖励，无需参考模型。影响上：DPO更注重相对排序，可能限制策略偏离参考模型的程度；SimPO则直接优化生成序列的似然，更鼓励高置信度生成。计算上：DPO需要维护参考模型并计算两个模型的概率比，内存和计算开销更大；SimPO仅需当前策略模型，更高效。",
+      "tags": [
+        "SimPO",
+        "DPO",
+        "奖励函数",
+        "计算效率"
+      ],
+      "id": "finetune_dpo_advanced_033",
+      "subtopic": "dpo",
+      "subtopic_zh": "偏好优化（DPO / ORPO / SimPO / 与RLHF的本质区别）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "QLoRA中提出的4-bit NormalFloat（NF4）数据类型的理论基础是什么？",
+      "reference_answer": "NF4是一种信息理论最优的数据类型，它假设预训练模型的权重服从正态分布，通过归一化浮点数使得量化区间在正态分布下信息损失最小化，从而在4-bit精度下保留更多有效信息。",
+      "tags": [
+        "QLoRA",
+        "NF4",
+        "量化"
+      ],
+      "id": "finetune_lora_basic_028",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "LoRA的核心思想是什么？请简要说明其原理推导中的低秩分解如何减少参数量。",
+      "reference_answer": "LoRA通过将预训练权重矩阵的更新量ΔW分解为两个低秩矩阵A和B的乘积（ΔW=BA），其中秩r远小于原始维度。训练时冻结原始权重，仅优化A和B，从而大幅减少可训练参数量。",
+      "tags": [
+        "LoRA",
+        "低秩分解",
+        "原理"
+      ],
+      "id": "finetune_lora_basic_029",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "QLoRA中Double Quantization（双重量化）的目的是什么？",
+      "reference_answer": "双重量化旨在进一步减少量化常数的内存占用。它首先对模型权重进行4-bit量化得到一组量化常数，然后对这些常数再进行一次8-bit量化，从而将平均每个参数的内存占用从约0.5比特降至约0.127比特。",
+      "tags": [
+        "QLoRA",
+        "双重量化",
+        "内存优化"
+      ],
+      "id": "finetune_lora_basic_030",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "AdaLoRA如何动态调整不同权重矩阵的秩？",
+      "reference_answer": "AdaLoRA通过引入参数化奇异值分解（SVD）形式的低秩更新，并为每个奇异值分配可学习的重要性分数。在训练过程中，根据梯度信息自动剪枝不重要的奇异值，从而为不同层自适应分配不同的秩。",
+      "tags": [
+        "AdaLoRA",
+        "秩选择",
+        "自适应"
+      ],
+      "id": "finetune_lora_basic_031",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "QLoRA 中引入了哪三项关键技术来减少显存占用？请分别简述其作用。",
+      "reference_answer": "(1) 4-bit NormalFloat (NF4)：一种信息论上最优的量化数据类型，适用于正态分布的权重，相比标准4位量化损失更小。(2) 双重量化：对量化常数再次量化，进一步减少平均显存占用。(3) 分页优化器：利用CPU内存管理GPU显存尖峰，防止OOM。",
+      "tags": [
+        "QLoRA",
+        "量化",
+        "显存优化"
+      ],
+      "id": "finetune_lora_medium_036",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "AdaLoRA 如何解决标准LoRA中所有秩分量重要性相同的问题？其核心机制是什么？",
+      "reference_answer": "AdaLoRA 通过参数化权重矩阵的奇异值分解，对每个秩分量赋予可学习的重要性权重（即奇异值），并在训练过程中根据重要性动态剪枝不重要的分量。核心机制是使用 SVD 形式的低秩分解并施加正则化，自适应地调整秩的分配，避免固定秩带来的性能损失。",
+      "tags": [
+        "AdaLoRA",
+        "秩选择",
+        "动态剪枝"
+      ],
+      "id": "finetune_lora_medium_037",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "LoftQ 旨在解决QLoRA中的什么缺陷？它是如何改进的？",
+      "reference_answer": "LoftQ 发现 QLoRA 中量化误差与 LoRA 初始化不匹配会导致性能下降。它通过迭代交替进行量化和低秩近似，为 LoRA 适配器提供更优的初始化权重，从而缩小量化后模型与全精度模型之间的差距，提升微调效果。",
+      "tags": [
+        "LoftQ",
+        "QLoRA",
+        "初始化"
+      ],
+      "id": "finetune_lora_medium_038",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LoRA微调中，秩r的选择对模型性能有何影响？简述秩选择的常见原则。",
+      "reference_answer": "秩r决定了低秩矩阵的参数量和表达能力。r过小，适配能力不足，可能欠拟合；r过大，参数量增加，可能过拟合且降低微调效率。常见原则：从较小值（如8、16）开始尝试，根据验证集性能调整；对于复杂任务可适当增大，简单任务则减小；也可利用AdaLoRA等方法自动学习最优秩。",
+      "tags": [
+        "秩选择",
+        "超参数",
+        "LoRA"
+      ],
+      "id": "finetune_lora_medium_039",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在QLoRA中，双重量化（Double Quantization）是如何具体实现的？它解决了什么问题？请详细说明其计算流程和内存节省的数学原理。",
+      "reference_answer": "双重量化首先对模型权重进行4-bit NormalFloat（NF4）量化，得到量化常数（scales），这些常数通常是float32类型。然后对这些量化常数再进行一次8-bit量化，将每个常数的存储从32位降至8位，进一步减少内存占用。例如，假设有64个权重块对应64个量化常数，原本需64×32=2048位，双重量化后只需64×8=512位，节省约75%的常数存储空间。这解决了量化常数本身占用内存的问题，使得整体内存更高效。",
+      "tags": [
+        "QLoRA",
+        "双重量化",
+        "内存优化",
+        "原理推导"
+      ],
+      "id": "finetune_lora_advanced_044",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "AdaLoRA与标准LoRA在秩选择机制上有何本质区别？AdaLoRA如何动态调整不同权重矩阵的秩，并保证训练稳定性？",
+      "reference_answer": "标准LoRA对所有层使用固定且相同的秩r，而AdaLoRA基于参数重要性动态分配秩。AdaLoRA将LoRA的秩分解为奇异值分解（SVD）形式，通过引入正则化项（如L0或L1）对奇异值进行稀疏化，在训练过程中根据重要性分数剪枝不重要的奇异值，从而为不同层自适应调整有效秩。为保证稳定性，AdaLoRA使用软剪枝（即通过门控机制逐渐将不重要奇异值置零）而非硬剪枝，并采用动量更新避免梯度噪声导致剧烈变化。",
+      "tags": [
+        "AdaLoRA",
+        "秩选择",
+        "动态调整",
+        "SVD"
+      ],
+      "id": "finetune_lora_advanced_045",
+      "subtopic": "lora",
+      "subtopic_zh": "LoRA系列（原理推导 / QLoRA / AdaLoRA / LoftQ / 秩选择）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在PEFT中，Adapter方法的核心思想是什么？它通常插入在Transformer架构的哪个位置？",
+      "reference_answer": "Adapter方法通过在Transformer层中插入小型瓶颈网络（bottleneck）来实现参数高效微调，通常插入在Transformer的每个子层（如自注意力层和前馈神经网络层）之后，残差连接之前。训练时仅更新Adapter参数，预训练模型参数保持冻结。",
+      "tags": [
+        "Adapter",
+        "基本原理",
+        "架构位置"
+      ],
+      "id": "finetune_other_peft_basic_038",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Prefix-Tuning与P-Tuning v2的主要区别是什么？",
+      "reference_answer": "Prefix-Tuning在输入序列前添加可学习的虚拟token（prefix），仅调整输入层；而P-Tuning v2将可学习的prompt token插入到每一层Transformer的输入中，而非仅第一层，从而提升深层网络的效果，适用于更多任务。",
+      "tags": [
+        "Prefix-Tuning",
+        "P-Tuning v2",
+        "区别"
+      ],
+      "id": "finetune_other_peft_basic_039",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "IA³（Infused Adapter by Inhibiting and Amplifying Inner Activations）方法如何实现参数高效微调？",
+      "reference_answer": "IA³通过引入三个可学习的缩放向量，分别作用于Transformer中的Key、Value和前馈网络激活值，通过元素级相乘来调整内部表示。训练时仅更新这些缩放向量，原始模型参数冻结，从而大幅减少可训练参数量。",
+      "tags": [
+        "IA³",
+        "基本原理",
+        "缩放向量"
+      ],
+      "id": "finetune_other_peft_basic_040",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Adapter方法中，通常会在Transformer的每一层插入两个串行的Adapter模块，请解释这种设计的原因以及它与仅插入一个Adapter相比的优势。",
+      "reference_answer": "串行插入两个Adapter（一个在多头注意力后，一个在FFN后）可以分别适配不同子层的特征变换，避免单一Adapter因输入分布差异大而难以学习。相比单个Adapter，这种设计能更精细地调整每一子层的输出，提升适配能力，同时保持参数量增量可控。",
+      "tags": [
+        "Adapter",
+        "原理理解",
+        "实现细节"
+      ],
+      "id": "finetune_other_peft_medium_044",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Prefix-Tuning和P-Tuning v2都是基于连续提示的PEFT方法，请说明P-Tuning v2在哪些关键点上改进了Prefix-Tuning，从而提升了性能？",
+      "reference_answer": "P-Tuning v2将可学习的提示向量应用于Transformer的每一层（包括嵌入层和所有隐藏层），而Prefix-Tuning仅应用于部分层。此外，P-Tuning v2使用更小的提示长度并采用重参数化编码器，提高了优化稳定性和模型容量，从而在NLU任务上超越Prefix-Tuning。",
+      "tags": [
+        "Prefix-Tuning",
+        "P-Tuning v2",
+        "原理理解",
+        "应用场景分析"
+      ],
+      "id": "finetune_other_peft_medium_045",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "IA³（Infused Adapter by Inhibiting and Amplifying Inner Activations）方法通过学习缩放向量来调整激活值，请说明IA³在训练和推理阶段相比传统Adapter方法的优势？",
+      "reference_answer": "IA³仅学习三个缩放向量（分别作用于key、value和前馈层），参数量远少于Adapter，计算开销几乎为零。训练时只需微调这些缩放参数，推理时可合并到原权重中，不引入额外延迟。这使得IA³非常适合资源受限场景，如移动端或实时推理。",
+      "tags": [
+        "IA³",
+        "实现细节",
+        "应用场景分析"
+      ],
+      "id": "finetune_other_peft_medium_046",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在序列标注任务中，Prefix-Tuning与P-Tuning v2都引入了可学习的连续向量。请分析两者在插入位置、参数更新方式以及对原始模型架构侵入性上的核心差异，并说明在什么场景下P-Tuning v2可能优于Prefix-Tuning。",
+      "reference_answer": "Prefix-Tuning在每一层Transformer的key和value前添加前缀向量，仅更新前缀参数；P-Tuning v2则在每一层输入前添加可学习的提示向量，并允许部分层参数微调。P-Tuning v2对模型架构侵入性更小，适用于深层模型或需要更细粒度控制的场景，而Prefix-Tuning在浅层或任务简单时更高效。",
+      "tags": [
+        "Prefix-Tuning",
+        "P-Tuning v2",
+        "对比分析",
+        "架构差异"
+      ],
+      "id": "finetune_other_peft_advanced_050",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "考虑一个多模态（文本+图像）的翻译任务，你需要在冻结的预训练语言模型上引入Adapter模块。请分析Adapter的瓶颈维度选择如何影响跨模态表示融合的效率与模型容量，并讨论在仅有少量标注数据时，Adapter与IA³（通过缩放激活值）相比的过拟合风险。",
+      "reference_answer": "Adapter瓶颈维度小则参数少、融合效率低，维度大则容量高但可能过拟合。IA³通过学习向量缩放激活，参数更少，在少量数据下过拟合风险更低；Adapter因引入额外非线性层，在小数据上更易过拟合，但表达能力更强。",
+      "tags": [
+        "Adapter",
+        "IA³",
+        "瓶颈维度",
+        "过拟合",
+        "跨模态"
+      ],
+      "id": "finetune_other_peft_advanced_051",
+      "subtopic": "other_peft",
+      "subtopic_zh": "其他PEFT（Adapter / Prefix-Tuning / P-Tuning v2 / IA³）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在构建指令数据时，为什么通常需要对数据集进行去重？",
+      "reference_answer": "去重可以移除冗余或高度相似的样本，避免模型过度拟合重复模式，提升泛化能力；同时减少训练数据量，节省计算资源。",
+      "tags": [
+        "去重",
+        "指令数据构建"
+      ],
+      "id": "finetune_data_basic_046",
+      "subtopic": "data",
+      "subtopic_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在训练数据准备中，质量过滤通常基于哪些指标来筛选高价值样本？",
+      "reference_answer": "质量过滤常基于文本长度、困惑度、语言模型得分、人工标注质量、任务相关性、信息密度等指标，筛除噪声、低质量或无关内容。",
+      "tags": [
+        "质量过滤"
+      ],
+      "id": "finetune_data_basic_047",
+      "subtopic": "data",
+      "subtopic_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "合成数据在指令微调中主要解决什么问题？",
+      "reference_answer": "合成数据用于补充真实数据不足的场景，生成多样化的指令-响应对，覆盖模型未见过的任务类型或领域，从而提升指令跟随能力和泛化性能。",
+      "tags": [
+        "合成数据",
+        "指令数据构建"
+      ],
+      "id": "finetune_data_basic_048",
+      "subtopic": "data",
+      "subtopic_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在构建指令数据集时，如何设计质量过滤规则来有效筛选出高质量的指令-响应对？请结合常见问题（如噪声、重复、无关内容）说明。",
+      "reference_answer": "质量过滤通常结合启发式规则和模型辅助：1）去除长度过短或过长的样本；2）基于困惑度或奖励模型评分过滤低质量响应；3）检测并移除包含敏感词、模板化或重复内容的样本；4）利用语义相似度去重，避免数据冗余。这些步骤能提升指令数据的整体质量。",
+      "tags": [
+        "质量过滤",
+        "指令数据构建"
+      ],
+      "id": "finetune_data_medium_052",
+      "subtopic": "data",
+      "subtopic_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在DPO训练中，偏好数据对（chosen/rejected）的构建质量直接影响模型对齐效果。请说明如何通过合成数据方法自动生成高质量的偏好对，并分析其潜在风险。",
+      "reference_answer": "常用方法包括：1）利用强模型（如GPT-4）对同一指令生成多个响应，再由奖励模型或人工标注排序；2）对模型输出进行扰动（如添加噪声、截断）构造负样本。潜在风险：合成数据可能引入模型偏差或虚假偏好，导致对齐效果不稳定，需结合人工校验。",
+      "tags": [
+        "合成数据",
+        "指令数据构建"
+      ],
+      "id": "finetune_data_medium_053",
+      "subtopic": "data",
+      "subtopic_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在SFT训练中，训练数据去重是提升模型泛化能力的关键步骤。请解释基于MinHash的近似去重原理，并说明其在指令数据场景下的适用性。",
+      "reference_answer": "MinHash通过将文本转化为签名集合，计算Jaccard相似度来近似检测重复。在指令数据中，它适用于大规模去重，能高效识别语义相似的指令或响应，避免模型记忆重复模式。但需注意阈值设置，过严会误删多样样本，过松则去重不足。",
+      "tags": [
+        "去重",
+        "指令数据构建"
+      ],
+      "id": "finetune_data_medium_054",
+      "subtopic": "data",
+      "subtopic_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在构建指令数据时，若使用GPT-4等模型合成偏好数据用于DPO训练，可能引入哪些偏差？如何设计数据过滤与去重策略来缓解这些偏差？",
+      "reference_answer": "合成数据可能引入模型自身偏好、重复模式或安全偏差。过滤策略包括：基于困惑度或奖励模型评分筛选低质量样本；去重策略包括：使用MinHash或SimHash对指令-回答对进行模糊去重，并检查语义冗余。此外，可引入人工标注的种子数据混合训练以校准偏差。",
+      "tags": [
+        "合成数据",
+        "数据过滤",
+        "去重",
+        "指令数据构建"
+      ],
+      "id": "finetune_data_advanced_058",
+      "subtopic": "data",
+      "subtopic_zh": "训练数据（质量过滤 / 合成数据 / 去重 / 指令数据构建）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在使用QLoRA微调65B模型时，如果GPU显存为48GB，但训练过程中仍出现OOM，你会如何调整超参或配置来解决？请列出至少两种具体方法。",
+      "reference_answer": "1. 降低LoRA的秩r（如从64降至16）；2. 减小per_device_train_batch_size或启用gradient_accumulation_steps；3. 将bitsandbytes的4-bit量化配置中double_quant设为False以减少额外计算开销；4. 使用DeepSpeed ZeRO-3或CPU offloading。",
+      "tags": [
+        "显存优化",
+        "超参选择"
+      ],
+      "id": "finetune_practical_medium_056",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（显存优化 / 超参选择 / 收敛判断 / 灾难性遗忘）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在DPO训练中，如何判断模型是否收敛？请结合损失函数和生成质量给出两种具体判断依据。",
+      "reference_answer": "1. 监控DPO损失（通常为负对数似然加偏好项）是否趋于平稳，不再显著下降；2. 在验证集上定期评估生成样本的奖励分数或人工评估偏好准确率，若连续多个epoch无明显提升则视为收敛。",
+      "tags": [
+        "收敛判断",
+        "DPO"
+      ],
+      "id": "finetune_practical_medium_057",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（显存优化 / 超参选择 / 收敛判断 / 灾难性遗忘）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在SFT微调后紧接着进行DPO对齐时，如何避免灾难性遗忘？请给出两种基于TRL或PEFT库的实用策略。",
+      "reference_answer": "1. 使用PEFT的LoRA进行SFT和DPO，只更新低秩适配器，冻结基座模型参数；2. 在DPO训练中加入replay buffer或混合SFT数据（如按比例混合原始指令数据），保持对基础能力的记忆。",
+      "tags": [
+        "灾难性遗忘",
+        "PEFT",
+        "SFT",
+        "DPO"
+      ],
+      "id": "finetune_practical_medium_058",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（显存优化 / 超参选择 / 收敛判断 / 灾难性遗忘）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在使用TRL的GRPOTrainer或DPOTrainer进行偏好对齐时，如果发现模型在训练集上奖励分数持续上升但在验证集上下降，同时生成文本出现大量重复（灾难性遗忘前兆），你如何从超参选择（如KL惩罚系数、学习率）和收敛判断两个角度进行诊断与修正？",
+      "reference_answer": "首先降低KL惩罚系数（如从0.04降至0.01）或增加参考模型权重，缓解对旧策略的过度约束。其次降低学习率（如从1e-5降至5e-6）并增加预热步数。收敛判断上，监控验证集奖励曲线与生成多样性指标（如distinct-n），当验证奖励停止增长或多样性下降时提前停止。",
+      "tags": [
+        "灾难性遗忘",
+        "超参选择",
+        "收敛判断"
+      ],
+      "id": "finetune_practical_advanced_062",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（显存优化 / 超参选择 / 收敛判断 / 灾难性遗忘）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在QLoRA微调大模型时，若显存仍不足（如单卡24GB训练13B模型），除了使用4-bit NF4量化外，还有哪些显存优化技巧？请对比Double Quantization和Paged Optimizers的原理差异。",
+      "reference_answer": "Double Quantization对量化常数（原本为FP32）进行二次量化（如8-bit），进一步压缩显存。Paged Optimizers利用CPU内存作为优化器状态的交换空间，在GPU显存不足时将部分状态页换出。前者减少模型权重存储，后者缓解优化器状态峰值，两者可叠加使用。",
+      "tags": [
+        "显存优化",
+        "架构权衡"
+      ],
+      "id": "finetune_practical_advanced_063",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（显存优化 / 超参选择 / 收敛判断 / 灾难性遗忘）",
+      "difficulty": "advanced"
+    }
+  ]
+}

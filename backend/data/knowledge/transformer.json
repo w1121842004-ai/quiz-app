@@ -1,0 +1,295 @@
+{
+  "module": "transformer",
+  "module_name": "Transformer架构",
+  "total": 18,
+  "cards": [
+    {
+      "title": "CausalSelfAttention (因果自注意力)",
+      "summary": "每个位置只能关注其左侧位置，保证自回归生成。",
+      "points": [
+        "通过掩码矩阵实现因果约束，防止看到未来信息。",
+        "将输入线性投影为Q、K、V，并分割到多个注意力头。",
+        "支持Flash Attention加速，否则手动实现掩码和Softmax。",
+        "输出经残差连接和Dropout后传递给下一层。"
+      ],
+      "tip": "面试常问：如何实现因果掩码？答：使用下三角矩阵，未来位置设为负无穷。",
+      "id": "transformer_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Multi-Head Attention (多头注意力)",
+      "summary": "将输入拆分为多个子空间，并行学习不同关系。",
+      "points": [
+        "n_embd被均分为n_head个维度为hs的头。",
+        "每个头独立计算缩放点积注意力。",
+        "所有头输出拼接后经线性投影融合。",
+        "多头机制增强模型对不同位置和模式的关注能力。"
+      ],
+      "tip": "记忆口诀：分头学，合起来，并行关注多样态。",
+      "id": "transformer_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "LayerNorm (层归一化)",
+      "summary": "对每个样本的特征维度进行归一化，稳定训练。",
+      "points": [
+        "计算均值和方差，对输入进行标准化。",
+        "可学习参数weight和bias（可选）。",
+        "在Transformer中通常放在子层之前（Pre-LN）。",
+        "与BatchNorm不同，它不依赖batch大小。"
+      ],
+      "tip": "面试常问：LayerNorm与BatchNorm区别？答：LN对特征维，BN对batch维。",
+      "id": "transformer_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Residual Connection (残差连接)",
+      "summary": "子层输出与输入相加，缓解梯度消失问题。",
+      "points": [
+        "每个Block包含两个残差连接：注意力后和MLP后。",
+        "公式：x = x + sublayer(LayerNorm(x))。",
+        "允许梯度直接流过，训练更深网络。",
+        "与LayerNorm配合形成Pre-LN结构。"
+      ],
+      "tip": "记忆口诀：加自己，梯度畅，网络深了也不慌。",
+      "id": "transformer_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "MLP (前馈神经网络)",
+      "summary": "两层线性变换加GELU激活，扩展模型表达能力。",
+      "points": [
+        "第一层将n_embd扩展到4倍，第二层压缩回原维度。",
+        "使用GELU激活函数，比ReLU更平滑。",
+        "每个Transformer Block包含一个MLP。",
+        "输出后接Dropout防止过拟合。"
+      ],
+      "tip": "面试常问：为什么MLP中间维度是4倍？答：经验设计，增加容量以学习复杂模式。",
+      "id": "transformer_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Weight Tying (权重绑定)",
+      "summary": "词嵌入层与输出层共享权重，减少参数量。",
+      "points": [
+        "将wte.weight直接赋给lm_head.weight。",
+        "在GPT模型中常见，可提升训练效率。",
+        "需注意与torch.compile的兼容性问题。",
+        "减少约vocab_size * n_embd的参数量。"
+      ],
+      "tip": "记忆口诀：输入输出同权，参数减半不慌。",
+      "id": "transformer_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Flash Attention vs 手动注意力",
+      "summary": "Flash Attention加速且省显存，手动实现灵活兼容旧版。",
+      "points": [
+        "计算方式：Flash使用scaled_dot_product_attention内核融合；手动需分步计算QK^T、掩码、Softmax。",
+        "性能：Flash更快、显存更低（避免大注意力矩阵）；手动慢且占用高。",
+        "依赖：Flash需PyTorch≥2.0；手动兼容旧版本。",
+        "掩码：Flash通过is_causal参数实现因果掩码；手动需预注册tril掩码并masked_fill。"
+      ],
+      "tip": "若PyTorch≥2.0且追求效率，优先用Flash Attention；否则回退手动实现。",
+      "id": "transformer_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "GPT-2 vs BERT 架构对比",
+      "summary": "GPT-2是自回归解码器，BERT是自编码编码器。",
+      "points": [
+        "架构类型：GPT-2为纯解码器（因果注意力）；BERT为纯编码器（双向注意力）。",
+        "训练目标：GPT-2用因果语言建模（预测下一个词）；BERT用掩码语言建模（预测遮罩词）。",
+        "注意力方向：GPT-2仅看左侧上下文；BERT看双向上下文。",
+        "典型任务：GPT-2擅长文本生成；BERT擅长理解任务（分类、QA）。"
+      ],
+      "tip": "文本生成选GPT-2；文本理解或分类选BERT。",
+      "id": "transformer_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "LayerNorm vs BatchNorm 对比",
+      "summary": "LayerNorm对特征维度归一化，BatchNorm对批次维度归一化。",
+      "points": [
+        "归一化维度：LayerNorm对每个样本的特征维度；BatchNorm对每个特征的批次维度。",
+        "序列适用性：LayerNorm适用于变长序列（独立处理每个位置）；BatchNorm需固定序列长度或特殊处理。",
+        "训练/推理行为：LayerNorm训练和推理一致；BatchNorm训练用批统计量，推理用移动平均。",
+        "Transformer偏好：LayerNorm是Transformer标配；BatchNorm在NLP中效果较差。"
+      ],
+      "tip": "Transformer模型始终用LayerNorm；CNN模型常用BatchNorm。",
+      "id": "transformer_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "权重共享 vs 无权重共享 对比",
+      "summary": "权重共享减少参数量，无共享更灵活但更大。",
+      "points": [
+        "实现方式：共享将嵌入层权重与输出层权重绑定（wte.weight = lm_head.weight）；无共享则独立。",
+        "参数量：共享节省vocab_size×n_embd参数；无共享多出同等量级。",
+        "训练影响：共享可能加速收敛（梯度共享）；无共享提供更多自由度。",
+        "常见模型：GPT-2采用权重共享；BERT无权重共享。"
+      ],
+      "tip": "参数量敏感或追求效率选权重共享；需要更大模型容量选无共享。",
+      "id": "transformer_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "缩放点积注意力（Scaled Dot-Product Attention）",
+      "summary": "Attention(Q,K,V) = softmax(QK^T/√d_k)V",
+      "points": [
+        "Q: 查询矩阵，形状为 (序列长度, d_k)",
+        "K: 键矩阵，形状为 (序列长度, d_k)",
+        "V: 值矩阵，形状为 (序列长度, d_v)",
+        "d_k: 键向量的维度，用于缩放防止softmax梯度消失",
+        "QK^T: 计算查询与所有键的点积，得到注意力分数矩阵",
+        "softmax: 对分数矩阵按行归一化，得到注意力权重",
+        "最终输出是注意力权重对V的加权求和，即从序列中提取相关信息"
+      ],
+      "tip": "除以√d_k是关键：当d_k很大时，点积值会很大，导致softmax梯度极小；缩放后梯度更稳定。",
+      "id": "transformer_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "多头注意力（Multi-Head Attention）",
+      "summary": "MultiHead(Q,K,V) = Concat(head_1,...,head_h)W^O, head_i = Attention(QW_i^Q, KW_i^K, VW_i^V)",
+      "points": [
+        "h: 注意力头数，每个头关注不同的表示子空间",
+        "W_i^Q, W_i^K, W_i^V: 第i个头的投影矩阵，将输入映射到不同的查询、键、值空间",
+        "head_i: 第i个头的缩放点积注意力结果",
+        "Concat: 将所有头的输出拼接起来",
+        "W^O: 输出投影矩阵，将拼接后的结果映射回原始维度",
+        "多头机制让模型同时从不同角度关注序列的不同位置"
+      ],
+      "tip": "每个头的维度通常为 d_model/h，总计算量与单头注意力相同，但表达能力更强。",
+      "id": "transformer_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "位置编码（Positional Encoding）",
+      "summary": "PE(pos,2i) = sin(pos/10000^(2i/d_model)), PE(pos,2i+1) = cos(pos/10000^(2i/d_model))",
+      "points": [
+        "pos: 位置索引（0,1,2,...）",
+        "i: 维度索引（0,1,...,d_model/2-1）",
+        "d_model: 模型的总嵌入维度",
+        "偶数维度使用正弦函数，奇数维度使用余弦函数",
+        "不同频率的正余弦波允许模型学习相对位置关系",
+        "位置编码直接加到词嵌入上，为模型提供序列顺序信息"
+      ],
+      "tip": "正弦/余弦函数的选择使得模型能轻易学习相对位置：PE(pos+k)可以表示为PE(pos)的线性函数，便于捕捉位置间的相对关系。",
+      "id": "transformer_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "因果自注意力机制",
+      "summary": "实现带因果掩码的多头自注意力，支持Flash Attention。",
+      "points": [
+        "q, k, v = self.c_attn(x).split(self.n_embd, dim=2)  # 线性投影并分割为Q、K、V",
+        "k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)  # 重塑为多头格式 (B, nh, T, hs)",
+        "if self.flash: y = F.scaled_dot_product_attention(q, k, v, is_causal=True)  # 使用Flash Attention加速",
+        "else: att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))  # 手动计算注意力分数",
+        "att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))  # 应用因果掩码（上三角置为-inf）",
+        "y = att @ v  # 注意力加权求和",
+        "y = y.transpose(1, 2).contiguous().view(B, T, C)  # 合并多头输出",
+        "y = self.resid_dropout(self.c_proj(y))  # 输出投影和dropout"
+      ],
+      "tip": "Flash Attention需要PyTorch >= 2.0，否则回退到手动实现。手动实现时需确保因果掩码形状与序列长度匹配，避免索引越界。",
+      "id": "transformer_code_014",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "Transformer块（残差连接）",
+      "summary": "层归一化、自注意力和MLP通过残差连接组合。",
+      "points": [
+        "x = x + self.attn(self.ln_1(x))  # 先层归一化，再自注意力，最后残差连接",
+        "x = x + self.mlp(self.ln_2(x))  # 先层归一化，再MLP，最后残差连接"
+      ],
+      "tip": "残差连接顺序：先归一化再子层（Pre-LN），这比Post-LN更稳定，常见于现代Transformer。确保输入输出维度一致。",
+      "id": "transformer_code_015",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "GPT模型初始化与权重绑定",
+      "summary": "构建GPT主干，包括嵌入、块和输出层，并绑定词嵌入权重。",
+      "points": [
+        "self.transformer = nn.ModuleDict(dict(  # 使用ModuleDict组织子模块",
+        "    wte = nn.Embedding(config.vocab_size, config.n_embd),  # 词嵌入",
+        "    wpe = nn.Embedding(config.block_size, config.n_embd),  # 位置嵌入",
+        "    h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),  # 多个Transformer块",
+        "    ln_f = LayerNorm(config.n_embd, bias=config.bias),  # 最终层归一化",
+        "))",
+        "self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)  # 语言模型输出头",
+        "self.transformer.wte.weight = self.lm_head.weight  # 权重绑定：共享词嵌入和输出层权重"
+      ],
+      "tip": "权重绑定可减少参数量并提升性能，但使用torch.compile时可能产生警告，通常无害。确保vocab_size和n_embd匹配。",
+      "id": "transformer_code_016",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "Attention复杂度是O(n)",
+      "summary": "正确复杂度是O(n²d)，n为序列长度",
+      "points": [
+        "容易犯错的原因：只关注了序列长度n，忽略了嵌入维度d和注意力矩阵的计算。",
+        "正确理解：QK^T计算得到(n×n)矩阵，每个元素需d次乘法，所以复杂度为O(n²d)。"
+      ],
+      "tip": "平方复杂度，n为主，d为辅",
+      "id": "transformer_gotcha_017",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "LayerNorm在Transformer中放在残差连接之后",
+      "summary": "GPT-2中LayerNorm放在残差连接之前",
+      "points": [
+        "容易犯错的原因：许多教程展示Post-LN结构（LayerNorm在残差之后），但GPT-2使用Pre-LN。",
+        "正确理解：GPT-2的Block中，先对输入做LayerNorm，再进入注意力/MLP，最后加残差。"
+      ],
+      "tip": "Pre-LN：先归一化，再残差",
+      "id": "transformer_gotcha_018",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

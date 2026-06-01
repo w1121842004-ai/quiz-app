@@ -1,0 +1,283 @@
+{
+  "module": "langgraph",
+  "module_name": "LangGraph",
+  "total": 18,
+  "cards": [
+    {
+      "title": "图结构 (Graph)",
+      "summary": "用有向图定义智能体工作流的计算框架。",
+      "points": [
+        "节点是计算单元，边是控制流",
+        "支持循环、分支、并行等复杂拓扑",
+        "状态在节点间传递和更新",
+        "可编译为执行计划"
+      ],
+      "tip": "LangGraph = LangChain + Graph，本质是状态机",
+      "id": "langgraph_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "节点 (Node)",
+      "summary": "工作流中的基本计算单元，封装函数或模型。",
+      "points": [
+        "接收并处理状态",
+        "可调用LLM、工具或自定义函数",
+        "输出更新到状态",
+        "节点间通过边连接"
+      ],
+      "tip": "每个节点只做一件事，类似微服务",
+      "id": "langgraph_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "边 (Edge)",
+      "summary": "连接节点，定义状态流动和条件路由。",
+      "points": [
+        "普通边：顺序执行",
+        "条件边：根据状态分支",
+        "入口边：定义起始节点",
+        "支持并行边"
+      ],
+      "tip": "边是控制流，决定'下一步去哪'",
+      "id": "langgraph_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "状态 (State)",
+      "summary": "全局共享的字典，存储工作流上下文。",
+      "points": [
+        "所有节点可读写",
+        "支持类型注解和验证",
+        "自动合并更新",
+        "可定义Reducer处理冲突"
+      ],
+      "tip": "状态是唯一真相源，节点只读不写",
+      "id": "langgraph_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "条件边 (Conditional Edge)",
+      "summary": "根据状态动态选择下一个节点的路由。",
+      "points": [
+        "函数返回节点名称",
+        "支持多分支判断",
+        "常用于循环和错误处理",
+        "必须处理所有分支"
+      ],
+      "tip": "条件边 = if-else 在图中",
+      "id": "langgraph_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "编译与执行 (Compile & Run)",
+      "summary": "将图编译为可执行对象，并运行工作流。",
+      "points": [
+        "compile()生成可调用对象",
+        "支持流式执行",
+        "可设置递归限制",
+        "支持中断和恢复"
+      ],
+      "tip": "编译检查图结构，运行才实际执行",
+      "id": "langgraph_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "StateGraph vs MessageGraph",
+      "summary": "StateGraph通用状态，MessageGraph专为消息设计",
+      "points": [
+        "状态类型：任意Python字典 / 消息列表",
+        "内置消息处理：无 / 自动管理消息追加与合并",
+        "适用场景：自定义复杂状态 / 聊天机器人等消息流",
+        "灵活性：高，可定制状态结构 / 低，状态结构固定"
+      ],
+      "tip": "简单聊天用MessageGraph，需要复杂状态逻辑用StateGraph",
+      "id": "langgraph_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Node vs Conditional Edge",
+      "summary": "Node处理状态，Conditional Edge根据条件选择路径",
+      "points": [
+        "功能：执行逻辑修改状态 / 根据状态值决定下一步",
+        "输出：更新后的状态 / 下一个节点名称",
+        "执行时机：每步必须执行 / 仅在分支点执行",
+        "数量：图中可有多个 / 通常较少，用于路由"
+      ],
+      "tip": "用Node实现核心逻辑，用Conditional Edge实现分支路由",
+      "id": "langgraph_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "add_messages vs 自定义Reducer",
+      "summary": "add_messages自动合并消息，自定义Reducer灵活控制状态更新",
+      "points": [
+        "处理对象：消息列表 / 任意状态字段",
+        "合并策略：按ID去重追加 / 完全自定义",
+        "使用难度：简单，内置 / 复杂，需编写函数",
+        "适用场景：消息历史管理 / 非消息状态更新"
+      ],
+      "tip": "消息字段用add_messages，其他状态字段用自定义Reducer",
+      "id": "langgraph_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Checkpoint vs Store",
+      "summary": "Checkpoint保存执行快照，Store持久化跨图数据",
+      "points": [
+        "作用范围：单次图执行 / 多图、多会话",
+        "存储内容：节点状态、配置 / 自定义键值对",
+        "生命周期：执行结束后可选保留 / 长期持久",
+        "访问方式：通过线程ID恢复 / 通过命名空间查询"
+      ],
+      "tip": "需要断点续跑用Checkpoint，需要共享数据用Store",
+      "id": "langgraph_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "状态节点更新公式",
+      "summary": "new_state = f(current_state, input)",
+      "points": [
+        "current_state：当前图状态，包含所有累积信息",
+        "input：节点接收的外部输入或消息",
+        "f：节点定义的更新函数，决定如何修改状态",
+        "直觉理解：每个节点像工厂工序，输入原料（状态+消息）产出新零件（新状态）"
+      ],
+      "tip": "注意状态是全局共享的，节点修改后后续节点都能看到，类似全局变量",
+      "id": "langgraph_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "条件边分支公式",
+      "summary": "next_node = router(state)",
+      "points": [
+        "state：当前图状态，用于决策依据",
+        "router：路由函数，根据状态返回下一个节点名称",
+        "next_node：字符串，指向图中某个节点",
+        "直觉理解：类似程序中的if-else，根据当前状态选择不同执行路径"
+      ],
+      "tip": "路由函数必须返回图中存在的节点名，否则运行时报错",
+      "id": "langgraph_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "消息传递聚合公式",
+      "summary": "aggregated = reduce(messages)",
+      "points": [
+        "messages：节点收到的所有历史消息列表",
+        "reduce：聚合函数（如拼接、求和、取最新）",
+        "aggregated：聚合后的结果，作为节点输入",
+        "直觉理解：多个来源的消息像多条河流，汇聚成一条大河再流入节点"
+      ],
+      "tip": "reduce函数需自定义，默认只保留最新消息，注意历史消息可能丢失",
+      "id": "langgraph_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "定义状态与节点",
+      "summary": "用TypedDict定义图状态，节点函数更新状态。",
+      "points": [
+        "from typing import TypedDict, List  # 导入类型定义",
+        "class State(TypedDict):  # 定义状态结构",
+        "    messages: List[str]  # 消息列表字段",
+        "def node_a(state: State) -> State:  # 节点函数接收并返回状态",
+        "    return {\"messages\": state[\"messages\"] + [\"A\"]}  # 追加消息"
+      ],
+      "tip": "节点函数必须返回包含更新字段的字典，否则状态不更新。",
+      "id": "langgraph_code_014",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "构建图与添加边",
+      "summary": "用StateGraph构建图，添加节点和条件边。",
+      "points": [
+        "from langgraph.graph import StateGraph, START, END  # 导入图构建组件",
+        "builder = StateGraph(State)  # 创建状态图实例",
+        "builder.add_node(\"node_a\", node_a)  # 注册节点",
+        "builder.add_edge(START, \"node_a\")  # 从起始节点到node_a",
+        "builder.add_conditional_edges(\"node_a\", lambda s: \"end\" if len(s[\"messages\"])>2 else \"node_a\", {\"end\": END, \"node_a\": \"node_a\"})  # 条件边"
+      ],
+      "tip": "条件边必须返回字典中的key，否则报错。",
+      "id": "langgraph_code_015",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "编译与运行图",
+      "summary": "编译图后，用invoke传入初始状态运行。",
+      "points": [
+        "graph = builder.compile()  # 编译为可执行图",
+        "result = graph.invoke({\"messages\": [\"start\"]})  # 传入初始状态运行",
+        "print(result[\"messages\"])  # 输出: ['start', 'A', 'A', 'A']"
+      ],
+      "tip": "invoke返回最终状态字典，不是流式结果；如需流式用stream。",
+      "id": "langgraph_code_016",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "LangGraph节点可以自动并行执行",
+      "summary": "节点默认顺序执行，需显式设置并行。",
+      "points": [
+        "容易犯错：认为LangGraph会自动并行化所有节点，实际默认按图拓扑顺序依次执行。",
+        "正确理解：要实现并行，必须使用`Send` API或设计分支图结构，节点间无依赖关系时仍需手动配置。"
+      ],
+      "tip": "节点默认排队走，并行需Send来救。",
+      "id": "langgraph_gotcha_017",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "StateGraph的状态更新是自动合并的",
+      "summary": "状态更新需显式定义Reducer，非自动合并。",
+      "points": [
+        "容易犯错：误以为StateGraph会自动合并所有节点的状态更新，实际默认覆盖而非合并。",
+        "正确理解：必须为每个状态字段指定Reducer（如`operator.add`），否则后续写入会覆盖前值。"
+      ],
+      "tip": "状态更新不自动，Reducer要写好。",
+      "id": "langgraph_gotcha_018",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

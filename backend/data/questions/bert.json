@@ -1,0 +1,672 @@
+{
+  "module": "bert",
+  "module_name": "BERT微调",
+  "total": 50,
+  "subtopics": [
+    {
+      "id": "architecture",
+      "name_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "target": 8
+    },
+    {
+      "id": "pretraining",
+      "name_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "target": 8
+    },
+    {
+      "id": "finetuning",
+      "name_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "target": 10
+    },
+    {
+      "id": "tokenization",
+      "name_zh": "分词编码（WordPiece / 特殊Token / 最大长度处理）",
+      "target": 6
+    },
+    {
+      "id": "variants",
+      "name_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "target": 8
+    },
+    {
+      "id": "practical",
+      "name_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "target": 10
+    }
+  ],
+  "questions": [
+    {
+      "question": "BERT模型中的CLS Token在输入序列中起什么作用？最终CLS Token对应的输出向量通常被用于什么任务？",
+      "reference_answer": "CLS Token是一个特殊的标记，插入到每个输入序列的开头。在BERT的预训练和微调中，CLS Token对应的最后一层隐藏状态（即get_pooled_output()的输出）通常被用作整个序列的聚合表示，用于分类任务（如句子分类、语义相似度判断）。",
+      "tags": [
+        "BERT架构",
+        "CLS Token作用"
+      ],
+      "id": "bert_architecture_basic_001",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "BERT模型采用双向编码机制，请解释其原理，并与传统单向语言模型（如GPT）的关键区别是什么？",
+      "reference_answer": "BERT使用Transformer的Encoder部分，通过Self-Attention机制同时关注输入序列中每个Token的左侧和右侧上下文，实现双向编码。而GPT等单向模型只允许每个Token关注其左侧（或右侧）的上下文，因此BERT能获取更全面的语境信息，提升下游任务表现。",
+      "tags": [
+        "BERT架构",
+        "双向编码"
+      ],
+      "id": "bert_architecture_basic_002",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在BERT的配置中，num_hidden_layers参数代表什么？标准的BERT-Base模型该参数的值是多少？",
+      "reference_answer": "num_hidden_layers参数表示Transformer Encoder中隐藏层的数量，即堆叠的Transformer块的数量。标准的BERT-Base模型中，该参数值为12，对应12层Transformer Encoder。",
+      "tags": [
+        "BERT架构",
+        "层数配置"
+      ],
+      "id": "bert_architecture_basic_003",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "BERT 模型中的 CLS token 是如何被用于序列分类任务的？请结合代码中的 get_pooled_output 方法说明其原理。",
+      "reference_answer": "CLS token 被插入到每个输入序列的开头，经过多层 Transformer 编码后，其最后一层的隐藏状态通过一个全连接层（pooler）进行池化，输出一个固定维度的向量，代表整个序列的语义表示，用于分类任务。",
+      "tags": [
+        "CLS Token 作用",
+        "序列分类",
+        "池化层"
+      ],
+      "id": "bert_architecture_medium_007",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在 BERT 的微调过程中，如何通过调整 num_hidden_layers 参数来平衡模型容量与计算效率？请结合代码中的 BertConfig 配置说明。",
+      "reference_answer": "num_hidden_layers 控制 Transformer 编码器的层数，默认12层。增加层数可提升表示能力但增加计算和过拟合风险；减少层数可加速训练但可能损失性能。微调时需根据任务数据量调整，如小数据集可减少层数防止过拟合。",
+      "tags": [
+        "层数配置",
+        "模型容量",
+        "计算效率"
+      ],
+      "id": "bert_architecture_medium_008",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "BERT 的双向编码机制与传统的单向语言模型（如 GPT）有何本质区别？请结合代码中的 Transformer 自注意力实现说明其如何实现双向上下文。",
+      "reference_answer": "BERT 采用双向 Transformer 编码器，通过自注意力机制允许每个 token 同时关注序列中所有位置的 token（包括左右两侧），从而捕获双向上下文。而 GPT 使用因果掩码，只能关注左侧 token，实现单向预测。",
+      "tags": [
+        "双向编码",
+        "自注意力",
+        "单向语言模型"
+      ],
+      "id": "bert_architecture_medium_009",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "BERT的CLS Token在微调分类任务中用于获取句子表示，但为什么直接使用最后一层所有Token的平均池化在某些任务上反而效果更好？请从双向编码特性和CLS Token的预训练目标角度分析其设计权衡。",
+      "reference_answer": "CLS Token在预训练中被设计为聚合整个序列信息用于NSP任务，但实际中它偏向于捕捉序列级别的粗粒度特征。对于细粒度语义匹配或情感分析，平均池化能保留更多局部交互信息，且不受CLS位置偏置影响。BERT的双向编码使所有Token都能感知全局上下文，因此平均池化往往更鲁棒。",
+      "tags": [
+        "CLS Token",
+        "双向编码",
+        "池化策略权衡"
+      ],
+      "id": "bert_architecture_advanced_013",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在BERT微调中，如果任务涉及长文本（如1024 Token），直接增加max_position_embeddings到1024并微调可能会导致性能下降。请从层数配置和位置编码的边界情况分析可能的原因，并对比使用层次化编码或滑动窗口等替代方案。",
+      "reference_answer": "BERT原始位置编码是绝对位置嵌入，未经过长距离优化，且12层Transformer的注意力分布随距离增加而衰减，导致远端Token信息丢失。直接扩展位置嵌入会引入未预训练的随机参数，破坏预训练分布。层次化编码（如Longformer）或滑动窗口能限制注意力范围，缓解长距离依赖问题，但需重新设计架构。",
+      "tags": [
+        "层数配置",
+        "位置编码",
+        "长文本边界情况",
+        "架构权衡"
+      ],
+      "id": "bert_architecture_advanced_014",
+      "subtopic": "architecture",
+      "subtopic_zh": "BERT架构（双向编码 / 层数配置 / CLS Token 作用）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "BERT预训练中的MLM（Masked Language Model）任务，其掩码策略具体如何实现？即对一个输入序列，如何选择哪些token被掩码？",
+      "reference_answer": "随机选择15%的token进行掩码。其中，80%替换为[MASK]标记，10%替换为随机token，10%保持不变。这样模型不仅学习预测掩码词，还能适应微调阶段无[MASK]的情况。",
+      "tags": [
+        "MLM掩码策略",
+        "BERT预训练",
+        "概念定义"
+      ],
+      "id": "bert_pretraining_basic_009",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "BERT预训练的NSP（Next Sentence Prediction）任务是什么？其训练数据如何构建？",
+      "reference_answer": "NSP任务是判断两个句子是否为连续的上下文关系。训练数据构建时，50%的正例选取语料中连续的句子对，50%的负例从不同文档随机选取两个句子组成句子对。模型通过[CLS]位置的输出进行二分类预测。",
+      "tags": [
+        "NSP",
+        "数据构建",
+        "BERT预训练"
+      ],
+      "id": "bert_pretraining_basic_010",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "BERT预训练数据构建中，输入序列的格式是什么？包括哪些特殊标记？",
+      "reference_answer": "输入序列格式为：[CLS] 句子A [SEP] 句子B [SEP]。其中[CLS]用于分类任务，[SEP]分隔不同句子。同时使用token_type_ids（segment_ids）区分句子A（0）和句子B（1），以及input_mask标记有效token位置。",
+      "tags": [
+        "数据构建",
+        "BERT预训练",
+        "概念定义"
+      ],
+      "id": "bert_pretraining_basic_011",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在BERT的MLM预训练任务中，当随机选择15%的token进行掩码时，最终被替换为[MASK]、随机词和保持不变的token比例分别是多少？为什么要设计这种混合策略？",
+      "reference_answer": "80%替换为[MASK]，10%替换为随机词，10%保持不变。这种设计是为了缓解预训练和微调阶段的不匹配：微调时没有[MASK]标记，因此通过引入随机词和不变token，让模型学会利用上下文信息而非依赖[MASK]标记，提升泛化能力。",
+      "tags": [
+        "MLM掩码策略",
+        "预训练任务设计",
+        "训练-微调不匹配"
+      ],
+      "id": "bert_pretraining_medium_015",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在BERT的NSP（Next Sentence Prediction）任务中，正样本和负样本是如何构建的？负样本的选取策略对模型学习句子关系有何影响？",
+      "reference_answer": "正样本：从语料中连续的两个句子（A和B）。负样本：从语料中随机选取一个句子作为B（与A不连续），确保50%概率为负。该策略迫使模型学习句子间的连贯性，但后续研究（如RoBERTa）发现NSP并非必要，移除后下游任务性能未下降，说明其学习能力有限。",
+      "tags": [
+        "NSP",
+        "数据构建",
+        "句子关系学习"
+      ],
+      "id": "bert_pretraining_medium_016",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在BERT微调时，数据构建中如何将输入文本处理为模型所需的格式？请结合InputExample和InputFeatures说明字段含义。",
+      "reference_answer": "InputExample存储原始数据：guid（唯一ID）、text_a（第一句）、text_b（可选第二句）、label（标签）。InputFeatures是token化后的特征：input_ids（token ID序列）、input_mask（填充掩码，1表示有效token）、segment_ids（句子类型，0/1区分A/B句）、label_id（标签ID）。通过tokenizer将文本转为ID，并进行padding和truncation。",
+      "tags": [
+        "数据构建",
+        "输入格式",
+        "特征处理"
+      ],
+      "id": "bert_pretraining_medium_017",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在BERT的MLM预训练中，为什么采用80%概率替换为[MASK]、10%概率替换为随机词、10%概率保持不变的策略？这种设计如何缓解预训练与微调之间的不匹配问题？",
+      "reference_answer": "该策略旨在缓解预训练-微调差异：若100%替换为[MASK]，则模型从未见过被掩码位置的真实token，导致微调时无[MASK]而性能下降。80%替换迫使模型学习上下文预测；10%随机词引入噪声，增强鲁棒性；10%不变使模型仍能利用真实token信息，从而在微调时更自然地处理非掩码输入。",
+      "tags": [
+        "MLM掩码策略",
+        "预训练-微调不匹配",
+        "鲁棒性设计"
+      ],
+      "id": "bert_pretraining_advanced_021",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在BERT预训练中，Next Sentence Prediction（NSP）任务的数据构建策略是什么？为什么后续研究（如RoBERTa）发现移除NSP任务反而能提升下游任务性能？",
+      "reference_answer": "NSP数据构建：从语料中抽取句子对，50%为连续句子（正例，标签IsNext），50%为随机句子对（负例，标签NotNext）。RoBERTa等发现移除NSP可提升性能，原因：NSP任务过于简单，模型可通过主题或词汇重叠等浅层线索区分，未能真正学习句子关系；同时，动态掩码和更大批量的训练策略已足够捕获长程依赖。",
+      "tags": [
+        "NSP",
+        "数据构建",
+        "RoBERTa对比",
+        "预训练任务消融"
+      ],
+      "id": "bert_pretraining_advanced_022",
+      "subtopic": "pretraining",
+      "subtopic_zh": "预训练任务（MLM掩码策略 / NSP / 数据构建）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在BERT微调中，学习率的设置通常采用什么策略？为什么需要设置warmup比例？",
+      "reference_answer": "通常采用较小的学习率（如5e-5）并配合线性warmup策略。warmup比例（如0.1）使学习率从0线性增加到预设值，避免预训练参数在微调初期被大幅破坏，有助于稳定训练过程。",
+      "tags": [
+        "学习率",
+        "warmup"
+      ],
+      "id": "bert_finetuning_basic_017",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在BERT微调中，层冻结策略的基本原理是什么？通常冻结哪些层？",
+      "reference_answer": "层冻结是指在微调时固定BERT部分层的参数不参与更新。通常冻结底层的Transformer层，因为这些层学习到的是通用的语言特征，只微调顶层和任务头，以减少过拟合和计算开销。",
+      "tags": [
+        "层冻结",
+        "微调策略"
+      ],
+      "id": "bert_finetuning_basic_018",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "BERT微调中任务头（task head）的设计通常如何实现？请结合代码示例说明。",
+      "reference_answer": "任务头是在BERT顶部添加的特定任务输出层。例如，对于分类任务，从BERT的[CLS]向量（pooled_output）出发，通过一个全连接层映射到类别数，再计算logits。代码中通过tf.matmul(pooled_output, label_embeddings)实现。",
+      "tags": [
+        "任务头设计",
+        "分类"
+      ],
+      "id": "bert_finetuning_basic_019",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "什么是灾难性遗忘？在BERT微调中如何缓解这一问题？",
+      "reference_answer": "灾难性遗忘指微调时模型过度适应新任务而丢失预训练学到的通用知识。缓解方法包括：使用较小的学习率、采用层冻结策略、加入warmup、以及使用混合训练或正则化技术（如EWC）来平衡新旧知识。",
+      "tags": [
+        "灾难性遗忘",
+        "缓解策略"
+      ],
+      "id": "bert_finetuning_basic_020",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在BERT微调中，学习率通常设置为5e-5左右，为什么不能使用像0.01这样的大学习率？如果使用过大的学习率，会引发什么问题？",
+      "reference_answer": "BERT预训练权重已接近最优，大学习率会破坏学到的特征分布，导致灾难性遗忘，使模型在目标任务上难以收敛或震荡。一般使用小学习率（如2e-5~5e-5）配合AdamW优化器，在预训练特征基础上微调。",
+      "tags": [
+        "学习率",
+        "灾难性遗忘"
+      ],
+      "id": "bert_finetuning_medium_025",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "当目标任务数据量极少时（如几百条），如何设计层冻结策略来防止过拟合？请说明具体实现方法。",
+      "reference_answer": "冻结BERT底层大部分Transformer层，只微调最后1-2层和任务头。实现时，对模型参数分组，将底层参数的requires_grad设为False，仅对顶层和分类头设置学习率。这样可保留通用语义特征，减少过拟合风险。",
+      "tags": [
+        "层冻结",
+        "任务头设计"
+      ],
+      "id": "bert_finetuning_medium_026",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在文本分类任务中，任务头通常如何设计？如果任务头只有线性层，相比添加额外隐藏层有什么优缺点？",
+      "reference_answer": "任务头通常基于[CLS]向量，接一个线性层映射到类别数。仅线性层参数少、训练快、不易过拟合，适合小数据；添加隐藏层（如非线性+Dropout）可提升复杂任务表现，但需更多数据防止过拟合，且增加计算开销。",
+      "tags": [
+        "任务头设计",
+        "层冻结"
+      ],
+      "id": "bert_finetuning_medium_027",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "微调时，如果学习率设置不当或训练轮次过多，模型可能出现灾难性遗忘。请解释其原理，并给出至少两种缓解策略。",
+      "reference_answer": "灾难性遗忘指微调中模型过度拟合下游任务，丢失预训练学到的通用语言知识。缓解策略：1）使用小学习率（如5e-5）和早停法；2）混合预训练任务（如同时计算MLM损失）进行多任务学习；3）采用渐进式解冻或正则化（如EWC）。",
+      "tags": [
+        "灾难性遗忘",
+        "学习率"
+      ],
+      "id": "bert_finetuning_medium_028",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在BERT微调中，当目标数据集非常小（例如几百条样本）时，你如何设计学习率和层冻结策略来缓解灾难性遗忘？请对比不同层冻结范围的优缺点。",
+      "reference_answer": "应使用较低的学习率（如2e-5）并冻结BERT大部分底层（如前8层），仅微调顶层和任务头。优点：减少参数更新，避免小数据集下预训练知识被破坏。缺点：可能限制模型适配任务特定特征的能力。完全冻结底层可保留通用语义，但顶层需充分训练。",
+      "tags": [
+        "学习率",
+        "层冻结",
+        "灾难性遗忘"
+      ],
+      "id": "bert_finetuning_advanced_033",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在序列标注任务中，设计任务头时，为什么通常使用BERT最后一层隐藏状态而非[CLS]池化输出？如果任务需要捕获长距离依赖，你会如何调整任务头结构？",
+      "reference_answer": "序列标注需要每个token的表示，最后一层隐藏状态提供逐token输出，而[CLS]仅聚合全局信息。为捕获长距离依赖，可在任务头中加入双向LSTM或Transformer层，增强上下文建模，但需注意增加参数量可能导致过拟合，需配合正则化。",
+      "tags": [
+        "任务头设计",
+        "灾难性遗忘"
+      ],
+      "id": "bert_finetuning_advanced_034",
+      "subtopic": "finetuning",
+      "subtopic_zh": "微调策略（学习率 / 层冻结 / 任务头设计 / 灾难性遗忘）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在BERT的配置中，max_position_embeddings参数通常设置为512，其作用是什么？",
+      "reference_answer": "该参数定义了模型能够处理的最大序列长度。任何超过此长度的输入序列在分词（WordPiece）后都会被截断或分段处理，以确保输入符合模型的最大位置编码范围。",
+      "tags": [
+        "最大长度处理",
+        "BERT配置"
+      ],
+      "id": "bert_tokenization_basic_027",
+      "subtopic": "tokenization",
+      "subtopic_zh": "分词编码（WordPiece / 特殊Token / 最大长度处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在BERT微调时，`max_seq_length`参数设置为128，对于长度超过128的输入文本会如何处理？",
+      "reference_answer": "在WordPiece分词后，如果序列长度超过`max_seq_length`，则会被截断至该最大长度。同时，对于短于该长度的序列，会进行填充（padding）操作，使其长度一致，以便批量处理。",
+      "tags": [
+        "最大长度处理",
+        "序列截断与填充"
+      ],
+      "id": "bert_tokenization_basic_028",
+      "subtopic": "tokenization",
+      "subtopic_zh": "分词编码（WordPiece / 特殊Token / 最大长度处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在BERT微调中，max_seq_length参数是如何影响分词和编码过程的？如果输入文本经过WordPiece分词后长度超过max_seq_length，通常如何处理？这种处理方式可能带来什么潜在问题？",
+      "reference_answer": "max_seq_length限制了输入序列的最终长度（包含特殊标记如[CLS]和[SEP]）。超过该长度的序列会被截断，通常从尾部删除多余的token。潜在问题包括丢失重要上下文信息，尤其对于长文本任务如文档分类或问答，可能导致关键证据被截断，影响模型性能。",
+      "tags": [
+        "最大长度处理",
+        "截断策略",
+        "WordPiece分词"
+      ],
+      "id": "bert_tokenization_medium_031",
+      "subtopic": "tokenization",
+      "subtopic_zh": "分词编码（WordPiece / 特殊Token / 最大长度处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在BERT中，特殊标记[CLS]和[SEP]的作用是什么？它们在分词编码阶段是如何被插入到token序列中的？请说明在单句分类和句对分类任务中，这些特殊标记的放置位置有何不同。",
+      "reference_answer": "[CLS]用于聚合整句表示，其输出向量作为分类特征；[SEP]用于分隔句子。在单句分类中，序列为[CLS] A [SEP]；在句对分类中为[CLS] A [SEP] B [SEP]。编码时，tokenizer自动在序列首尾和句间插入这些标记，并生成对应的segment_ids（单句全0，句对中A段为0、B段为1）。",
+      "tags": [
+        "特殊Token",
+        "[CLS]",
+        "[SEP]",
+        "分词编码"
+      ],
+      "id": "bert_tokenization_medium_032",
+      "subtopic": "tokenization",
+      "subtopic_zh": "分词编码（WordPiece / 特殊Token / 最大长度处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在BERT微调中，如果输入文本经WordPiece分词后长度超过max_seq_length，通常采用截断策略。请对比直接截断尾部与保留头尾（如保留[CLS]和[SEP]附近关键token）两种策略对序列分类任务性能的影响，并分析在哪种边界情况下后者更优？",
+      "reference_answer": "直接截断尾部简单但可能丢失关键信息，尤其在长文本分类中，尾部包含决定性语义时性能下降明显。保留头尾策略通过保留[CLS]和[SEP]附近token，可以保留更多上下文，适用于问答或蕴含任务，其中关键信息常出现在开头或结尾。边界情况如长文档多标签分类，尾部标签信息重要时，保留头尾更优。",
+      "tags": [
+        "WordPiece",
+        "最大长度处理",
+        "截断策略",
+        "序列分类"
+      ],
+      "id": "bert_tokenization_advanced_035",
+      "subtopic": "tokenization",
+      "subtopic_zh": "分词编码（WordPiece / 特殊Token / 最大长度处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在多分类微调任务中，若输入包含多个句子对，每个句子长度不一，如何设计分词编码流程以平衡最大长度限制和特殊token（[CLS]、[SEP]、[PAD]）的嵌入？请从词汇表外（OOV）词处理和动态填充角度分析。",
+      "reference_answer": "流程：先对每个句子用WordPiece分词，合并为[CLS] A [SEP] B [SEP]形式，再按max_seq_length截断（通常截断较长句）。OOV词用[UNK]替代。动态填充：按batch内最大长度填充至max_seq_length，避免过多[PAD]浪费计算。特殊token位置固定，不影响模型注意力。边界情况如句子极长时，需考虑分段策略或滑动窗口。",
+      "tags": [
+        "WordPiece",
+        "特殊Token",
+        "最大长度处理",
+        "动态填充",
+        "OOV"
+      ],
+      "id": "bert_tokenization_advanced_036",
+      "subtopic": "tokenization",
+      "subtopic_zh": "分词编码（WordPiece / 特殊Token / 最大长度处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "RoBERTa相比原始BERT，在预训练阶段移除了哪个关键任务，并引入了哪些动态掩码策略？",
+      "reference_answer": "RoBERTa移除了原始BERT的下一句预测（NSP）任务，并引入了动态掩码策略，即在训练过程中每次输入时重新生成掩码，而非像BERT那样在数据预处理时固定掩码。",
+      "tags": [
+        "RoBERTa",
+        "动态掩码",
+        "NSP"
+      ],
+      "id": "bert_variants_basic_033",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "ALBERT通过哪两种参数共享技术来减少模型参数量，同时保持性能？",
+      "reference_answer": "ALBERT通过跨层参数共享（所有Transformer层共享同一组参数）和矩阵分解（将嵌入层参数分解为两个小矩阵）两种技术减少参数量，从而在保持性能的同时降低内存占用。",
+      "tags": [
+        "ALBERT",
+        "参数共享",
+        "矩阵分解"
+      ],
+      "id": "bert_variants_basic_034",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "DistilBERT在知识蒸馏过程中，主要模仿了教师BERT模型的哪些输出作为学生模型的训练目标？",
+      "reference_answer": "DistilBERT在蒸馏过程中模仿了教师BERT模型的最终层隐藏状态、注意力矩阵以及软标签（Softmax输出）的概率分布，通过结合蒸馏损失和掩码语言建模损失进行训练。",
+      "tags": [
+        "DistilBERT",
+        "知识蒸馏",
+        "训练目标"
+      ],
+      "id": "bert_variants_basic_035",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "请对比RoBERTa和BERT在预训练阶段的主要改进点，并说明这些改进如何影响模型在下游任务中的表现？",
+      "reference_answer": "RoBERTa在BERT基础上改进了三点：1）动态掩码而非静态掩码，每次输入序列时重新生成掩码位置，增强泛化；2）移除Next Sentence Prediction任务，仅使用MLM训练，实验表明NSP对下游任务无益；3）使用更大批次和更多数据训练。这些改进使RoBERTa在GLUE等任务上显著优于BERT。",
+      "tags": [
+        "RoBERTa",
+        "预训练改进",
+        "动态掩码"
+      ],
+      "id": "bert_variants_medium_039",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "ALBERT通过参数共享和分解嵌入参数化来减少参数量，请解释这两种技术的具体实现方式及其对模型性能的影响？",
+      "reference_answer": "1）参数共享：跨层共享Transformer参数（如注意力权重和前馈网络），参数量减少但计算量不变；2）分解嵌入参数化：将嵌入矩阵分解为两个小矩阵（V×E和E×H，其中E远小于H），降低嵌入层参数量。这些技术使ALBERT参数量大幅减少，但性能与BERT相当，训练速度更快。",
+      "tags": [
+        "ALBERT",
+        "参数共享",
+        "嵌入分解"
+      ],
+      "id": "bert_variants_medium_040",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在中文自然语言处理任务中，选择Chinese-BERT而非原始BERT-base的主要考量是什么？请从分词和预训练语料两个角度分析。",
+      "reference_answer": "1）分词：Chinese-BERT使用基于字符的WordPiece分词（如“我爱北京”直接切分为单字），而原始BERT-base使用英文分词器，无法处理中文；2）预训练语料：Chinese-BERT在中文维基百科等大规模中文语料上预训练，词表包含中文字符，而BERT-base仅在英文语料上训练。因此Chinese-BERT在中文任务（如情感分析、命名实体识别）上表现更优。",
+      "tags": [
+        "Chinese-BERT",
+        "中文分词",
+        "预训练语料"
+      ],
+      "id": "bert_variants_medium_041",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在微调Chinese-BERT和原始BERT时，如果输入文本长度超过512个token，你会如何调整模型配置？请从模型架构和微调策略两方面对比两者的处理方式。",
+      "reference_answer": "对于原始BERT，其max_position_embeddings固定为512，超长文本需截断或分段输入。Chinese-BERT通常继承相同限制。微调策略上，可调整max_seq_length参数，但需重新训练位置嵌入或使用相对位置编码（如ALBERT的改进）。RoBERTa通过移除NSP任务并增加训练数据，但对长度限制无本质改变。",
+      "tags": [
+        "Chinese-BERT",
+        "架构权衡",
+        "边界情况"
+      ],
+      "id": "bert_variants_advanced_045",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在资源受限场景下，你选择DistilBERT还是ALBERT进行微调？请从模型参数量、推理速度和下游任务性能三个维度对比，并说明在什么边界情况下ALBERT可能优于DistilBERT。",
+      "reference_answer": "DistilBERT通过知识蒸馏减少40%参数量，推理速度提升60%，性能保留95%+。ALBERT通过参数共享和分解嵌入大幅减少参数量，但推理速度受限于层数。边界情况：当任务需要深层语义理解（如NLI）时，ALBERT的多层共享可能优于DistilBERT的浅层结构；但DistilBERT在简单分类任务上更高效。",
+      "tags": [
+        "DistilBERT",
+        "ALBERT",
+        "对比设计"
+      ],
+      "id": "bert_variants_advanced_046",
+      "subtopic": "variants",
+      "subtopic_zh": "BERT变体（RoBERTa/ALBERT/DistilBERT/Chinese-BERT 对比）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在BERT微调中，当输入文本长度超过模型最大序列长度（如512）时，常见的处理策略有哪些？",
+      "reference_answer": "常见策略包括：1）截断，保留前512个token或关键部分；2）滑动窗口/分块，将长文本切分为多个片段分别处理；3）使用支持更长序列的变体模型（如Longformer、BigBird）。",
+      "tags": [
+        "长文本处理",
+        "实战技巧"
+      ],
+      "id": "bert_practical_basic_041",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在低资源场景下，对BERT进行微调时，通常采用哪些技术来防止过拟合并提升性能？",
+      "reference_answer": "常用技术包括：1）使用较小的学习率（如2e-5）和较少的训练轮次（如2-3轮）；2）应用更强的正则化，如dropout和权重衰减；3）进行数据增强，如回译或随机替换；4）采用对抗训练或知识蒸馏。",
+      "tags": [
+        "低资源",
+        "实战技巧"
+      ],
+      "id": "bert_practical_basic_042",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "当将BERT模型应用于特定领域（如医疗、法律）的文本分类任务时，领域适应的关键步骤是什么？",
+      "reference_answer": "关键步骤包括：1）收集领域相关的未标注文本进行继续预训练（领域自适应预训练）；2）使用领域数据微调模型；3）调整词汇表以包含领域专有术语；4）采用渐进式解冻或分层学习率策略。",
+      "tags": [
+        "领域适应",
+        "实战技巧"
+      ],
+      "id": "bert_practical_basic_043",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在将BERT模型部署到生产环境时，通常采用哪些优化技术来减少推理延迟？",
+      "reference_answer": "常用优化技术包括：1）模型量化，将权重从FP32降低到FP16或INT8；2）知识蒸馏，用小模型模仿大模型；3）剪枝，移除不重要的注意力头或神经元；4）使用ONNX Runtime或TensorRT加速推理；5）批处理请求。",
+      "tags": [
+        "部署优化",
+        "实战技巧"
+      ],
+      "id": "bert_practical_basic_044",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在BERT微调中，当处理超过512 token的长文本时，除了直接截断，还有哪些常见的处理策略？请从原理和实现细节上简要说明其中一种。",
+      "reference_answer": "常见策略包括：滑动窗口法、分层聚合（如对文本分块后分别编码再池化）、使用Longformer等长文本模型。以滑动窗口法为例，原理是将长文本按固定步长和窗口大小切分为多个片段，每个片段分别输入BERT得到表示，再通过池化（如max/mean）或拼接得到最终表示。实现时需注意窗口重叠和边界信息的处理。",
+      "tags": [
+        "长文本处理",
+        "BERT微调"
+      ],
+      "id": "bert_practical_medium_049",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在低资源场景下微调BERT，为什么使用较小的学习率（如2e-5）和较少的训练轮次（如3-5 epoch）通常效果更好？请从优化原理和过拟合角度解释。",
+      "reference_answer": "低资源时数据量小，模型容易过拟合。较小的学习率可避免预训练知识被快速破坏（catastrophic forgetting），同时让模型在局部最优附近精细调整。较少的训练轮次限制了模型在有限数据上的迭代次数，防止过度拟合训练集的噪声。两者结合能更好地保留预训练表征的泛化能力。",
+      "tags": [
+        "低资源",
+        "微调策略"
+      ],
+      "id": "bert_practical_medium_050",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "将BERT微调应用于金融或医疗等特定领域时，通常需要进行领域适应（Domain Adaptation）。请说明一种常见的领域适应方法及其在数据准备上的关键步骤。",
+      "reference_answer": "常见方法是领域预训练（Domain-Adaptive Pretraining, DAPT）：在目标领域的大规模无标注语料上继续MLM预训练，然后再在下游任务上微调。关键步骤包括：收集领域相关文本（如金融年报、医疗病历），构建与BERT原始训练一致的MLM数据格式（随机mask 15% token），使用较小的学习率（如5e-5）和较少的步数（如100k步）进行继续训练，使模型词汇和语义适应领域分布。",
+      "tags": [
+        "领域适应",
+        "预训练"
+      ],
+      "id": "bert_practical_medium_051",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在部署BERT模型到生产环境时，量化是一种常用的优化技术。请说明INT8量化的基本原理及其在推理速度和精度上的典型影响。",
+      "reference_answer": "INT8量化将模型权重和激活值从FP32（32位浮点）转换为INT8（8位整数），通过缩小数值精度来减少模型大小和内存带宽。推理时，矩阵计算可使用INT8指令（如AVX-512 VNNI）加速，通常可获得2-4倍速度提升。精度损失一般较小（<1%准确率下降），但需对校准集进行范围校准以避免极端值截断误差。",
+      "tags": [
+        "部署优化",
+        "模型量化"
+      ],
+      "id": "bert_practical_medium_052",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在BERT微调中，处理长文本时，除了直接截断，还有哪些策略？请对比其优缺点，并说明在何种边界情况下哪种策略更优。",
+      "reference_answer": "策略包括：1) 滑动窗口法，将长文本切分为多个重叠片段分别编码后聚合，优点是不丢失信息，缺点是计算量大且可能丢失跨片段依赖；2) 层次化方法，如对段落分别编码后使用Transformer再聚合，优点是可建模长程依赖，缺点是实现复杂；3) 使用Longformer等长文本预训练模型，优点是直接支持长序列，缺点是需要额外预训练。边界情况：当文本长度超过512但关键信息均匀分布时，滑动窗口法更优；当文本具有明显段落结构时，层次化方法更优。",
+      "tags": [
+        "长文本处理",
+        "架构权衡"
+      ],
+      "id": "bert_practical_advanced_057",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在低资源场景下微调BERT时，如何通过数据增强或模型设计提升性能？请设计一个对比实验方案。",
+      "reference_answer": "数据增强：使用回译（如英译中再译回）生成伪平行数据，或对输入进行随机掩码替换。模型设计：采用冻结BERT底层、仅微调顶层或使用Adapter模块（仅训练少量参数）。对比实验方案：设置三组——A组基线（全量微调），B组冻结底层+顶层微调，C组Adapter微调。在相同低资源数据（如100条）上训练，在验证集上比较F1值。预期C组在极低资源下更优，因其参数量少，不易过拟合。",
+      "tags": [
+        "低资源",
+        "领域适应",
+        "对比设计"
+      ],
+      "id": "bert_practical_advanced_058",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（长文本处理 / 低资源 / 领域适应 / 部署优化）",
+      "difficulty": "advanced"
+    }
+  ]
+}

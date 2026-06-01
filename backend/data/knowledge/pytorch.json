@@ -1,0 +1,285 @@
+{
+  "module": "pytorch",
+  "module_name": "PyTorch深度学习",
+  "total": 18,
+  "cards": [
+    {
+      "title": "Value类（自动微分核心）",
+      "summary": "封装标量值和梯度，构建计算图实现自动求导。",
+      "points": [
+        "存储数据data和梯度grad，初始梯度为0。",
+        "通过_backward函数定义局部梯度传播规则。",
+        "_prev记录子节点，_op记录产生该节点的操作。",
+        "支持+、*、**、relu等运算并自动构建计算图。"
+      ],
+      "tip": "每个Value节点都是计算图的一个顶点，反向传播时按拓扑序调用_backward。",
+      "id": "pytorch_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "反向传播（backward）",
+      "summary": "按拓扑序反向遍历计算图，应用链式法则计算梯度。",
+      "points": [
+        "先通过build_topo获得节点的拓扑排序。",
+        "从输出节点开始，设置自身梯度为1。",
+        "按逆拓扑序依次调用各节点的_backward函数。",
+        "梯度累加到每个子节点的grad属性中。"
+      ],
+      "tip": "拓扑排序保证子节点梯度先于父节点计算，避免重复计算。",
+      "id": "pytorch_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "二元语法模型（Bigram）",
+      "summary": "基于字符对出现频率统计的简单语言模型。",
+      "points": [
+        "统计每个字符对（bigram）在训练数据中的出现次数。",
+        "构建27x27的计数矩阵N（含起始/结束符'.'）。",
+        "通过归一化计数矩阵得到转移概率矩阵P。",
+        "使用torch.multinomial根据概率采样生成新名字。"
+      ],
+      "tip": "Bigram模型只考虑前一个字符，上下文有限，但计算简单。",
+      "id": "pytorch_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "负对数似然（NLL）损失",
+      "summary": "衡量模型预测概率与真实标签的差异，值越小越好。",
+      "points": [
+        "最大化似然等价于最小化负对数似然。",
+        "对每个样本，取模型预测正确字符的概率的对数并取负。",
+        "最终损失为所有样本NLL的平均值。",
+        "优化目标：通过梯度下降最小化平均NLL。"
+      ],
+      "tip": "NLL损失是分类问题中最常用的损失函数之一，与交叉熵等价。",
+      "id": "pytorch_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Softmax函数",
+      "summary": "将logits转换为概率分布，指数化后归一化。",
+      "points": [
+        "先对logits取指数得到非负计数。",
+        "再除以所有计数的和，使概率之和为1。",
+        "输出每个类别的概率，值在0到1之间。",
+        "与交叉熵损失结合使用，构成分类网络的标准输出层。"
+      ],
+      "tip": "Softmax的指数运算放大了logits之间的差异，使概率分布更尖锐。",
+      "id": "pytorch_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "梯度下降优化",
+      "summary": "通过反向传播计算梯度，沿负梯度方向更新参数。",
+      "points": [
+        "前向传播计算损失，反向传播计算参数梯度。",
+        "清零梯度（W.grad = None）避免累加。",
+        "更新参数：W.data += -学习率 * W.grad。",
+        "可添加正则化项（如L2）防止过拟合。"
+      ],
+      "tip": "学习率是关键超参数，过大导致震荡，过小收敛慢。",
+      "id": "pytorch_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Value类 vs Tensor：自动微分基础单元",
+      "summary": "Value是标量引擎，Tensor是向量化引擎。",
+      "points": [
+        "数据维度：Value处理单个标量，Tensor处理多维数组",
+        "梯度计算：Value手动实现_backward，Tensor自动构建计算图",
+        "性能：Value逐元素操作慢，Tensor批量操作快（C++后端）",
+        "应用场景：Value适合教学演示，Tensor用于实际深度学习"
+      ],
+      "tip": "学习原理用Value，生产开发用Tensor。",
+      "id": "pytorch_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "手动统计 vs 神经网络：字符级语言模型",
+      "summary": "统计模型基于计数，神经网络基于参数优化。",
+      "points": [
+        "模型表示：统计模型用计数矩阵N，神经网络用权重矩阵W",
+        "训练方式：统计模型直接计数，神经网络通过梯度下降优化损失",
+        "平滑处理：统计模型加1平滑，神经网络通过正则化（如L2）",
+        "生成质量：统计模型简单但欠平滑，神经网络可学习更复杂模式"
+      ],
+      "tip": "小数据集用统计模型快速原型，大数据集用神经网络捕获长尾分布。",
+      "id": "pytorch_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "最大似然 vs 最小化负对数似然：优化目标",
+      "summary": "最大化似然等价于最小化负对数似然损失。",
+      "points": [
+        "数学形式：似然是概率乘积，负对数似然是概率对数和取负",
+        "优化方向：最大化似然，最小化负对数似然",
+        "数值稳定性：似然乘积易下溢，负对数似然和更稳定",
+        "梯度计算：负对数似然损失函数梯度易求，似然梯度复杂"
+      ],
+      "tip": "实践中始终使用负对数似然作为损失函数。",
+      "id": "pytorch_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "前向传播 vs 反向传播：神经网络训练流程",
+      "summary": "前向计算预测，反向计算梯度用于更新参数。",
+      "points": [
+        "计算方向：前向从输入到输出，反向从损失到参数",
+        "主要操作：前向执行矩阵乘法和激活函数，反向应用链式法则",
+        "中间结果：前向存储激活值用于反向梯度计算",
+        "参数更新：前向不改变参数，反向提供梯度用于优化"
+      ],
+      "tip": "理解前向传播是基础，反向传播是训练核心，两者缺一不可。",
+      "id": "pytorch_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Softmax 函数",
+      "summary": "P[i] = exp(logits[i]) / Σ_j exp(logits[j])，将 logits 转换为概率分布。",
+      "points": [
+        "logits：神经网络输出的原始分数（未归一化）。",
+        "exp：指数函数，确保所有值非负。",
+        "分母：对所有类别的指数值求和，实现归一化。",
+        "输出概率之和为 1，每个概率在 0 到 1 之间。",
+        "直觉：放大 logits 中的差异，使较大的值获得更高概率。"
+      ],
+      "tip": "Softmax 对输入敏感，数值过大时 exp 可能溢出，常用 log-softmax 或减去最大值稳定计算。",
+      "id": "pytorch_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "交叉熵损失 (Negative Log Likelihood)",
+      "summary": "Loss = -1/N Σ_i log(P_i[y_i])，衡量模型预测与真实标签的差异。",
+      "points": [
+        "N：样本总数。",
+        "P_i[y_i]：模型对第 i 个样本真实标签 y_i 的预测概率。",
+        "log：取对数，将乘积转化为求和，便于优化。",
+        "负号：将最大化似然转化为最小化损失。",
+        "直觉：正确标签的概率越接近 1，损失越小；越接近 0，损失越大。"
+      ],
+      "tip": "交叉熵等价于负对数似然，常用于分类任务。避免预测概率为 0 导致 log(0) 无穷大，可加平滑项。",
+      "id": "pytorch_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "梯度下降更新规则",
+      "summary": "W_new = W_old - lr * ∇_W Loss，沿负梯度方向更新参数以最小化损失。",
+      "points": [
+        "W_old：当前参数值。",
+        "lr：学习率，控制更新步长。",
+        "∇_W Loss：损失函数对参数的梯度，指示最陡上升方向。",
+        "负号：沿梯度反方向下降，减小损失。",
+        "直觉：梯度指向损失增加最快的方向，反方向移动可降低损失。"
+      ],
+      "tip": "学习率过大可能导致震荡或不收敛，过小则收敛缓慢。实践中常用 Adam 等自适应优化器动态调整学习率。",
+      "id": "pytorch_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "Value类：自动微分核心实现",
+      "summary": "定义标量值和梯度，构建计算图实现反向传播",
+      "points": [
+        "self.data = data # 存储标量值",
+        "self.grad = 0 # 初始化梯度为0",
+        "self._backward = lambda: None # 反向传播函数，默认无操作",
+        "self._prev = set(_children) # 记录子节点，构建计算图"
+      ],
+      "tip": "梯度累加而非覆盖：反向传播时使用 += 而非 =，因为一个节点可能被多个路径影响。",
+      "id": "pytorch_code_014",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "Bigram统计模型：计数与概率计算",
+      "summary": "统计字符对频率，构建概率矩阵并采样生成名字",
+      "points": [
+        "N = torch.zeros((27, 27), dtype=torch.int32) # 初始化计数矩阵",
+        "N[ix1, ix2] += 1 # 统计每个字符对出现次数",
+        "P = (N+1).float() # 加1平滑，避免零概率",
+        "P /= P.sum(1, keepdims=True) # 归一化为概率分布"
+      ],
+      "tip": "使用加1平滑（拉普拉斯平滑）防止未出现字符对概率为零，导致log计算错误。",
+      "id": "pytorch_code_015",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "神经网络优化：梯度下降训练",
+      "summary": "构建单层网络，通过反向传播和梯度下降最小化损失",
+      "points": [
+        "W = torch.randn((27, 27), generator=g, requires_grad=True) # 初始化权重并启用梯度",
+        "loss = -probs[torch.arange(num), ys].log().mean() # 负对数似然损失",
+        "loss.backward() # 反向传播计算梯度",
+        "W.data += -50 * W.grad # 梯度下降更新权重"
+      ],
+      "tip": "每次反向传播前需清零梯度（W.grad = None），否则梯度会累加导致更新错误。",
+      "id": "pytorch_code_016",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "反向传播时梯度是累加的",
+      "summary": "梯度是累加的，不是直接赋值的",
+      "points": [
+        "容易犯错：在自定义反向传播函数_backward中，容易写成self.grad = out.grad，导致梯度被覆盖，而不是累加",
+        "正确理解：在计算图中，一个节点可能被多个后续节点影响，梯度必须累加，即self.grad += out.grad，这样才能正确应用链式法则"
+      ],
+      "tip": "梯度累加，不是赋值",
+      "id": "pytorch_gotcha_017",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "Softmax的数值稳定性",
+      "summary": "Softmax计算时先减去最大值防止溢出",
+      "points": [
+        "容易犯错：直接计算exp(logits)可能导致数值溢出，因为logits可能很大",
+        "正确理解：Softmax计算时，先对logits减去最大值，再计算exp和归一化，这样能保证数值稳定性，且结果不变"
+      ],
+      "tip": "先减最大值，再算exp",
+      "id": "pytorch_gotcha_018",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

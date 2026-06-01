@@ -1,0 +1,207 @@
+{
+  "module": "deploy",
+  "module_name": "推理与部署",
+  "total": 12,
+  "cards": [
+    {
+      "title": "vLLM vs TGI vs llama.cpp",
+      "summary": "vLLM 追求高性能吞吐，TGI 生产就绪，llama.cpp 轻量本地运行。",
+      "points": [
+        "定位：vLLM 高性能推理库 / TGI 生产级部署框架 / llama.cpp 轻量C++推理引擎",
+        "内存管理：vLLM PagedAttention / TGI 支持Paged & Flash Attention / llama.cpp 自定义内存分配",
+        "量化支持：vLLM 广泛（FP8/INT4/GPTQ等） / TGI 多种（bitsandbytes/GPTQ/AWQ等） / llama.cpp GGUF量化",
+        "分布式：vLLM 多种并行 / TGI Tensor Parallelism / llama.cpp 有限并行",
+        "硬件支持：vLLM NVIDIA/AMD/CPU及多种插件 / TGI NVIDIA/AMD/Intel/TPU / llama.cpp 跨平台CPU/GPU"
+      ],
+      "tip": "高吞吐服务选vLLM；生产环境选TGI；本地或资源受限选llama.cpp。",
+      "id": "deploy_compare_001",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "PagedAttention vs FlashAttention",
+      "summary": "PagedAttention优化KV缓存管理，FlashAttention加速注意力计算。",
+      "points": [
+        "核心目标：PagedAttention 解决KV缓存碎片 / FlashAttention 减少显存访问",
+        "实现方式：PagedAttention 分页管理KV块 / FlashAttention 分块计算注意力",
+        "效果：PagedAttention 提升批处理吞吐 / FlashAttention 加速单次推理",
+        "协作：vLLM同时使用两者，PagedAttention管理内存，FlashAttention加速计算"
+      ],
+      "tip": "高并发场景PagedAttention更关键；低延迟场景FlashAttention更有效。",
+      "id": "deploy_compare_002",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "连续批处理 vs 静态批处理",
+      "summary": "连续批处理动态插入请求，静态批处理固定批次。",
+      "points": [
+        "灵活性：连续批处理 请求可随时加入/离开 / 静态批处理 批次固定",
+        "吞吐：连续批处理 更高（减少空闲） / 静态批处理 较低（等待批次填满）",
+        "延迟：连续批处理 更稳定 / 静态批处理 可能波动",
+        "实现：连续批处理 需要迭代级调度 / 静态批处理 简单实现"
+      ],
+      "tip": "高吞吐服务选连续批处理；简单场景或资源充足可选静态批处理。",
+      "id": "deploy_compare_003",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "GGUF vs 其他量化格式",
+      "summary": "GGUF专为llama.cpp设计，GPTQ/AWQ更通用。",
+      "points": [
+        "设计目标：GGUF 轻量本地推理 / GPTQ/AWQ 高性能量化",
+        "兼容性：GGUF 主要llama.cpp / GPTQ/AWQ 广泛支持（vLLM/TGI等）",
+        "精度：GGUF 多种量化级别 / GPTQ/AWQ 通常4bit",
+        "加载速度：GGUF 快速（单文件） / GPTQ/AWQ 需额外处理"
+      ],
+      "tip": "本地使用选GGUF；生产环境或跨框架选GPTQ/AWQ。",
+      "id": "deploy_compare_004",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "PagedAttention 内存管理",
+      "summary": "KV 缓存分页管理，消除碎片并支持共享，提升显存利用率与吞吐量。",
+      "points": [
+        "将 KV 缓存划分为固定大小的块（Page），类似虚拟内存分页",
+        "每个块存储连续 token 的部分 Key 和 Value，物理上可不连续",
+        "通过块表（Block Table）将逻辑块映射到物理块，支持非连续存储",
+        "共享机制允许不同序列复用相同块，如并行采样时共享前缀",
+        "直觉理解：像操作系统分页，消除内部碎片，实现零拷贝共享"
+      ],
+      "tip": "PagedAttention 的核心创新是分页思想，而非注意力计算本身；它解决了显存碎片和共享问题，是 vLLM 高性能的基础。",
+      "id": "deploy_formula_005",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "Continuous Batching（连续批处理）",
+      "summary": "动态将请求组成批次，在每次前向传播时插入或移除序列，最大化 GPU 利用率。",
+      "points": [
+        "传统静态批处理：固定批次大小，等待所有请求完成才释放",
+        "连续批处理：每个迭代（iteration）动态决定批次组成",
+        "新请求可立即加入当前批次，已完成序列立即退出",
+        "通过迭代级调度（iteration-level scheduling）实现",
+        "直觉理解：像餐厅流水线，随时加入新顾客，吃完就走，不等待整桌"
+      ],
+      "tip": "连续批处理并非一次性调度所有请求，而是在每个解码步骤动态调整批次，这是与静态批处理的本质区别。",
+      "id": "deploy_formula_006",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "Speculative Decoding（推测解码）",
+      "summary": "用小模型快速生成候选 token，大模型并行验证，在保证质量的同时降低延迟。",
+      "points": [
+        "草稿模型（Draft Model）：轻量模型，快速生成 K 个候选 token",
+        "目标模型（Target Model）：大模型，并行验证候选 token 的正确性",
+        "拒绝采样（Rejection Sampling）：若目标模型概率低于草稿模型，则拒绝并回退",
+        "接受率（Acceptance Rate）：草稿模型被接受的 token 比例，决定加速比",
+        "直觉理解：学生先快速写草稿，老师一次性批改，比逐字指导更快"
+      ],
+      "tip": "推测解码不改变输出分布，理论上与直接使用目标模型采样等价；加速效果取决于草稿模型与目标模型的分布对齐程度。",
+      "id": "deploy_formula_007",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "vLLM 安装与基础服务",
+      "summary": "安装 vLLM 并启动 OpenAI 兼容 API 服务。",
+      "points": [
+        "uv pip install vllm  # 使用 uv 或 pip 安装 vLLM",
+        "from vllm import LLM, SamplingParams  # 导入核心类",
+        "llm = LLM(model=\"Qwen/Qwen2.5-7B-Instruct\")  # 加载 Hugging Face 模型",
+        "params = SamplingParams(temperature=0.7, max_tokens=100)  # 配置采样参数",
+        "outputs = llm.generate(\"Hello, world!\", params)  # 执行推理",
+        "print(outputs[0].outputs[0].text)  # 输出生成的文本"
+      ],
+      "tip": "确保 GPU 驱动和 CUDA 版本兼容 vLLM；首次运行会下载模型权重。",
+      "id": "deploy_code_008",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "TGI Docker 部署与请求",
+      "summary": "使用 Docker 启动 TGI 服务并发送生成请求。",
+      "points": [
+        "docker run --gpus all --shm-size 1g -p 8080:80 -v $volume:/data \\  # 启动容器",
+        "    ghcr.io/huggingface/text-generation-inference:3.3.5 --model-id $model  # 指定模型",
+        "curl 127.0.0.1:8080/generate_stream -X POST \\  # 发送流式生成请求",
+        "    -d '{\"inputs\":\"What is Deep Learning?\",\"parameters\":{\"max_new_tokens\":20}}' \\  # 请求体",
+        "    -H 'Content-Type: application/json'  # 设置请求头"
+      ],
+      "tip": "使用 --shm-size 1g 避免共享内存不足；模型 ID 需在 Hugging Face 上可访问。",
+      "id": "deploy_code_009",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "llama.cpp 本地推理与 API",
+      "summary": "使用 llama.cpp 加载 GGUF 模型并启动 API 服务。",
+      "points": [
+        "llama-cli -m my_model.gguf  # 用本地 GGUF 文件运行推理",
+        "llama-cli -hf ggml-org/gemma-3-1b-it-GGUF  # 从 Hugging Face 下载并运行",
+        "llama-server -hf ggml-org/gemma-3-1b-it-GGUF  # 启动 OpenAI 兼容 API 服务器",
+        "curl localhost:8080/v1/chat/completions -X POST \\  # 发送聊天请求",
+        "    -d '{\"model\":\"llama\",\"messages\":[{\"role\":\"user\",\"content\":\"Hi\"}]}' \\  # 请求体",
+        "    -H 'Content-Type: application/json'  # 设置请求头"
+      ],
+      "tip": "GGUF 文件需与模型架构匹配；首次使用 -hf 会下载模型到 Hugging Face 缓存目录。",
+      "id": "deploy_code_010",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "vLLM 和 TGI 都使用 PagedAttention",
+      "summary": "TGI 使用 Flash Attention，PagedAttention 是 vLLM 的核心技术。",
+      "points": [
+        "容易混淆：两者都优化了注意力机制，但 TGI 主要依赖 Flash Attention 和 Paged Attention（作为可选），而 vLLM 的核心创新是 PagedAttention 用于高效管理 KV 缓存。",
+        "正确理解：vLLM 的 PagedAttention 是其标志性技术，TGI 则更侧重于 Flash Attention 和连续批处理，两者实现不同。"
+      ],
+      "tip": "vLLM 靠 PagedAttention 出名，TGI 靠 Flash Attention 起家。",
+      "id": "deploy_gotcha_011",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "llama.cpp 仅支持 GGUF 格式模型",
+      "summary": "llama.cpp 也支持从 Hugging Face 直接下载并运行模型。",
+      "points": [
+        "容易忽略：llama.cpp 原生使用 GGUF 格式，但通过 `-hf` 参数可以直接从 Hugging Face 下载模型并自动转换为 GGUF 使用。",
+        "正确理解：GGUF 是首选格式，但并非唯一来源；llama.cpp 提供了便捷的 Hugging Face 模型下载和运行方式。"
+      ],
+      "tip": "llama.cpp 也吃 Hugging Face 的饭，用 `-hf` 就行。",
+      "id": "deploy_gotcha_012",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

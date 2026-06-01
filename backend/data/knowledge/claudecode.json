@@ -1,0 +1,298 @@
+{
+  "module": "claudecode",
+  "module_name": "Claude Code",
+  "total": 18,
+  "cards": [
+    {
+      "title": "Claude SDK for Python (anthropic)",
+      "summary": "Python包，提供Claude API的完整访问接口。",
+      "points": [
+        "通过 pip install anthropic 安装",
+        "需要Python 3.9+环境",
+        "使用 Anthropic 客户端类初始化",
+        "调用 client.messages.create 发送请求",
+        "支持设置 max_tokens、model 等参数"
+      ],
+      "tip": "API密钥默认从环境变量 ANTHROPIC_API_KEY 读取，无需显式传入。",
+      "id": "claudecode_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Messages API 调用流程",
+      "summary": "创建客户端→构造消息→调用create方法→获取响应。",
+      "points": [
+        "导入 from anthropic import Anthropic",
+        "实例化 Anthropic(api_key=...)",
+        "构造 messages 列表，包含 role 和 content",
+        "指定 model 和 max_tokens 参数",
+        "响应通过 .content[0].text 获取文本"
+      ],
+      "tip": "messages 列表支持多轮对话，role 可选 user 或 assistant。",
+      "id": "claudecode_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "JSON 模式（无约束采样）",
+      "summary": "Claude无原生JSON模式，但可通过提示词可靠输出JSON。",
+      "points": [
+        "Claude没有constrained sampling的JSON模式",
+        "通过提示词引导即可稳定输出JSON",
+        "可用字符串解析提取JSON内容",
+        "支持多种提取方式：标记、位置、正则"
+      ],
+      "tip": "面试常问：Claude没有JSON模式，但提示词工程可达到同样效果。",
+      "id": "claudecode_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "JSON提取方法一：字符串定位",
+      "summary": "通过查找 { 和 } 位置提取JSON字符串。",
+      "points": [
+        "使用 response.index('{') 找到起始位置",
+        "使用 response.rfind('}') 找到结束位置",
+        "用 json.loads() 解析提取的字符串",
+        "适用于简单单JSON输出场景",
+        "无法处理多个JSON或复杂嵌套"
+      ],
+      "tip": "rfind() 从右侧查找，确保找到最外层的闭合括号。",
+      "id": "claudecode_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "JSON提取方法二：预填充响应",
+      "summary": "在assistant消息中预置 { 引导Claude直接输出JSON。",
+      "points": [
+        "在messages中添加 assistant role消息",
+        "预填充内容如 'Here is the JSON requested:\\n{'",
+        "Claude会延续预填充内容继续输出",
+        "提取时需补回预填充的 { 字符",
+        "可去除JSON前的解释性前言"
+      ],
+      "tip": "预填充会跳过Chain of Thought，降低复杂任务的准确性。",
+      "id": "claudecode_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "JSON提取方法三：XML标签包裹",
+      "summary": "用自定义XML标签包裹JSON，通过正则提取。",
+      "points": [
+        "在提示词中指定标签名如 <athlete_sports>",
+        "Claude将JSON输出在指定标签内",
+        "使用 re.findall 和正则提取标签内容",
+        "支持同一提示词中输出多个JSON",
+        "适用于复杂多JSON输出的场景"
+      ],
+      "tip": "正则写法：<tag>(.+?)</tag> 使用 re.DOTALL 标志匹配换行。",
+      "id": "claudecode_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Claude JSON输出：无预填 vs 预填响应",
+      "summary": "预填{可跳过前言，直接输出JSON",
+      "points": [
+        "输出内容：Claude可能先输出自然语言解释，再输出JSON",
+        "输出内容：Claude直接以{开头输出JSON，无额外文本",
+        "提取方式：需用字符串搜索提取{}之间的内容",
+        "提取方式：只需补回预填的{并截取到}即可",
+        "适用场景：适合简单、单次JSON输出",
+        "适用场景：适合需要简洁、直接获取JSON的场景"
+      ],
+      "tip": "若需快速获取JSON且无需推理过程，使用预填响应；若需Chain of Thought提升准确性，使用无预填方式",
+      "id": "claudecode_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Claude JSON输出：单JSON vs 多JSON",
+      "summary": "单JSON用{}提取，多JSON用XML标签提取",
+      "points": [
+        "提取方式：用字符串索引定位{}并提取",
+        "提取方式：用正则表达式提取指定XML标签间内容",
+        "适用场景：单个JSON输出，结构简单",
+        "适用场景：复杂提示含多个JSON输出，需分别提取",
+        "可靠性：简单场景下可靠，复杂场景易出错",
+        "可靠性：通过标签明确区分，提取更稳定"
+      ],
+      "tip": "单JSON用{}提取更简洁；多JSON时用XML标签包裹每个JSON，避免混淆",
+      "id": "claudecode_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Claude JSON输出：无停止序列 vs 有停止序列",
+      "summary": "停止序列可截断JSON后的多余文本",
+      "points": [
+        "输出控制：Claude可能输出JSON后继续输出解释",
+        "输出控制：在JSON结束后立即停止，无多余文本",
+        "提取方式：需截取到}并忽略后续内容",
+        "提取方式：直接获取完整JSON，无需额外处理",
+        "适用场景：允许JSON后有少量文本",
+        "适用场景：需要纯净JSON输出的场景"
+      ],
+      "tip": "若下游处理要求严格JSON格式，使用停止序列避免多余文本",
+      "id": "claudecode_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Claude SDK for Python：基本安装 vs 使用入门",
+      "summary": "安装只需pip，入门需创建客户端并调用API",
+      "points": [
+        "安装方式：pip install anthropic",
+        "安装方式：导入Anthropic类，创建客户端实例",
+        "核心操作：设置API密钥（环境变量或直接传入）",
+        "核心操作：调用client.messages.create发送请求",
+        "必要参数：model、max_tokens、messages",
+        "必要参数：同上，且messages需包含role和content",
+        "版本要求：Python 3.9+",
+        "版本要求：同上"
+      ],
+      "tip": "首次使用先pip安装，再参考入门代码快速实现消息发送",
+      "id": "claudecode_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Claude SDK 安装与客户端初始化",
+      "summary": "pip install anthropic → Anthropic(api_key)",
+      "points": [
+        "pip install anthropic：安装官方 Python SDK",
+        "from anthropic import Anthropic：导入客户端类",
+        "client = Anthropic(api_key=...)：初始化客户端，api_key 默认从环境变量 ANTHROPIC_API_KEY 读取",
+        "Python 版本要求：3.9+"
+      ],
+      "tip": "API Key 建议通过环境变量设置，不要硬编码在代码中",
+      "id": "claudecode_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "messages.create 消息创建",
+      "summary": "client.messages.create(model, max_tokens, messages)",
+      "points": [
+        "model：指定模型名称，如 claude-opus-4-6",
+        "max_tokens：最大输出 token 数",
+        "messages：对话历史列表，每项含 role（user/assistant）和 content",
+        "返回值包含 content[0].text 获取模型回复文本"
+      ],
+      "tip": "max_tokens 控制输出长度，但不会影响输入 token 计数",
+      "id": "claudecode_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "JSON 模式提取方法",
+      "summary": "提取 JSON 的三种方式：字符串解析、预填充、XML 标签",
+      "points": [
+        "字符串解析：用 response.index('{') 和 response.rfind('}') 定位 JSON",
+        "预填充：在 assistant 消息末尾添加 '{' 引导 Claude 直接输出 JSON",
+        "XML 标签：用 <tag>...</tag> 包裹 JSON，再用正则提取",
+        "stop sequence：可设置停止序列去掉 JSON 之后的内容"
+      ],
+      "tip": "预填充 '{' 会跳过思维链，复杂任务建议用 XML 标签法保留推理过程",
+      "id": "claudecode_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "Claude SDK 初始化与消息创建",
+      "summary": "初始化客户端并发送消息获取回复。",
+      "points": [
+        "`from anthropic import Anthropic` 导入SDK",
+        "`client = Anthropic(api_key=...)` 创建客户端实例，默认从环境变量读取密钥",
+        "`client.messages.create(...)` 创建消息请求",
+        "`max_tokens=1024` 设置最大输出token数",
+        "`model=\"claude-opus-4-6\"` 指定模型版本",
+        "`message.content[0].text` 获取回复文本"
+      ],
+      "tip": "API密钥建议通过环境变量设置，避免硬编码；模型名称需与API可用版本一致。",
+      "id": "claudecode_code_014",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "JSON模式：预填充助手响应",
+      "summary": "通过预填充'{'强制Claude直接输出JSON。",
+      "points": [
+        "`{\"role\": \"assistant\", \"content\": \"Here is the JSON requested:\\n{\"}` 在消息列表中预填充助手响应",
+        "Claude会续写预填充内容，直接输出JSON",
+        "`json.loads(\"{\" + message[:message.rfind(\"}\") + 1])` 补回预填充的'{'并解析JSON"
+      ],
+      "tip": "预填充会跳过思考过程，降低复杂任务准确性；确保预填充的'{'与输出JSON格式一致。",
+      "id": "claudecode_code_015",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "JSON模式：XML标签提取",
+      "summary": "用XML标签包裹JSON，通过正则提取。",
+      "points": [
+        "在提示词中要求Claude将JSON放入`<athlete_sports>`等自定义标签",
+        "`re.findall(f\"<{tag}>(.+?)</{tag}>\", string, re.DOTALL)` 正则提取标签间内容",
+        "`json.loads(extract_between_tags(\"athlete_sports\", message)[0])` 解析提取的JSON字符串",
+        "支持同一提示词中输出多个JSON，分别用不同标签包裹"
+      ],
+      "tip": "标签名需唯一且不与输出内容冲突；使用`re.DOTALL`标志确保跨行匹配；适用于复杂多输出场景。",
+      "id": "claudecode_code_016",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "Claude没有正式的JSON Mode",
+      "summary": "Claude没有约束采样的JSON模式，但可稳定输出JSON。",
+      "points": [
+        "容易误以为Claude有类似GPT的JSON Mode，实际上它不支持约束采样或结构化输出。",
+        "正确做法：通过预填充assistant消息（如以'{'开头）跳过前言，或用XML标签包裹JSON后用正则提取。"
+      ],
+      "tip": "无JSON Mode，预填充+标签提取",
+      "id": "claudecode_gotcha_017",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "提取JSON用简单字符串搜索即可",
+      "summary": "简单场景用index('{')和rfind('}')即可提取JSON。",
+      "points": [
+        "容易认为必须用复杂正则或第三方库才能提取JSON，其实简单场景字符串搜索就够了。",
+        "正确做法：用response.index('{')和response.rfind('}')定位JSON边界，再用json.loads解析；复杂多JSON场景才用XML标签+正则。"
+      ],
+      "tip": "简单用index和rfind，复杂用标签",
+      "id": "claudecode_gotcha_018",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

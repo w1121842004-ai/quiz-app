@@ -1,0 +1,240 @@
+{
+  "module": "finetune",
+  "module_name": "LLM微调与对齐",
+  "total": 15,
+  "cards": [
+    {
+      "title": "TRL (Transformers Reinforcement Learning)",
+      "summary": "Hugging Face的后训练库，支持SFT/DPO/GRPO等方法。",
+      "points": [
+        "提供SFTTrainer、DPOTrainer、GRPOTrainer等专用训练器",
+        "基于Transformers生态，支持DDP、DeepSpeed分布式扩展",
+        "集成PEFT实现量化与LoRA/QLoRA高效微调",
+        "提供CLI命令行接口，无需代码即可微调模型"
+      ],
+      "tip": "TRL是Hugging Face的RLHF全家桶，核心是各类后训练Trainer。",
+      "id": "finetune_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "SFT (Supervised Fine-Tuning)",
+      "summary": "监督微调，用标注数据对预训练模型进行指令跟随训练。",
+      "points": [
+        "使用人工标注的指令-回答对进行有监督学习",
+        "是RLHF流程的第一步，为后续对齐提供基础模型",
+        "SFTTrainer支持直接传入模型ID和数据集进行训练",
+        "可结合PEFT（如LoRA）降低显存占用"
+      ],
+      "tip": "SFT是RLHF的起点，核心是模仿人类标注的优质回答。",
+      "id": "finetune_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "DPO (Direct Preference Optimization)",
+      "summary": "直接偏好优化，无需奖励模型，直接从偏好数据优化。",
+      "points": [
+        "通过二元偏好数据（chosen/rejected）直接优化策略",
+        "无需训练独立的奖励模型，简化RLHF流程",
+        "DPOTrainer实现了该算法，用于后训练如Llama 3",
+        "与PPO相比更稳定、更易实现"
+      ],
+      "tip": "DPO是RLHF的简化版，跳过奖励模型直接优化偏好。",
+      "id": "finetune_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "GRPO (Group Relative Policy Optimization)",
+      "summary": "组相对策略优化，比PPO更省显存，用于训练推理模型。",
+      "points": [
+        "通过组内相对奖励计算优势，无需价值网络和参考模型",
+        "内存效率优于PPO，适合大规模模型训练",
+        "用于训练DeepSeek-R1等推理模型",
+        "GRPOTrainer支持自定义奖励函数如accuracy_reward"
+      ],
+      "tip": "GRPO是PPO的内存优化版，通过组内比较省去价值网络。",
+      "id": "finetune_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "PEFT (Parameter-Efficient Fine-Tuning)",
+      "summary": "参数高效微调，只更新少量参数即可适配下游任务。",
+      "points": [
+        "仅微调少量额外参数，大幅降低计算和存储成本",
+        "支持LoRA、Prefix Tuning、IA3等多种方法",
+        "与Transformers、Diffusers、Accelerate深度集成",
+        "LoRA可将12B模型训练显存从OOM降至56GB"
+      ],
+      "tip": "PEFT的核心是‘以小博大’，用少量参数达到全量微调效果。",
+      "id": "finetune_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "QLoRA (Quantized Low-Rank Adaptation)",
+      "summary": "量化LoRA，在4-bit量化模型上微调，显存需求极低。",
+      "points": [
+        "将预训练模型量化至4-bit（NF4数据类型）后冻结",
+        "仅训练低秩适配器（LoRA），梯度回传至量化模型",
+        "引入双重量化和分页优化器进一步节省显存",
+        "可在48GB单卡上微调65B模型，性能接近16-bit全精度"
+      ],
+      "tip": "QLoRA=4-bit量化+LoRA，让单卡微调大模型成为可能。",
+      "id": "finetune_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "全参数微调 vs PEFT（LoRA）",
+      "summary": "全参数更新所有权重，PEFT只更新少量参数。",
+      "points": [
+        "内存需求：全参数微调需要大量GPU内存（如3B模型需47GB）；PEFT（LoRA）显著降低内存（如3B模型仅需14GB）。",
+        "可训练参数量：全参数微调更新全部参数；PEFT仅更新0.1%-1%的参数（如LoRA在3B模型上仅训练0.12%）。",
+        "性能：全参数微调性能通常略高；PEFT在多数任务上接近全参数微调性能。",
+        "存储成本：全参数微调保存完整模型（如11GB）；PEFT仅保存适配器权重（如19MB）。"
+      ],
+      "tip": "硬件资源有限或需快速迭代时选PEFT；追求极致性能且资源充足时选全参数微调。",
+      "id": "finetune_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "SFT vs DPO vs GRPO 对比",
+      "summary": "SFT监督学习，DPO直接偏好优化，GRPO组相对策略优化。",
+      "points": [
+        "训练数据：SFT使用输入-输出对；DPO使用偏好对（chosen/rejected）；GRPO使用奖励信号。",
+        "算法复杂度：SFT简单，标准交叉熵损失；DPO无需显式奖励模型，直接优化偏好；GRPO基于策略梯度，需组采样。",
+        "内存效率：SFT较低；DPO中等；GRPO比PPO更高效（无价值网络）。",
+        "典型应用：SFT用于指令微调；DPO用于对齐人类偏好（如Llama 3）；GRPO用于推理模型（如DeepSeek R1）。"
+      ],
+      "tip": "有监督数据充足时选SFT；有偏好数据时选DPO；需要强化学习式对齐且内存敏感时选GRPO。",
+      "id": "finetune_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "QLoRA vs LoRA 对比",
+      "summary": "QLoRA在LoRA基础上引入4-bit量化和额外优化。",
+      "points": [
+        "量化精度：LoRA使用16-bit或32-bit；QLoRA使用4-bit NormalFloat（NF4）量化。",
+        "内存节省：QLoRA可训练65B模型在单48GB GPU上；LoRA训练12B模型需56GB GPU。",
+        "额外技术：QLoRA引入双重量化（量化量化常数）和分页优化器；LoRA无此优化。",
+        "性能：QLoRA保持全16-bit微调性能（如Guanaco达ChatGPT 99.3%）；LoRA性能也接近全参数微调。"
+      ],
+      "tip": "硬件内存极有限时选QLoRA（如单GPU训练大模型）；内存尚可时选LoRA更简单高效。",
+      "id": "finetune_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "PEFT vs 量化 对比",
+      "summary": "PEFT减少可训练参数，量化降低模型精度和内存。",
+      "points": [
+        "核心思想：PEFT通过仅微调少量参数（如LoRA适配器）降低计算和存储；量化通过降低权重精度（如4-bit）减少内存占用。",
+        "训练影响：PEFT直接减少训练参数量；量化通常冻结模型，结合PEFT（如QLoRA）训练。",
+        "推理影响：PEFT推理时需合并或加载适配器；量化推理时模型更小更快。",
+        "组合使用：PEFT和量化可互补（如QLoRA），在极低内存下微调大模型。"
+      ],
+      "tip": "仅需降低训练成本选PEFT；仅需降低推理内存选量化；两者兼顾时选QLoRA。",
+      "id": "finetune_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "QLoRA 4-bit NormalFloat (NF4)",
+      "summary": "NF4 = 量化权重至4位，信息论最优正态分布表示",
+      "points": [
+        "NF4是一种信息论最优的4位数据类型，专为正态分布权重设计",
+        "通过将权重映射到4位表示，显著减少内存占用",
+        "相比标准4位量化，NF4在保持模型性能的同时实现更高压缩率",
+        "直觉理解：就像用更少的比特数精确表示权重值，类似用更少颜色数压缩图像但保留关键信息"
+      ],
+      "tip": "NF4不是简单截断，而是基于正态分布的分位数量化，确保信息损失最小化",
+      "id": "finetune_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "QLoRA Double Quantization (双重量化)",
+      "summary": "双重量化 = 对量化常数进行二次量化，减少平均内存占用",
+      "points": [
+        "第一次量化：将模型权重从16位量化到4位NF4，产生量化常数（scale）",
+        "第二次量化：对第一次量化产生的常数进行8位量化，进一步压缩",
+        "平均每个参数节省约0.5位内存，对65B模型可节省约3GB",
+        "直觉理解：就像先压缩文件，再压缩压缩后的元数据，双重节省空间"
+      ],
+      "tip": "双重量化是QLoRA的关键创新之一，常被忽略但贡献显著",
+      "id": "finetune_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "QLoRA Paged Optimizers (分页优化器)",
+      "summary": "分页优化器 = 利用CPU内存处理GPU显存溢出，避免OOM",
+      "points": [
+        "当GPU显存不足时，优化器状态自动分页到CPU内存",
+        "利用CPU与GPU之间的统一内存管理，类似操作系统虚拟内存",
+        "处理训练中的显存峰值，如长序列或大批量时的梯度累积",
+        "直觉理解：就像电脑用硬盘作为虚拟内存，当RAM不够时自动交换数据"
+      ],
+      "tip": "分页优化器不是简单offloading，而是智能的按需分页，只在必要时使用CPU内存",
+      "id": "finetune_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "PEFT只能节省训练时间，不能节省推理内存",
+      "summary": "PEFT主要节省训练显存，推理时仍需加载完整基座模型",
+      "points": [
+        "容易犯错的原因：PEFT（如LoRA）在训练时只更新少量参数，且通过量化等技术大幅降低训练显存，容易误以为推理时也只需加载适配器权重。",
+        "正确理解：推理时，适配器权重会合并回基座模型或与基座模型同时加载，基座模型的全部参数（如3B、7B）仍需占用显存。PEFT不减少模型参数量，只减少训练时需更新的参数量和梯度存储。"
+      ],
+      "tip": "PEFT省训练不省推理，基座模型大小决定推理显存",
+      "id": "finetune_gotcha_014",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "QLoRA的4-bit量化不影响模型性能，可以随意降低精度",
+      "summary": "4-bit量化需配合NF4数据类型和双重量化才能保持性能",
+      "points": [
+        "容易犯错的原因：看到QLoRA用4-bit量化训练后模型性能与16-bit接近，误以为任何4-bit量化都能达到同样效果，或认为精度越低越好。",
+        "正确理解：QLoRA使用的4-bit NormalFloat (NF4)是专门为满足正态分布权重而设计的信息论最优数据类型，且结合了双重量化和分页优化器。普通4-bit量化（如直接截断）会导致显著性能下降。"
+      ],
+      "tip": "QLoRA的NF4+双重量化是关键，普通4-bit不可替代",
+      "id": "finetune_gotcha_015",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

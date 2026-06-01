@@ -1,0 +1,838 @@
+{
+  "module": "transformer",
+  "module_name": "Transformer架构",
+  "total": 60,
+  "subtopics": [
+    {
+      "id": "attention",
+      "name_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "target": 10
+    },
+    {
+      "id": "architecture",
+      "name_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "target": 8
+    },
+    {
+      "id": "position_enc",
+      "name_zh": "位置编码（绝对/相对/RoPE/ALiBi）",
+      "target": 6
+    },
+    {
+      "id": "training",
+      "name_zh": "训练细节（Warmup、Label Smoothing、Masking策略）",
+      "target": 6
+    },
+    {
+      "id": "variants",
+      "name_zh": "变体对比（BERT/GPT/T5/LLaMA 架构差异与适用场景）",
+      "target": 8
+    },
+    {
+      "id": "implementation",
+      "name_zh": "代码实现（PyTorch 关键模块手写）",
+      "target": 6
+    },
+    {
+      "id": "applications",
+      "name_zh": "应用扩展（ViT / 多模态 / 长序列优化）",
+      "target": 4
+    },
+    {
+      "id": "modern_arch",
+      "name_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "target": 8
+    },
+    {
+      "id": "kv_inference",
+      "name_zh": "推理优化基础（KV Cache原理/FlashAttention/投机解码）",
+      "target": 6
+    }
+  ],
+  "questions": [
+    {
+      "question": "在CausalSelfAttention中，为什么需要对注意力分数除以sqrt(k.size(-1))？",
+      "reference_answer": "除以sqrt(k.size(-1))是为了缩放注意力分数，防止softmax函数的梯度消失问题。当输入维度较大时，点积结果可能过大，导致softmax进入饱和区，梯度极小。缩放后可使分数分布更平滑，稳定训练。",
+      "tags": [
+        "Self-Attention",
+        "缩放点积注意力"
+      ],
+      "id": "transformer_attention_basic_001",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在CausalSelfAttention中，如何实现因果掩码（causal mask）以确保每个位置只能关注其左侧的位置？",
+      "reference_answer": "通过注册一个下三角矩阵作为偏置（bias），形状为(1,1,block_size,block_size)。在注意力分数计算后，使用masked_fill将上三角位置（值为0）填充为负无穷，使softmax后这些位置的权重为0，从而防止关注未来位置。",
+      "tags": [
+        "Self-Attention",
+        "因果掩码"
+      ],
+      "id": "transformer_attention_basic_002",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在代码中，CausalSelfAttention的q、k、v是如何从单个线性变换中分割并重塑为多头形式的？",
+      "reference_answer": "首先通过self.c_attn(x)线性投影得到形状(B,T,3*n_embd)的张量，然后沿最后一维分割为q、k、v（各n_embd）。接着通过view和transpose将每个张量重塑为(B,n_head,T,hs)，其中hs=n_embd//n_head，实现多头分离。",
+      "tags": [
+        "Multi-Head Attention",
+        "多头注意力"
+      ],
+      "id": "transformer_attention_basic_003",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Transformer模型中，Cross-Attention与Self-Attention的主要区别是什么？",
+      "reference_answer": "Cross-Attention中，查询（Q）来自一个序列（如解码器），而键（K）和值（V）来自另一个序列（如编码器输出），用于融合不同源的信息。Self-Attention则所有Q、K、V来自同一序列，用于捕捉序列内部依赖。",
+      "tags": [
+        "Cross-Attention",
+        "注意力机制"
+      ],
+      "id": "transformer_attention_basic_004",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT的CausalSelfAttention中，为什么需要将Q、K、V通过线性变换后拆分成多头？这种设计如何帮助模型捕捉不同的语义关系？",
+      "reference_answer": "多头注意力将Q、K、V分别投影到多个子空间，每个头独立计算注意力，使模型能从不同表示子空间学习相关信息，增强模型关注不同位置的能力，提升表达的丰富性。",
+      "tags": [
+        "Multi-Head Attention",
+        "Self-Attention",
+        "实现细节"
+      ],
+      "id": "transformer_attention_medium_009",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "解释CausalSelfAttention中的因果掩码（causal mask）的作用，并说明在实现中如何使用下三角矩阵实现因果约束。",
+      "reference_answer": "因果掩码确保每个位置只能关注其左侧（包括自身）的位置，防止未来信息泄露。实现中通过torch.tril生成下三角矩阵，将右上角元素置为负无穷，使softmax后对应位置权重为零。",
+      "tags": [
+        "Self-Attention",
+        "实现细节",
+        "因果掩码"
+      ],
+      "id": "transformer_attention_medium_010",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Transformer中，Cross-Attention与Self-Attention的主要区别是什么？请举例说明Cross-Attention在序列到序列模型（如T5）中的典型应用场景。",
+      "reference_answer": "Cross-Attention中Q来自解码器，K和V来自编码器输出；Self-Attention中Q、K、V同源。在T5中，解码器每层通过Cross-Attention关注编码器输出的源语言序列，实现信息融合和翻译生成。",
+      "tags": [
+        "Cross-Attention",
+        "应用场景",
+        "原理理解"
+      ],
+      "id": "transformer_attention_medium_011",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Flash Attention通过什么技术加速注意力计算？对比手动实现，它在内存和时间复杂度上有何优势？",
+      "reference_answer": "Flash Attention利用分块（tiling）和重计算（recomputation）技术，将Q、K、V分块加载到SRAM，避免全局注意力矩阵的显存读写，将内存复杂度从O(N²)降至O(N)，并显著提升计算速度。",
+      "tags": [
+        "Self-Attention",
+        "实现细节",
+        "Flash Attention"
+      ],
+      "id": "transformer_attention_medium_012",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在CausalSelfAttention中，当使用Flash Attention时，代码直接设置is_causal=True并传入attn_mask=None。请分析这种实现方式与手动创建因果掩码（如代码中self.bias）的注意力计算在数学等价性、内存占用和数值精度方面有何差异？什么情况下必须回退到手动实现？",
+      "reference_answer": "数学上等价，因为Flash Attention通过内核级别控制掩码生成。手动掩码需预分配(B,1,T,T)矩阵，Flash Attention避免显式存储该掩码，大幅降低显存占用。数值精度上，手动实现可能因softmax前填充-1e9引入微小误差，Flash Attention内部处理更稳定。当输入序列长度超过block_size或需要自定义注意力掩码（如相对位置偏置）时，必须回退到手动实现。",
+      "tags": [
+        "Flash Attention",
+        "因果掩码",
+        "内存优化",
+        "数值精度"
+      ],
+      "id": "transformer_attention_advanced_017",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT-2的CausalSelfAttention中，使用单层线性层c_attn同时生成Q、K、V（输出维度3*n_embd），而非分别使用三个独立的线性层。请从参数共享、梯度流和计算效率三个角度分析这种设计选择的优缺点，并说明在哪些场景下更适合采用分离式投影。",
+      "reference_answer": "优点：减少矩阵乘法次数（一次大矩阵乘法比三次小矩阵乘法总计算量更优），降低kernel launch开销；参数共享使梯度计算更紧凑。缺点：Q/K/V的线性变换被绑定，无法独立调整各投影的维度或初始化；梯度流中三个投影的梯度相互耦合，可能影响优化。分离式投影更适合需要不同投影维度（如多查询注意力）或独立正则化的场景。",
+      "tags": [
+        "Multi-Head Attention",
+        "参数共享",
+        "计算效率",
+        "梯度流"
+      ],
+      "id": "transformer_attention_advanced_018",
+      "subtopic": "attention",
+      "subtopic_zh": "注意力机制（Self-Attention / Multi-Head / Cross-Attention）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT架构中，Block模块的forward函数里，残差连接是如何实现的？",
+      "reference_answer": "在Block的forward函数中，残差连接通过两步实现：首先将输入x与经过LayerNorm和自注意力机制处理后的结果相加（x = x + self.attn(self.ln_1(x))），再将此结果与经过LayerNorm和MLP处理后的结果相加（x = x + self.mlp(self.ln_2(x))），最终输出。这有助于缓解梯度消失问题。",
+      "tags": [
+        "残差连接",
+        "整体架构"
+      ],
+      "id": "transformer_architecture_basic_011",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在提供的GPT代码中，LayerNorm的实现有何特点？",
+      "reference_answer": "该LayerNorm实现支持可选的bias参数。在__init__中，若bias为True，则初始化一个可学习的偏置参数；否则为None。forward函数调用PyTorch的F.layer_norm，传入weight、bias和eps=1e-5进行归一化。这种设计允许根据配置灵活选择是否使用偏置。",
+      "tags": [
+        "LayerNorm",
+        "整体架构"
+      ],
+      "id": "transformer_architecture_basic_012",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Transformer模型主要分为哪三种架构类型？请分别举例说明。",
+      "reference_answer": "主要分为三类：1）编码器架构（auto-encoding），如BERT，适合文本分类、问答等任务；2）解码器架构（auto-regressive），如GPT，适合文本生成；3）编码器-解码器架构（sequence-to-sequence），如T5，适合翻译、摘要等任务。",
+      "tags": [
+        "Encoder/Decoder结构",
+        "整体架构"
+      ],
+      "id": "transformer_architecture_basic_013",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Transformer的预层归一化（Pre-LayerNorm）和后层归一化（Post-LayerNorm）架构中，GPT-2（如参考代码中的Block类）使用的是哪种？请结合代码说明其残差连接的具体实现方式。",
+      "reference_answer": "GPT-2使用Pre-LayerNorm架构。代码中Block的forward为：x = x + self.attn(self.ln_1(x)) 和 x = x + self.mlp(self.ln_2(x))，即先对输入x进行LayerNorm，再送入子层（注意力或MLP），最后通过残差连接加回原始输入x。",
+      "tags": [
+        "LayerNorm",
+        "残差连接",
+        "GPT-2架构"
+      ],
+      "id": "transformer_architecture_medium_017",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "参考代码中，GPT类仅包含decoder（如Block、CausalSelfAttention），没有encoder。这种仅decoder的架构在生成文本时如何处理序列中的因果依赖？请结合代码说明因果掩码（causal mask）的作用。",
+      "reference_answer": "仅decoder架构通过因果掩码确保每个位置只能关注其左侧（包括自身）的token。代码中通过register_buffer注册下三角矩阵self.bias，在注意力计算时使用masked_fill将未来位置设为负无穷，从而softmax后注意力权重为0，实现因果约束。",
+      "tags": [
+        "Decoder-only架构",
+        "因果掩码",
+        "自回归生成"
+      ],
+      "id": "transformer_architecture_medium_018",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Transformer中残差连接（Residual Connection）的主要作用是什么？在参考代码的Block类中，残差连接是如何缓解深层网络梯度消失问题的？",
+      "reference_answer": "残差连接允许梯度直接流过子层，避免因层数加深导致的梯度消失或爆炸。Block中通过x = x + sublayer(ln(x))，使得反向传播时梯度可以直接从输出传到输入，即使子层梯度很小也能保持有效更新，从而训练更深模型。",
+      "tags": [
+        "残差连接",
+        "梯度消失",
+        "深层网络训练"
+      ],
+      "id": "transformer_architecture_medium_019",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT的Decoder-only架构中，残差连接和LayerNorm的放置顺序（Pre-LN vs Post-LN）对训练稳定性和收敛速度有何影响？结合代码中Block的实现分析其设计权衡。",
+      "reference_answer": "代码采用Pre-LN（先LayerNorm再子层），即x = x + attn(ln_1(x))。Pre-LN在深层网络中更稳定，因为梯度直接通过残差路径传播，避免Post-LN中梯度爆炸/消失问题，允许训练更深模型且收敛更快，但可能轻微降低表征能力。Post-LN（原始Transformer）则相反，训练深层时需warmup等技巧。",
+      "tags": [
+        "残差连接",
+        "LayerNorm",
+        "训练稳定性",
+        "架构权衡"
+      ],
+      "id": "transformer_architecture_advanced_023",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在仅解码器架构中，为何不使用Encoder-Decoder结构？请从任务需求和计算效率角度分析这种架构设计的边界情况，例如在文本生成任务中。",
+      "reference_answer": "Encoder-Decoder适合序列到序列任务（如翻译），需编码器处理输入序列并生成上下文表示。而GPT等仅解码器架构专为自回归生成设计，无需显式编码器：输入和输出共享同一序列，通过因果注意力掩码实现。边界情况如长文本生成时，仅解码器架构因缺乏全局编码可能丢失远距离依赖，但计算效率更高（单栈模型）。",
+      "tags": [
+        "Encoder/Decoder结构",
+        "仅解码器架构",
+        "任务需求",
+        "计算效率"
+      ],
+      "id": "transformer_architecture_advanced_024",
+      "subtopic": "architecture",
+      "subtopic_zh": "整体架构（Encoder/Decoder 结构、残差、LayerNorm）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT模型的CausalSelfAttention实现中，如果未使用Flash Attention，它通过什么机制来保证因果注意力（即每个token只能关注到其左侧的token）？",
+      "reference_answer": "通过注册一个上三角全为0、下三角全为1的因果掩码（causal mask），形状为(1,1,block_size,block_size)。在注意力分数计算后，使用masked_fill将掩码为0的位置（代表未来位置）填充为负无穷，从而在softmax后这些位置的注意力权重为0。",
+      "tags": [
+        "绝对位置编码",
+        "因果注意力"
+      ],
+      "id": "transformer_position_enc_basic_019",
+      "subtopic": "position_enc",
+      "subtopic_zh": "位置编码（绝对/相对/RoPE/ALiBi）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT模型的__init__方法中，wpe（位置编码嵌入层）的输入维度是block_size，这意味着该模型使用的是哪种类型的位置编码？这种编码方式有什么主要局限性？",
+      "reference_answer": "使用的是绝对位置编码（Absolute Positional Encoding）。主要局限性在于：1）模型无法处理超过训练时block_size的序列长度；2）无法捕捉相对位置关系，即两个token间的相对距离信息；3）对长序列的泛化能力差。",
+      "tags": [
+        "绝对位置编码",
+        "GPT"
+      ],
+      "id": "transformer_position_enc_basic_020",
+      "subtopic": "position_enc",
+      "subtopic_zh": "位置编码（绝对/相对/RoPE/ALiBi）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT-2的代码实现中，使用了绝对位置编码（即wpe = nn.Embedding(config.block_size, config.n_embd)）。请分析这种绝对位置编码的主要局限性是什么？相对位置编码（如RoPE）是如何改进这些局限性的？",
+      "reference_answer": "绝对位置编码将位置索引映射为固定向量，无法泛化到训练时未见过的序列长度，且缺乏对位置相对关系的显式建模。RoPE通过旋转矩阵对Query和Key施加基于相对位置的旋转变换，使注意力分数自然依赖于相对距离，从而支持外推到更长序列，并保持位置信息的平移不变性。",
+      "tags": [
+        "绝对位置编码",
+        "RoPE",
+        "外推性"
+      ],
+      "id": "transformer_position_enc_medium_023",
+      "subtopic": "position_enc",
+      "subtopic_zh": "位置编码（绝对/相对/RoPE/ALiBi）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Transformer中，使用ALiBi位置编码时，为什么不需要像绝对位置编码那样在Embedding层添加位置向量？请结合ALiBi的实现原理说明其优势。",
+      "reference_answer": "ALiBi不向输入添加位置嵌入，而是在注意力分数计算后，根据Query和Key的相对距离施加一个线性偏置（负值），距离越远偏置越大，从而降低远距离token的注意力权重。这避免了学习位置嵌入，减少了参数量，并且由于偏置是动态计算的，模型能自然外推到训练时未见过的序列长度。",
+      "tags": [
+        "ALiBi",
+        "位置编码",
+        "外推性",
+        "注意力偏置"
+      ],
+      "id": "transformer_position_enc_medium_024",
+      "subtopic": "position_enc",
+      "subtopic_zh": "位置编码（绝对/相对/RoPE/ALiBi）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在NanoGPT代码中，位置编码是通过wpe嵌入层实现的绝对位置编码。请分析这种绝对位置编码的局限性，并对比RoPE（旋转位置编码）在解决这些局限性上的优势。特别地，讨论在推理时序列长度超过训练时最大长度（block_size）时，两种方法的表现有何差异？",
+      "reference_answer": "绝对位置编码将位置索引映射为固定向量，无法处理超过训练时最大长度的序列，且缺乏相对位置信息，导致外推能力差。RoPE通过旋转矩阵编码相对位置，具有更好的外推性，在序列长度超过训练长度时仍能保持注意力分数合理衰减，但需修改注意力计算逻辑。",
+      "tags": [
+        "绝对位置编码",
+        "RoPE",
+        "外推能力",
+        "NanoGPT"
+      ],
+      "id": "transformer_position_enc_advanced_027",
+      "subtopic": "position_enc",
+      "subtopic_zh": "位置编码（绝对/相对/RoPE/ALiBi）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "ALiBi（Attention with Linear Biases）位置编码通过向注意力分数添加与距离成正比的偏置来编码相对位置。与绝对位置编码和RoPE相比，ALiBi在长序列外推任务中表现更优。请从计算效率和实现复杂度角度，对比这三种方法在Transformer模型中的权衡，并分析ALiBi在推理时处理超长序列的边界情况。",
+      "reference_answer": "绝对位置编码需预定义最大长度，计算简单但外推差；RoPE需在注意力计算中应用旋转矩阵，增加计算开销但外推性好；ALiBi仅需添加线性偏置，计算效率最高且无需位置嵌入，外推性极佳。边界情况：ALiBi的偏置线性增长，在极长序列中可能导致注意力分数被偏置主导，影响模型对远距离语义的捕捉。",
+      "tags": [
+        "ALiBi",
+        "RoPE",
+        "绝对位置编码",
+        "计算效率",
+        "外推性"
+      ],
+      "id": "transformer_position_enc_advanced_028",
+      "subtopic": "position_enc",
+      "subtopic_zh": "位置编码（绝对/相对/RoPE/ALiBi）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Transformer模型的训练中，Warmup策略通常指什么？其主要作用是什么？",
+      "reference_answer": "Warmup策略是指在训练初期，学习率从一个很小的值（通常是0）逐渐线性增加到预设的初始学习率的过程。其主要作用是防止模型在训练初期因参数随机初始化、梯度不稳定而导致训练发散或陷入局部最优，通过缓慢增加学习率让模型逐渐适应数据分布，稳定训练过程。",
+      "tags": [
+        "Warmup",
+        "学习率调度",
+        "训练稳定性"
+      ],
+      "id": "transformer_training_basic_025",
+      "subtopic": "training",
+      "subtopic_zh": "训练细节（Warmup、Label Smoothing、Masking策略）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT等自回归Transformer模型中，Causal Masking（因果掩码）是如何实现的？其目的是什么？",
+      "reference_answer": "Causal Masking通过生成一个下三角矩阵（对角线及以上为0，以下为1）作为注意力掩码，在计算注意力分数时，将对未来位置的注意力分数设为负无穷（经过Softmax后变为0）。其目的是确保模型在预测当前位置的输出时，只能依赖当前位置及之前位置的输入，不能看到未来信息，从而保持自回归生成的性质。",
+      "tags": [
+        "Causal Masking",
+        "自注意力机制",
+        "自回归模型"
+      ],
+      "id": "transformer_training_basic_026",
+      "subtopic": "training",
+      "subtopic_zh": "训练细节（Warmup、Label Smoothing、Masking策略）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Transformer的训练中，Warmup策略通常是如何实现的？其背后的原理是什么？",
+      "reference_answer": "Warmup通常指在训练初期，学习率从一个很小的值线性增加到预设的最大值。原理是：模型初始权重是随机的，此时梯度方向不稳定，若使用较大的学习率，可能导致训练不稳定或发散。通过Warmup，可以让模型在初期“热身”，逐渐适应数据分布，之后再用较大的学习率加速收敛。",
+      "tags": [
+        "Warmup",
+        "学习率调度",
+        "训练稳定性"
+      ],
+      "id": "transformer_training_medium_029",
+      "subtopic": "training",
+      "subtopic_zh": "训练细节（Warmup、Label Smoothing、Masking策略）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT等自回归Transformer的预训练中，Label Smoothing是如何应用的？它主要解决什么问题？",
+      "reference_answer": "Label Smoothing将硬标签（one-hot）替换为软标签，例如真实标签的概率为1-ε，其他标签均匀分配ε/(V-1)，V为词表大小。它主要解决过拟合问题，防止模型对训练数据中的噪声过于自信，提高泛化能力。在语言建模中，它鼓励模型输出更平滑的概率分布，减少对特定token的过度依赖。",
+      "tags": [
+        "Label Smoothing",
+        "正则化",
+        "过拟合"
+      ],
+      "id": "transformer_training_medium_030",
+      "subtopic": "training",
+      "subtopic_zh": "训练细节（Warmup、Label Smoothing、Masking策略）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT-2的因果语言模型中，如果同时使用Warmup和Label Smoothing，两者在训练早期如何相互作用？可能带来哪些潜在风险？",
+      "reference_answer": "Warmup在训练初期使用小学习率稳定优化，而Label Smoothing通过软化标签分布防止过拟合。两者结合可能导致模型在早期收敛过慢，因为Warmup限制参数更新幅度，而Label Smoothing进一步降低梯度信号强度，增加训练不稳定风险。",
+      "tags": [
+        "Warmup",
+        "Label Smoothing",
+        "训练稳定性"
+      ],
+      "id": "transformer_training_advanced_033",
+      "subtopic": "training",
+      "subtopic_zh": "训练细节（Warmup、Label Smoothing、Masking策略）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Transformer的CausalSelfAttention中，手动实现的因果Mask与Flash Attention的is_causal=True在边界情况（如序列长度变化）下有何本质差异？如何影响训练效率？",
+      "reference_answer": "手动Mask通过预计算的下三角矩阵（固定block_size）进行掩码，对变长序列需动态切片，可能浪费计算。Flash Attention的is_causal=True在CUDA内核中动态生成掩码，避免显式矩阵操作，显著提升变长序列训练效率。",
+      "tags": [
+        "Masking策略",
+        "Flash Attention",
+        "训练效率"
+      ],
+      "id": "transformer_training_advanced_034",
+      "subtopic": "training",
+      "subtopic_zh": "训练细节（Warmup、Label Smoothing、Masking策略）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "BERT和GPT在注意力机制上的核心差异是什么？这种差异如何影响它们的适用场景？",
+      "reference_answer": "BERT使用双向（Bidirectional）自注意力，可以同时利用上下文信息，适合需要理解完整语义的任务，如文本分类和问答；GPT使用因果（Causal）自注意力（掩码自注意力），只能利用左侧上下文，适合自回归生成任务，如文本生成和对话系统。",
+      "tags": [
+        "架构差异",
+        "注意力机制",
+        "适用场景"
+      ],
+      "id": "transformer_variants_medium_034",
+      "subtopic": "variants",
+      "subtopic_zh": "变体对比（BERT/GPT/T5/LLaMA 架构差异与适用场景）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "T5和LLaMA在模型架构上最显著的区别是什么？这些区别如何影响它们的训练目标和下游任务表现？",
+      "reference_answer": "T5采用Encoder-Decoder架构，使用完整的Transformer编码器和解码器，训练目标为跨度破坏（Span Corruption），适合序列到序列任务如翻译和摘要；LLaMA是纯Decoder架构，使用因果自注意力和RoPE位置编码，训练目标为自回归语言建模，在文本生成和少样本推理上表现更优。",
+      "tags": [
+        "架构差异",
+        "训练目标",
+        "适用场景"
+      ],
+      "id": "transformer_variants_medium_035",
+      "subtopic": "variants",
+      "subtopic_zh": "变体对比（BERT/GPT/T5/LLaMA 架构差异与适用场景）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT代码实现中，CausalSelfAttention类中的self.bias张量有什么作用？如果将此掩码移除，模型行为会发生什么变化？",
+      "reference_answer": "self.bias是一个下三角矩阵，用作因果掩码，确保每个token只能关注其左侧的token。移除后，注意力变为双向，模型将失去自回归生成能力，变成类似BERT的编码器模型，无法用于逐token的文本生成任务。",
+      "tags": [
+        "实现细节",
+        "注意力机制",
+        "GPT"
+      ],
+      "id": "transformer_variants_medium_036",
+      "subtopic": "variants",
+      "subtopic_zh": "变体对比（BERT/GPT/T5/LLaMA 架构差异与适用场景）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LLaMA架构中，采用了Pre-normalization（即先LayerNorm再进入子层）和SwiGLU激活函数，这与GPT-2的Post-normalization和GELU有本质区别。请从训练稳定性和梯度流动的角度，分析这两种设计选择的优劣，并说明LLaMA为何选择Pre-normalization+SwiGLU组合。",
+      "reference_answer": "Pre-normalization将LayerNorm置于残差分支之前，确保子层输入归一化，避免梯度爆炸，利于深层网络训练；SwiGLU作为门控激活函数，引入可学习的非线性和门控机制，提升表达力。GPT-2的Post-normalization在残差之后归一化，梯度需流经归一化层，深层时梯度衰减风险高。LLaMA选择Pre-normalization+SwiGLU，旨在支持更深层（如65B）训练，同时提高模型容量。",
+      "tags": [
+        "架构差异",
+        "训练稳定性",
+        "激活函数",
+        "归一化策略"
+      ],
+      "id": "transformer_variants_advanced_040",
+      "subtopic": "variants",
+      "subtopic_zh": "变体对比（BERT/GPT/T5/LLaMA 架构差异与适用场景）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "BERT使用双向自注意力（Masked Language Model），GPT使用因果自注意力（Causal LM），T5采用Encoder-Decoder结构。请设计一个文本摘要任务，分析这三种架构在处理该任务时的各自优势和边界情况（例如长文本、实时性、摘要抽象性等）。",
+      "reference_answer": "BERT双向注意力能全面理解上下文，适合抽取式摘要（边界：无法直接生成，需额外分类头）；GPT因果注意力自回归生成，适合抽象式摘要，但长文本时因单向注意力易丢失前文信息（边界：长文本生成质量下降）；T5的Encoder-Decoder结构，Encoder双向编码，Decoder自回归生成，兼顾理解与生成，适合长文本抽象摘要（边界：计算成本高，实时性差）。",
+      "tags": [
+        "架构对比",
+        "任务适配",
+        "文本摘要",
+        "注意力机制",
+        "边界情况"
+      ],
+      "id": "transformer_variants_advanced_041",
+      "subtopic": "variants",
+      "subtopic_zh": "变体对比（BERT/GPT/T5/LLaMA 架构差异与适用场景）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT的CausalSelfAttention类中，当PyTorch版本不支持Flash Attention时，如何手动实现因果掩码？请描述其实现方式。",
+      "reference_answer": "在forward中，通过注册一个下三角矩阵作为bias（形状1,1,block_size,block_size），计算注意力分数后，使用masked_fill将bias中为0的位置（上三角）填充为负无穷，再经softmax使这些位置的注意力权重为0。",
+      "tags": [
+        "CausalSelfAttention",
+        "因果掩码",
+        "PyTorch实现"
+      ],
+      "id": "transformer_implementation_basic_036",
+      "subtopic": "implementation",
+      "subtopic_zh": "代码实现（PyTorch 关键模块手写）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT的Block类中，残差连接是如何实现的？请结合前向传播代码说明。",
+      "reference_answer": "Block的forward方法中，先对输入x进行LayerNorm后送入注意力层，输出结果与原始输入x相加（x + self.attn(self.ln_1(x))）；再对结果进行LayerNorm后送入MLP，输出再次与之前的结果相加（x + self.mlp(self.ln_2(x))），形成两层残差连接。",
+      "tags": [
+        "Block",
+        "残差连接",
+        "PyTorch实现"
+      ],
+      "id": "transformer_implementation_basic_037",
+      "subtopic": "implementation",
+      "subtopic_zh": "代码实现（PyTorch 关键模块手写）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在CausalSelfAttention类中，当PyTorch版本不支持Flash Attention时，手动实现的因果注意力掩码是如何构造的？请结合代码说明其shape和作用原理。",
+      "reference_answer": "掩码通过`torch.tril(torch.ones(block_size, block_size))`生成下三角矩阵，并reshape为(1,1,block_size,block_size)。在forward中，通过`self.bias[:,:,:T,:T]==0`选取当前序列长度T的左上角子矩阵，将值为0的位置（上三角）填充为负无穷，使softmax后这些位置的注意力权重为0，从而保证每个token只能关注其左侧的token。",
+      "tags": [
+        "因果注意力掩码",
+        "手动实现",
+        "PyTorch"
+      ],
+      "id": "transformer_implementation_medium_040",
+      "subtopic": "implementation",
+      "subtopic_zh": "代码实现（PyTorch 关键模块手写）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT模型的`__init__`中，`self.transformer.wte.weight = self.lm_head.weight`这行代码实现了什么技术？这样做有什么好处？",
+      "reference_answer": "这实现了权重绑定（Weight Tying），即共享词嵌入层和输出层（lm_head）的权重矩阵。好处是：1. 减少模型参数量，尤其当词表很大时效果显著；2. 提升训练效果，因为嵌入和输出共享语义空间，有助于模型学习更一致的表示；3. 在某些情况下可以加速收敛。",
+      "tags": [
+        "权重绑定",
+        "GPT",
+        "模型优化"
+      ],
+      "id": "transformer_implementation_medium_041",
+      "subtopic": "implementation",
+      "subtopic_zh": "代码实现（PyTorch 关键模块手写）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT的CausalSelfAttention实现中，手动注意力计算部分使用了`self.bias[:,:,:T,:T]`进行掩码。请分析这种实现方式的潜在问题，并说明Flash Attention如何避免这些问题。如果序列长度T大于config.block_size，会发生什么？",
+      "reference_answer": "手动实现中，bias是预先创建的block_size×block_size下三角矩阵。当T > block_size时，`self.bias[:,:,:T,:T]`会因索引超出范围而报错。Flash Attention通过is_causal=True参数，在CUDA内核中动态生成因果掩码，无需预分配固定大小的掩码矩阵，因此不受block_size限制，且节省显存并提升计算效率。",
+      "tags": [
+        "CausalSelfAttention",
+        "Flash Attention",
+        "边界情况",
+        "内存优化"
+      ],
+      "id": "transformer_implementation_advanced_044",
+      "subtopic": "implementation",
+      "subtopic_zh": "代码实现（PyTorch 关键模块手写）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT实现中，`self.transformer.wte.weight = self.lm_head.weight`实现了权重绑定。请从参数梯度计算和优化器更新的角度，分析这种实现方式与分别定义两个独立embedding层的核心区别。如果使用torch.compile，文中提到可能产生警告，请解释原因。",
+      "reference_answer": "权重绑定使wte和lm_head共享同一个Parameter对象，梯度在反向传播时会累加到同一个weight上，优化器只需更新一份参数，减少了参数量。而独立embedding层有两个不同的Parameter，梯度独立计算和更新。torch.compile的警告源于函数式调用中为同一个权重传递了多个值，可能导致优化器状态不一致，但在当前实现中通常无害。",
+      "tags": [
+        "权重绑定",
+        "参数共享",
+        "梯度计算",
+        "torch.compile"
+      ],
+      "id": "transformer_implementation_advanced_045",
+      "subtopic": "implementation",
+      "subtopic_zh": "代码实现（PyTorch 关键模块手写）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Vision Transformer (ViT)中，图像是如何被转换为序列形式输入给Transformer模型的？",
+      "reference_answer": "ViT将图像分割成固定大小的图像块（patches），然后将每个图像块展平（flatten）成向量，并通过一个线性投影（linear projection）映射到Transformer的嵌入维度，最后加上位置编码（position embeddings）作为序列输入。",
+      "tags": [
+        "ViT",
+        "图像处理",
+        "序列化"
+      ],
+      "id": "transformer_applications_basic_042",
+      "subtopic": "applications",
+      "subtopic_zh": "应用扩展（ViT / 多模态 / 长序列优化）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Transformer模型中，Flash Attention技术主要解决了长序列处理中的什么问题？",
+      "reference_answer": "Flash Attention通过使用高效的CUDA内核，在不显式计算完整注意力矩阵的情况下，减少了对高带宽内存（HBM）的读写操作，从而显著降低了长序列自注意力的计算复杂度和内存占用，提升了训练和推理速度。",
+      "tags": [
+        "长序列优化",
+        "Flash Attention",
+        "效率"
+      ],
+      "id": "transformer_applications_basic_043",
+      "subtopic": "applications",
+      "subtopic_zh": "应用扩展（ViT / 多模态 / 长序列优化）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在ViT中，将图像分割成固定大小的patch并线性投影为token序列后，如何通过位置编码保留空间信息？如果移除位置编码，模型性能会如何变化，为什么？",
+      "reference_answer": "ViT使用可学习的一维位置编码添加到patch token上，以保留空间位置信息。移除位置编码后，模型性能会显著下降，因为自注意力机制本身是排列不变的，没有位置编码，模型无法区分不同patch的相对或绝对位置，导致全局上下文丢失，尤其对依赖局部空间关系的任务（如图像分类）影响大。",
+      "tags": [
+        "ViT",
+        "位置编码",
+        "应用场景分析"
+      ],
+      "id": "transformer_applications_medium_046",
+      "subtopic": "applications",
+      "subtopic_zh": "应用扩展（ViT / 多模态 / 长序列优化）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在长序列优化中，Flash Attention通过什么技术降低标准自注意力的计算复杂度和内存占用？请结合代码中CausalSelfAttention的实现，说明其如何替代手动注意力计算。",
+      "reference_answer": "Flash Attention利用分块（tiling）和重计算（recomputation）技术，将Q、K、V分块处理，避免显式计算完整注意力矩阵，从而将时间复杂度从O(n²)降至O(n²)（实际通过硬件优化加速），内存复杂度从O(n²)降至O(n)。代码中通过`torch.nn.functional.scaled_dot_product_attention`并设置`is_causal=True`启用Flash Attention，替代了手动计算`q @ k.T`、掩码和softmax的步骤。",
+      "tags": [
+        "长序列优化",
+        "Flash Attention",
+        "实现细节"
+      ],
+      "id": "transformer_applications_medium_047",
+      "subtopic": "applications",
+      "subtopic_zh": "应用扩展（ViT / 多模态 / 长序列优化）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在将Transformer架构（如GPT）扩展到视觉任务（ViT）时，如何处理图像序列化带来的长序列问题？请对比标准ViT与采用滑动窗口注意力或稀疏注意力的变体的计算复杂度与效果权衡。",
+      "reference_answer": "标准ViT将图像切分为固定大小patch并展平为序列，导致序列长度与patch数平方成正比，计算复杂度为O(n^2)。滑动窗口注意力限制局部窗口内的交互，复杂度降为O(n·w)，但损失长距离依赖。稀疏注意力（如Fixed/Stride模式）通过选择性连接平衡局部与全局，复杂度介于两者之间。",
+      "tags": [
+        "ViT",
+        "长序列优化",
+        "注意力机制"
+      ],
+      "id": "transformer_applications_advanced_050",
+      "subtopic": "applications",
+      "subtopic_zh": "应用扩展（ViT / 多模态 / 长序列优化）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在大型语言模型中，GQA（Grouped-Query Attention）相对于传统的多头注意力机制（MHA）有什么核心区别和主要优势？",
+      "reference_answer": "GQA将查询头分组，每组共享相同的键和值头，而MHA中每个查询头有独立的键值头。GQA的主要优势是减少键值缓存大小，从而降低内存占用并加速推理，尤其适合长序列和模型部署。",
+      "tags": [
+        "GQA",
+        "多头注意力",
+        "推理优化"
+      ],
+      "id": "transformer_modern_arch_basic_047",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "MoE（Mixture of Experts）架构中，路由机制（Router）的主要作用是什么？它如何决定每个输入token被分配到哪个专家网络？",
+      "reference_answer": "路由机制通过一个可学习的门控网络（通常为softmax）计算每个token与各专家的亲和度得分，然后选择得分最高的top-k个专家（如k=1或2）处理该token。这实现了稀疏激活，只有部分专家参与计算，从而提升模型容量而不显著增加计算量。",
+      "tags": [
+        "MoE",
+        "路由机制",
+        "稀疏激活"
+      ],
+      "id": "transformer_modern_arch_basic_048",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "SwiGLU激活函数相比传统的ReLU或GELU，在Transformer模型中带来了哪些改进？",
+      "reference_answer": "SwiGLU结合了Swish激活和门控线性单元（GLU），通过将输入拆分为两部分（一个经Swish激活，另一个作为门控），再进行逐元素相乘。它增强了模型的非线性表达能力和梯度流动，通常能在相同参数量下提升模型性能，被Llama等现代LLM采用。",
+      "tags": [
+        "SwiGLU",
+        "激活函数",
+        "门控机制"
+      ],
+      "id": "transformer_modern_arch_basic_049",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在多头注意力中，GQA（Grouped-Query Attention）相比MHA（Multi-Head Attention）和MQA（Multi-Query Attention）有什么优势？请结合推理效率和质量说明。",
+      "reference_answer": "MHA每个头有独立K/V，计算和缓存开销大；MQA所有头共享K/V，推理快但质量下降。GQA将查询头分组，每组共享一个K/V头，在减少K/V缓存和计算量的同时，保留一定多样性，平衡了推理速度和模型质量，常用于LLaMA等模型。",
+      "tags": [
+        "GQA",
+        "推理优化",
+        "注意力机制"
+      ],
+      "id": "transformer_modern_arch_medium_053",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "SwiGLU激活函数与ReLU或GELU相比，在Transformer MLP中如何提升性能？请描述其具体计算形式。",
+      "reference_answer": "SwiGLU是门控线性单元（GLU）的变体，将输入x分别通过两个线性变换，再与Swish激活后的结果逐元素相乘：SwiGLU(x) = Swish(W1·x) ⊗ (W2·x)。它引入了门控机制，允许网络更灵活地控制信息流，在相同参数量下通常比ReLU或GELU带来更好的下游任务性能。",
+      "tags": [
+        "SwiGLU",
+        "激活函数",
+        "MLP改进"
+      ],
+      "id": "transformer_modern_arch_medium_054",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在长序列场景中，RoPE（旋转位置编码）相比绝对位置编码或可学习位置编码有什么关键优势？请解释其原理。",
+      "reference_answer": "RoPE通过旋转矩阵将位置信息编码到Query和Key中，使得内积自动包含相对位置信息，且具有远程衰减性。它支持序列长度外推（如训练2048，推理8192），而绝对/可学习位置编码无法处理未见过的长度。原理：对每个维度对应用旋转矩阵，旋转角度与位置成正比。",
+      "tags": [
+        "RoPE",
+        "位置编码",
+        "长序列"
+      ],
+      "id": "transformer_modern_arch_medium_055",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LLM中，Grouped Query Attention (GQA) 相比于 Multi-Head Attention (MHA) 和 Multi-Query Attention (MQA) 在推理时的内存带宽和模型质量上有何权衡？请从键值头数量的角度分析其设计原理。",
+      "reference_answer": "GQA通过将查询头分组，每组共享一个键值头，在MHA（每头独立键值）和MQA（所有查询共享单组键值）之间取得平衡。相比MHA，GQA减少键值投影和缓存大小，降低推理时内存带宽需求，提升吞吐量；相比MQA，GQA保留更多键值多样性，减少质量损失。分组数（如2或8）是控制权衡的超参数。",
+      "tags": [
+        "GQA",
+        "MHA",
+        "MQA",
+        "推理优化",
+        "内存带宽"
+      ],
+      "id": "transformer_modern_arch_advanced_059",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "SwiGLU激活函数如何通过门控机制改进传统ReLU或GELU？在LLM中，其引入的额外参数（通常为4/3倍隐藏层维度）对模型容量和训练稳定性的影响是什么？",
+      "reference_answer": "SwiGLU将输入分为两路：一路经SwiGLU激活（Swish），另一路作为门控，两者逐元素相乘。相比ReLU/GELU，SwiGLU提供更平滑的非线性和更强的表达能力，但需要3倍隐藏维度的投影矩阵（而非2倍），增加参数量和计算量。这提升了模型容量和训练稳定性，但需权衡计算成本，常见于LLaMA等现代架构。",
+      "tags": [
+        "SwiGLU",
+        "激活函数",
+        "门控机制",
+        "模型容量",
+        "训练稳定性"
+      ],
+      "id": "transformer_modern_arch_advanced_060",
+      "subtopic": "modern_arch",
+      "subtopic_zh": "现代LLM架构改进（GQA/MoE/SwiGLU/RMSNorm/RoPE详解）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT推理过程中，KV Cache主要缓存了哪些中间结果？它的核心作用是什么？",
+      "reference_answer": "KV Cache缓存了每个注意力头在先前时间步计算的Key和Value矩阵。核心作用是避免在生成每个新token时重复计算所有历史token的K和V，从而减少计算量，加速自回归解码。",
+      "tags": [
+        "KV Cache",
+        "推理优化"
+      ],
+      "id": "transformer_kv_inference_basic_055",
+      "subtopic": "kv_inference",
+      "subtopic_zh": "推理优化基础（KV Cache原理/FlashAttention/投机解码）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "FlashAttention通过什么核心技巧来减少显存占用和加速计算？",
+      "reference_answer": "FlashAttention通过分块（tiling）和重计算（recomputation）技巧，将Q、K、V分块加载到SRAM中计算注意力，避免完整的N×N注意力矩阵显存分配，同时反向传播时重计算部分值减少显存。",
+      "tags": [
+        "FlashAttention",
+        "推理优化"
+      ],
+      "id": "transformer_kv_inference_basic_056",
+      "subtopic": "kv_inference",
+      "subtopic_zh": "推理优化基础（KV Cache原理/FlashAttention/投机解码）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT的自回归解码过程中，KV Cache的核心作用是什么？如果模型推理时不使用KV Cache，会导致哪些具体问题？",
+      "reference_answer": "KV Cache在解码过程中缓存每层Attention的Key和Value矩阵，避免对已生成token重复计算。不使用KV Cache时，每步解码需重新计算所有历史token的QKV，导致计算量与序列长度呈二次增长，推理速度急剧下降。",
+      "tags": [
+        "KV Cache",
+        "推理优化"
+      ],
+      "id": "transformer_kv_inference_medium_059",
+      "subtopic": "kv_inference",
+      "subtopic_zh": "推理优化基础（KV Cache原理/FlashAttention/投机解码）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "FlashAttention通过哪些关键技术减少显存占用并加速注意力计算？与传统Attention相比，它如何避免显式存储O(N²)的注意力矩阵？",
+      "reference_answer": "FlashAttention通过tiling（分块）将Q、K、V分块加载到SRAM中，在片上计算注意力并输出，避免将完整注意力矩阵写回HBM。同时采用重计算策略，反向传播时重新计算注意力值，减少显存占用。其IO复杂度从O(N²)降至O(N)量级。",
+      "tags": [
+        "FlashAttention",
+        "显存优化"
+      ],
+      "id": "transformer_kv_inference_medium_060",
+      "subtopic": "kv_inference",
+      "subtopic_zh": "推理优化基础（KV Cache原理/FlashAttention/投机解码）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在CausalSelfAttention的forward中，当启用Flash Attention时，attn_mask参数被设为None，而is_causal=True。请分析这种设计背后的原理：Flash Attention如何在不显式构建因果掩码（causal mask）的情况下保证因果性？这种实现相比于传统手动掩码方式在内存和计算上有什么核心优势？",
+      "reference_answer": "Flash Attention通过分块（tiling）算法和在线softmax，在计算每个注意力块时，利用输入序列的位置信息隐式地屏蔽未来token，无需存储完整的N×N注意力矩阵。这避免了O(N²)的内存开销，并利用GPU高带宽内存（HBM）与SRAM之间的高效数据移动，显著减少显存占用和计算延迟。",
+      "tags": [
+        "FlashAttention",
+        "因果掩码",
+        "显存优化"
+      ],
+      "id": "transformer_kv_inference_advanced_063",
+      "subtopic": "kv_inference",
+      "subtopic_zh": "推理优化基础（KV Cache原理/FlashAttention/投机解码）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT推理中，KV Cache通常只缓存key和value矩阵，而不缓存query。如果我们在投机解码（speculative decoding）场景下，同时缓存目标模型和草稿模型的key/value状态，但草稿模型每次验证后可能需要丢弃部分缓存。请设计一种高效的KV Cache管理策略，以最小化缓存重建开销，并分析在序列长度动态变化时（如草稿步长不固定）可能导致的边界情况（如缓存碎片化）。",
+      "reference_answer": "策略：采用环形缓冲区（circular buffer）管理KV Cache，结合前缀树（trie）索引。草稿模型每次生成后，仅保留已验证前缀对应的缓存，丢弃后续部分。边界情况：当草稿步长变化时，可能产生缓存空洞（hole），需通过指针重映射或惰性清理来避免碎片化，同时注意多轮验证时缓存一致性。",
+      "tags": [
+        "投机解码",
+        "KV Cache",
+        "缓存管理"
+      ],
+      "id": "transformer_kv_inference_advanced_064",
+      "subtopic": "kv_inference",
+      "subtopic_zh": "推理优化基础（KV Cache原理/FlashAttention/投机解码）",
+      "difficulty": "advanced"
+    }
+  ]
+}

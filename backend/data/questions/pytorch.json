@@ -1,0 +1,824 @@
+{
+  "module": "pytorch",
+  "module_name": "PyTorch深度学习",
+  "total": 60,
+  "subtopics": [
+    {
+      "id": "tensors",
+      "name_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "target": 8
+    },
+    {
+      "id": "autograd",
+      "name_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "target": 8
+    },
+    {
+      "id": "nn_modules",
+      "name_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "target": 9
+    },
+    {
+      "id": "training",
+      "name_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "target": 8
+    },
+    {
+      "id": "optimization",
+      "name_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "target": 8
+    },
+    {
+      "id": "advanced",
+      "name_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "target": 9
+    },
+    {
+      "id": "modern_torch",
+      "name_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "target": 10
+    }
+  ],
+  "questions": [
+    {
+      "question": "在PyTorch中，当两个形状不同的张量进行运算时，PyTorch会自动应用广播机制。请简述广播机制的基本规则。",
+      "reference_answer": "广播机制允许形状不同的张量进行运算。基本规则是：从尾部维度开始比较，如果两个维度大小相等或其中一个为1，则可以进行广播；否则会报错。最终结果的形状是每个维度上较大的那个值。",
+      "tags": [
+        "广播"
+      ],
+      "id": "pytorch_tensors_basic_001",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PyTorch中，原地操作（in-place operation）如`tensor.add_()`会直接修改原张量的数据。请说明原地操作可能带来的一个主要风险。",
+      "reference_answer": "原地操作可能破坏自动求导（autograd）的计算图。因为原地操作会直接修改张量的值，而autograd需要保留中间结果来计算梯度，如果原地修改了用于梯度计算的张量，会导致梯度计算错误或抛出错误。",
+      "tags": [
+        "原地操作"
+      ],
+      "id": "pytorch_tensors_basic_002",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在CUDA环境下，PyTorch张量默认使用行优先（C-contiguous）内存布局。请解释什么是行优先内存布局及其对性能的影响。",
+      "reference_answer": "行优先内存布局指张量在内存中按行顺序连续存储，即行内元素相邻。这种布局有利于按行访问的运算（如矩阵乘法），因为CPU/GPU缓存命中率高。如果按列访问，性能会下降，因为需要跳转访问不连续的内存位置。",
+      "tags": [
+        "内存布局",
+        "CUDA"
+      ],
+      "id": "pytorch_tensors_basic_003",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，如果有一个形状为(3,1)的张量A和一个形状为(1,4)的张量B，执行A+B时，广播机制如何工作？结果张量的形状是什么？请解释广播规则。",
+      "reference_answer": "广播规则：1）从尾部维度开始对齐；2）维度大小要么相等，要么其中一个为1，要么缺失。A(3,1)和B(1,4)对齐后，维度1上A为1、B为4，取最大值4；维度0上A为3、B为1，取最大值3。结果形状为(3,4)。实际操作中，A沿列方向复制4份，B沿行方向复制3份，然后逐元素相加。",
+      "tags": [
+        "广播",
+        "张量操作"
+      ],
+      "id": "pytorch_tensors_medium_007",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，原地操作（如a.add_(b)）与普通操作（如a.add(b)）在计算图和梯度方面有何关键区别？为什么在自动求导中要谨慎使用原地操作？",
+      "reference_answer": "普通操作返回新张量，保留原始张量用于梯度计算；原地操作直接修改原始张量，可能覆盖用于反向传播的中间值。PyTorch的autograd依赖计算图中节点的版本号，原地操作会递增版本号，若版本不匹配则抛出RuntimeError。此外，原地操作可能破坏梯度计算路径，导致梯度计算错误。",
+      "tags": [
+        "原地操作",
+        "自动求导",
+        "计算图"
+      ],
+      "id": "pytorch_tensors_medium_008",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在CUDA环境下，PyTorch张量的内存布局（如行优先和列优先）如何影响性能？给定一个形状为(1000,1000)的浮点张量，分别按行和按列求和，哪种方式更快？为什么？",
+      "reference_answer": "按行求和更快。PyTorch默认使用行优先（C-contiguous）内存布局，即同一行元素在内存中连续存储。按行求和能充分利用CPU/GPU缓存局部性和内存带宽，顺序访问内存；按列求和则跨行访问，导致缓存未命中频繁，内存带宽利用率低。在CUDA上，连续内存访问还能实现合并内存访问（coalesced access），显著提升吞吐量。",
+      "tags": [
+        "内存布局",
+        "CUDA",
+        "性能优化"
+      ],
+      "id": "pytorch_tensors_medium_009",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，当执行`a = torch.randn(3,1); b = torch.randn(4); c = a + b`时，请从内存布局角度分析广播机制如何影响张量存储，并对比原地操作（如`a.add_(b)`）与普通加法在广播场景下的行为差异及潜在风险。",
+      "reference_answer": "广播时，PyTorch会创建扩展后的临时张量视图（不实际复制数据），但涉及原地操作如`a.add_(b)`时，若`b`形状不匹配`a`，会因内存不连续导致错误或隐式复制。普通加法返回新张量，避免原地修改，但增加内存开销。原地操作需确保形状严格一致，否则触发RuntimeError。",
+      "tags": [
+        "广播",
+        "内存布局",
+        "原地操作"
+      ],
+      "id": "pytorch_tensors_advanced_013",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在CUDA环境下，考虑`x = torch.randn(1000, 1000, device='cuda'); y = x.t()`，解释`y`的内存布局（行主序/列主序）及其对后续操作（如`y @ y`）性能的影响。若需高效计算，应如何通过张量操作避免转置带来的非连续内存问题？",
+      "reference_answer": "`y`是转置视图，内存布局为列主序（stride[0]=1, stride[1]=1000），导致CUDA内核访问非连续内存，降低带宽利用率。矩阵乘法`y @ y`会触发隐式复制或使用低效kernel。应使用`y.contiguous()`显式复制为连续张量，或通过`x.t().contiguous()`提前处理，也可用`torch.matmul`的优化实现自动处理。",
+      "tags": [
+        "CUDA",
+        "内存布局",
+        "性能优化"
+      ],
+      "id": "pytorch_tensors_advanced_014",
+      "subtopic": "tensors",
+      "subtopic_zh": "张量操作（广播 / 内存布局 / 原地操作 / CUDA）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在PyTorch自动微分中，计算图（computational graph）中的每个节点通常关联一个`grad_fn`属性。请解释`grad_fn`的作用以及它在反向传播中的具体用途。",
+      "reference_answer": "`grad_fn`是PyTorch自动微分系统中每个张量节点的一个属性，它存储了创建该张量的运算操作（如加法、乘法等）的梯度函数。在反向传播时，PyTorch会遍历计算图，通过调用每个节点的`grad_fn`来计算该节点对输入的梯度，从而实现链式法则。",
+      "tags": [
+        "autograd",
+        "grad_fn",
+        "计算图"
+      ],
+      "id": "pytorch_autograd_basic_009",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，`tensor.detach()`方法的作用是什么？它如何影响计算图和梯度传播？",
+      "reference_answer": "`detach()`方法会返回一个与原始张量共享数据但`requires_grad=False`的新张量，且该新张量不参与当前计算图的构建。这意味着从该新张量出发的任何运算都不会被追踪梯度，从而阻断梯度传播到原始张量的路径。",
+      "tags": [
+        "detach",
+        "计算图",
+        "梯度阻断"
+      ],
+      "id": "pytorch_autograd_basic_010",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PyTorch中`torch.no_grad()`上下文管理器的主要用途是什么？它与`tensor.detach()`有何根本区别？",
+      "reference_answer": "`torch.no_grad()`是一个上下文管理器，在其作用域内的所有张量操作都不会被记录到计算图中，即不追踪梯度。它常用于模型评估或推理阶段以减少内存消耗。根本区别在于：`detach()`作用于单个张量并返回一个不追踪梯度的新张量；而`no_grad()`则是一个全局上下文，影响作用域内的所有操作。",
+      "tags": [
+        "no_grad",
+        "推理模式",
+        "内存优化"
+      ],
+      "id": "pytorch_autograd_basic_011",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，调用`detach()`方法后，计算图会发生什么变化？请说明其原理和典型应用场景。",
+      "reference_answer": "`detach()`会从当前计算图中分离出新的张量，该张量与原始张量共享数据但`requires_grad=False`且不再有`grad_fn`，即不参与梯度计算。典型场景包括：在GAN中固定生成器只训练判别器，或获取中间层特征用于可视化而不影响反向传播。",
+      "tags": [
+        "detach",
+        "计算图",
+        "梯度阻断"
+      ],
+      "id": "pytorch_autograd_medium_015",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "解释PyTorch中`torch.no_grad()`与`requires_grad=False`的区别，并给出一个必须使用`no_grad()`的场景。",
+      "reference_answer": "`requires_grad=False`是张量属性，设置后该张量不计算梯度，但后续操作若与其他需要梯度的张量运算，仍可能构建计算图。`no_grad()`是上下文管理器，在其内部的所有操作均不构建计算图，即使输入张量需要梯度。必须使用的场景：模型推理时，用`with torch.no_grad():`避免不必要的内存和计算消耗。",
+      "tags": [
+        "no_grad",
+        "requires_grad",
+        "推理优化"
+      ],
+      "id": "pytorch_autograd_medium_016",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在自定义自动微分类（如参考代码中的`Value`类）中，`_backward`函数和`grad`属性如何协作实现链式法则？请以`__mul__`操作为例说明。",
+      "reference_answer": "`__mul__`中定义`_backward`函数：`self.grad += other.data * out.grad`和`other.grad += self.data * out.grad`。在`backward()`中，按拓扑序反向遍历节点，调用每个节点的`_backward`，将上游梯度`out.grad`乘以局部导数累加到子节点的`grad`中。例如`z=x*y`，`x.grad`累加`y*out.grad`，实现链式法则。",
+      "tags": [
+        "自定义自动微分",
+        "链式法则",
+        "_backward"
+      ],
+      "id": "pytorch_autograd_medium_017",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，使用`detach()`方法将一个张量从计算图中分离出来，与使用`torch.no_grad()`上下文管理器阻止计算图构建，这两种操作在底层实现和影响上有何本质区别？",
+      "reference_answer": "`detach()`返回一个与原始张量共享数据但`requires_grad=False`且`grad_fn=None`的新张量，切断反向传播，但后续操作仍可构建新计算图。`no_grad()`则是一个上下文管理器，在其内部所有操作都不追踪梯度，不构建计算图，适用于推理或冻结参数。前者细粒度控制单个张量，后者控制整个代码块。",
+      "tags": [
+        "detach",
+        "no_grad",
+        "计算图",
+        "梯度追踪"
+      ],
+      "id": "pytorch_autograd_advanced_021",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在自定义自动微分框架中，如参考代码的`Value`类，反向传播时使用拓扑排序（topological order）遍历计算图。若计算图存在循环依赖（如循环神经网络展开后的梯度流），拓扑排序会失效，请解释原因并说明PyTorch如何处理此类情况。",
+      "reference_answer": "拓扑排序要求有向无环图（DAG），循环依赖会形成环，导致排序无法确定顺序。PyTorch通过动态计算图（动态图）机制，在每次前向传播时重新构建DAG，对循环展开为序列化节点，从而避免环。同时，`torch.autograd`利用梯度累积和`retain_graph`参数处理多次反向传播。",
+      "tags": [
+        "计算图",
+        "拓扑排序",
+        "循环依赖",
+        "动态图"
+      ],
+      "id": "pytorch_autograd_advanced_022",
+      "subtopic": "autograd",
+      "subtopic_zh": "自动微分（计算图 / grad_fn / detach / no_grad）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在PyTorch中，nn.Module类的主要作用是什么？请简述其核心功能。",
+      "reference_answer": "nn.Module是所有神经网络模块的基类。它提供了参数管理、子模块注册、前向传播定义等功能。用户通过继承该类并实现forward()方法来构建自定义网络层，Module会自动跟踪所有子模块和参数。",
+      "tags": [
+        "nn.Module",
+        "基类",
+        "参数管理"
+      ],
+      "id": "pytorch_nn_modules_basic_017",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "nn.Sequential容器如何工作？它适用于什么场景？",
+      "reference_answer": "nn.Sequential是一个顺序容器，按传入顺序依次执行子模块。每个子模块的输出作为下一个子模块的输入。适用于网络结构简单、层间顺序固定的前馈网络，无需自定义forward逻辑。",
+      "tags": [
+        "nn.Sequential",
+        "顺序容器",
+        "前馈网络"
+      ],
+      "id": "pytorch_nn_modules_basic_018",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，如何获取一个模型的所有可训练参数？请列出两种方法。",
+      "reference_answer": "方法1：使用model.parameters()返回所有参数迭代器。方法2：使用model.named_parameters()返回参数名称和参数本身的元组迭代器。两者均只包含requires_grad=True的参数。",
+      "tags": [
+        "参数管理",
+        "parameters()",
+        "named_parameters()"
+      ],
+      "id": "pytorch_nn_modules_basic_019",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PyTorch中，如何将模型的参数移动到GPU上？请写出代码示例。",
+      "reference_answer": "使用model.to('cuda')或model.cuda()。例如：model = MyModel().to('cuda')。这会递归地将所有子模块的参数和缓冲区移动到指定设备。注意输入数据也需要同步移动。",
+      "tags": [
+        "设备迁移",
+        "to()",
+        "GPU"
+      ],
+      "id": "pytorch_nn_modules_basic_020",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，nn.Module和nn.Sequential在管理子模块和参数时有何本质区别？各自适用于什么场景？",
+      "reference_answer": "nn.Module是基类，允许用户自定义前向传播逻辑，灵活管理任意子模块；nn.Sequential是nn.Module的容器，按顺序执行模块，适合简单的前馈网络。nn.Module适用于复杂模型（如分支结构），nn.Sequential适用于线性堆叠的网络。两者都自动注册参数。",
+      "tags": [
+        "nn.Module",
+        "nn.Sequential",
+        "参数管理",
+        "应用场景"
+      ],
+      "id": "pytorch_nn_modules_medium_025",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，如何手动管理一个自定义nn.Module的参数，例如实现一个简单的线性层（不含偏置）？请写出关键代码并解释参数是如何被跟踪的。",
+      "reference_answer": "通过nn.Parameter包装张量，并注册为模块属性，如self.weight = nn.Parameter(torch.randn(in_features, out_features))。PyTorch会自动将nn.Parameter添加到模块的parameters()迭代器中，并参与梯度计算和状态保存。",
+      "tags": [
+        "nn.Parameter",
+        "参数注册",
+        "线性层"
+      ],
+      "id": "pytorch_nn_modules_medium_026",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在训练一个包含多个子模块的神经网络时，若只想更新部分参数（如冻结预训练层），应如何操作？请给出具体方法。",
+      "reference_answer": "通过设置对应参数的requires_grad=False来冻结，例如for param in model.layer1.parameters(): param.requires_grad = False。然后在优化器中只传入requires_grad=True的参数，如optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.01)。",
+      "tags": [
+        "参数冻结",
+        "requires_grad",
+        "优化器"
+      ],
+      "id": "pytorch_nn_modules_medium_027",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，nn.Sequential与直接使用nn.ModuleList管理子模块有何不同？分别举例说明其典型用途。",
+      "reference_answer": "nn.Sequential按顺序执行模块，自动定义前向传播，适合固定流水线；nn.ModuleList仅存储模块列表，不定义前向传播，需手动遍历，适合动态或非顺序结构（如残差网络中的多个分支）。两者都注册子模块参数。",
+      "tags": [
+        "nn.Sequential",
+        "nn.ModuleList",
+        "子模块管理"
+      ],
+      "id": "pytorch_nn_modules_medium_028",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，当使用nn.Sequential构建网络并需要实现参数共享（如Siamese网络）时，直接重复使用同一模块对象会导致什么问题？如何正确实现参数共享？请分析nn.ModuleList和nn.Sequential在此场景下的区别。",
+      "reference_answer": "直接重复使用同一nn.Module对象会导致计算图和梯度共享，而非独立参数。正确做法是使用nn.ModuleList或nn.ModuleDict包含同一模块实例多次，或手动分配引用。nn.Sequential会按顺序执行，不支持分支，而nn.ModuleList可灵活组织但需自定义forward。",
+      "tags": [
+        "nn.Module",
+        "nn.Sequential",
+        "参数共享",
+        "nn.ModuleList"
+      ],
+      "id": "pytorch_nn_modules_advanced_033",
+      "subtopic": "nn_modules",
+      "subtopic_zh": "神经网络模块（Module / Sequential / 参数管理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在PyTorch中，调用`loss.backward()`之前，通常需要将模型参数的梯度清零（如`W.grad = None`）。如果不执行此操作，多次调用`backward()`时梯度会如何累积？请说明原因。",
+      "reference_answer": "梯度会累加。因为PyTorch默认在反向传播时会将梯度累加到已有梯度上，不清零则每次backward()计算的梯度会叠加到之前的值，导致参数更新时使用错误的梯度值。",
+      "tags": [
+        "反向传播",
+        "梯度清零"
+      ],
+      "id": "pytorch_training_basic_026",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在训练循环中，`DataLoader`的作用是什么？请说明其核心功能和优势。",
+      "reference_answer": "DataLoader用于将数据集封装为可迭代对象，支持批量加载、打乱数据和多进程并行读取。核心功能是自动生成mini-batch，提高数据加载效率和模型训练稳定性。",
+      "tags": [
+        "DataLoader",
+        "训练流程"
+      ],
+      "id": "pytorch_training_basic_027",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在文本生成的例子中，损失函数是`-probs[torch.arange(num), ys].log().mean()`。请解释该损失函数计算的是什么，并说明其与最大似然估计的关系。",
+      "reference_answer": "该损失计算的是平均负对数似然（Negative Log Likelihood, NLL）。最大化数据似然等价于最小化负对数似然，因此该损失函数最小化等价于最大似然估计，使模型对正确标签分配更高概率。",
+      "tags": [
+        "损失函数",
+        "最大似然估计",
+        "训练流程"
+      ],
+      "id": "pytorch_training_basic_028",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，自定义DataLoader时，如果数据集包含多个特征和标签，如何实现一个返回字典（如{'feature': ..., 'label': ...}）的迭代器？请说明关键步骤。",
+      "reference_answer": "继承torch.utils.data.Dataset，在__getitem__中返回字典。然后使用DataLoader包装，设置collate_fn参数（可选）以处理批次中的字典合并，默认collate_fn能处理字典，但需确保各键对应的张量维度一致。",
+      "tags": [
+        "DataLoader",
+        "自定义数据集",
+        "字典输出"
+      ],
+      "id": "pytorch_training_medium_032",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在反向传播过程中，为什么需要在每次迭代前手动将梯度置零（如optimizer.zero_grad()）？如果忘记置零，会对训练产生什么影响？",
+      "reference_answer": "PyTorch默认累加梯度，用于RNN等场景。若忘记置零，梯度会从多个批次累积，导致参数更新方向错误，损失不下降甚至发散。正确做法是在每个batch前调用zero_grad()清除旧梯度。",
+      "tags": [
+        "反向传播",
+        "梯度累积",
+        "optimizer.zero_grad"
+      ],
+      "id": "pytorch_training_medium_033",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "梯度裁剪（Gradient Clipping）常用于防止梯度爆炸。请说明在PyTorch中实现梯度裁剪的两种常用方式，并分析它们在实际训练中的应用场景差异。",
+      "reference_answer": "方式一：torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)，基于所有参数梯度的L2范数裁剪，适用于RNN等深层网络。方式二：clip_grad_value_(model.parameters(), clip_value)，将梯度值限制在[-clip_value, clip_value]内，适用于梯度值异常大但分布均匀的场景。",
+      "tags": [
+        "梯度裁剪",
+        "梯度爆炸",
+        "PyTorch实现"
+      ],
+      "id": "pytorch_training_medium_034",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在手动实现的反向传播中（如参考代码的Value类），梯度累加（self.grad += ...）而非直接赋值的设计意图是什么？在PyTorch的DataLoader多批次训练中，这种设计会引入什么潜在问题，以及如何解决？",
+      "reference_answer": "梯度累加允许一个节点被多个后续节点复用（如a+b+c中b的梯度来自两个加法），符合链式法则。在DataLoader多批次训练中，若未在每批次前清零梯度（optimizer.zero_grad()），梯度会跨批次累加，导致参数更新方向错误。解决：每批次调用optimizer.zero_grad()或model.zero_grad()。",
+      "tags": [
+        "反向传播",
+        "梯度累加",
+        "DataLoader"
+      ],
+      "id": "pytorch_training_advanced_038",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在参考代码的bigram神经网络训练中，loss函数使用了负对数似然（NLL）加L2正则化（0.01*(W**2).mean()）。请对比直接使用CrossEntropyLoss（内部集成Softmax）与手动实现Softmax+NLL在反向传播数值稳定性上的差异，并说明梯度裁剪为何在此任务中可能不是必须的。",
+      "reference_answer": "CrossEntropyLoss内部将Softmax与NLL合并，通过log-softmax技巧避免计算exp大数导致的上溢或log(0)下溢，数值更稳定。手动实现可能因exp值过大产生inf。梯度裁剪主要用于防止梯度爆炸，而此任务中模型仅单层线性层+Softmax，梯度幅度受控，且使用小学习率（50）和正则化，故非必须。",
+      "tags": [
+        "损失函数",
+        "反向传播",
+        "梯度裁剪"
+      ],
+      "id": "pytorch_training_advanced_039",
+      "subtopic": "training",
+      "subtopic_zh": "训练流程（DataLoader / 损失函数 / 反向传播 / 梯度裁剪）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在PyTorch中，Adam优化器与AdamW优化器的核心区别是什么？",
+      "reference_answer": "AdamW将权重衰减（weight decay）与学习率解耦，在参数更新时直接对参数本身进行衰减，而不是像Adam那样将权重衰减作为L2正则化项加入梯度。这使得AdamW在训练Transformer等模型时通常能获得更好的泛化性能。",
+      "tags": [
+        "Adam",
+        "AdamW",
+        "权重衰减"
+      ],
+      "id": "pytorch_optimization_basic_034",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PyTorch中学习率调度器（LR Scheduler）的作用是什么？请列举两种常见的调度策略。",
+      "reference_answer": "学习率调度器用于在训练过程中动态调整学习率，以改善模型收敛和性能。常见策略包括StepLR（每隔固定epoch数将学习率乘以一个因子）和CosineAnnealingLR（按余弦函数周期性地调整学习率）。",
+      "tags": [
+        "LR Scheduler",
+        "StepLR",
+        "CosineAnnealingLR"
+      ],
+      "id": "pytorch_optimization_basic_035",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "混合精度训练（Mixed Precision Training）在PyTorch中如何实现？其主要优势是什么？",
+      "reference_answer": "PyTorch中通过torch.cuda.amp模块实现混合精度训练，使用autocast自动选择float16或float32进行计算，并用GradScaler防止梯度下溢。主要优势是减少显存占用并加速训练，尤其在GPU支持Tensor Core时效果显著。",
+      "tags": [
+        "混合精度",
+        "AMP",
+        "GradScaler"
+      ],
+      "id": "pytorch_optimization_basic_036",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，AdamW优化器与Adam的主要区别是什么？为什么在Transformer类模型中更推荐使用AdamW？",
+      "reference_answer": "AdamW将权重衰减与梯度更新解耦，在参数更新时直接对权重进行L2正则化，而非像Adam那样在损失函数中加入L2惩罚项。这避免了Adam中权重衰减与自适应学习率相互干扰的问题，使得正则化效果更稳定，能有效提升泛化性能，尤其在Transformer等大模型中表现更优。",
+      "tags": [
+        "AdamW",
+        "Adam",
+        "权重衰减",
+        "正则化"
+      ],
+      "id": "pytorch_optimization_medium_040",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在训练深度学习模型时，如何结合使用学习率调度器（如CosineAnnealingLR）和混合精度训练（AMP）？需要注意哪些实现细节？",
+      "reference_answer": "使用PyTorch的torch.cuda.amp.autocast和GradScaler实现混合精度训练。学习率调度器应在每个epoch或iteration后调用，与AMP无直接冲突。需注意：梯度缩放不影响学习率调度；在GradScaler.step(optimizer)后调用scheduler.step()；若梯度溢出导致optimizer.step()被跳过，需确保scheduler.step()仍被调用以保持调度一致性。",
+      "tags": [
+        "学习率调度器",
+        "混合精度",
+        "AMP",
+        "GradScaler"
+      ],
+      "id": "pytorch_optimization_medium_041",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在使用CosineAnnealingLR调度器时，若总训练步数设置为100，余弦周期为50，学习率从0.1开始降至0.001。请描述前50步和后50步学习率的变化规律，并说明这种设计在优化中的优势。",
+      "reference_answer": "前50步：学习率从0.1按余弦函数下降至0.001；后50步：学习率从0.001重新上升至0.1再下降至0.001（若T_mult=2）。优势：余弦衰减在初期快速下降以快速收敛，后期缓慢下降以微调；重启机制可跳出局部最优，提高泛化能力。",
+      "tags": [
+        "CosineAnnealingLR",
+        "学习率调度",
+        "优化策略"
+      ],
+      "id": "pytorch_optimization_medium_042",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，当使用混合精度训练（AMP）时，为什么通常需要配合使用Gradient Scaling？如果训练过程中出现梯度溢出（inf/nan），Gradient Scaling的自动调整机制是如何工作的？",
+      "reference_answer": "混合精度训练中，float16的表示范围较小，梯度容易下溢或上溢。Gradient Scaling通过放大损失值，使梯度在float16范围内更稳定。当检测到梯度出现inf/nan时，AMP的scaler会自动跳过当前参数更新（即不执行optimizer.step()），并降低缩放因子（通常乘以0.5），以确保后续训练稳定。",
+      "tags": [
+        "混合精度训练",
+        "Gradient Scaling",
+        "数值稳定性"
+      ],
+      "id": "pytorch_optimization_advanced_046",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在AdamW优化器中，权重衰减（weight decay）与Adam中的L2正则化有何本质区别？在实现上，AdamW如何将权重衰减与自适应学习率解耦？",
+      "reference_answer": "Adam中的L2正则化将正则项加入损失，梯度中包含正则项，再被Adam的自适应学习率缩放，导致权重衰减效果与学习率耦合。AdamW将权重衰减直接应用于参数更新（即参数乘以(1-ηλ)），与梯度无关，从而解耦。这使得权重衰减不受自适应学习率影响，通常能获得更好的泛化性能。",
+      "tags": [
+        "AdamW",
+        "权重衰减",
+        "L2正则化",
+        "解耦"
+      ],
+      "id": "pytorch_optimization_advanced_047",
+      "subtopic": "optimization",
+      "subtopic_zh": "优化与调度（Adam/AdamW / LR Scheduler / 混合精度）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在PyTorch中，自定义层（Custom Layer）通常需要继承哪个基类，并必须实现哪两个核心方法？",
+      "reference_answer": "自定义层需要继承nn.Module类，并必须实现__init__方法（定义层参数和子层）和forward方法（定义前向计算逻辑）。",
+      "tags": [
+        "自定义层",
+        "nn.Module",
+        "forward"
+      ],
+      "id": "pytorch_advanced_basic_042",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PyTorch中的Hook机制主要用于哪些场景？请列举两种常见用途。",
+      "reference_answer": "Hook机制主要用于在不修改模型代码的情况下获取或修改中间层的梯度或激活值。常见用途包括：1）可视化中间层特征图；2）梯度裁剪或梯度检查；3）调试或分析模型行为。",
+      "tags": [
+        "Hook",
+        "中间层",
+        "梯度"
+      ],
+      "id": "pytorch_advanced_basic_043",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，使用DistributedDataParallel（DDP）进行多GPU训练时，其核心工作原理是什么？",
+      "reference_answer": "DDP的核心工作原理是：在每个GPU上复制一份模型副本，每个进程独立计算梯度，然后通过AllReduce通信操作同步所有进程的梯度，确保每个模型副本获得相同的平均梯度，再独立更新参数。",
+      "tags": [
+        "DDP",
+        "分布式训练",
+        "AllReduce"
+      ],
+      "id": "pytorch_advanced_basic_044",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "使用torch.save()保存模型时，推荐保存模型的哪些组件以便后续完整恢复？",
+      "reference_answer": "推荐保存模型的state_dict（模型参数）、优化器的state_dict、当前训练轮数epoch和损失值loss等训练状态信息，打包成一个字典保存，这样可完整恢复训练状态。",
+      "tags": [
+        "模型保存",
+        "state_dict",
+        "训练恢复"
+      ],
+      "id": "pytorch_advanced_basic_045",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在PyTorch中，自定义一个没有可学习参数的层（如自定义ReLU）与有可学习参数的层（如自定义线性层）在实现时有哪些关键区别？请说明register_parameter的作用。",
+      "reference_answer": "无参数层只需继承nn.Module并实现forward方法；有参数层需在__init__中通过nn.Parameter或register_parameter注册可学习张量。register_parameter将张量注册为模块的参数，自动参与梯度计算、保存和加载，而普通张量不会被优化器更新。",
+      "tags": [
+        "自定义层",
+        "nn.Module",
+        "参数注册"
+      ],
+      "id": "pytorch_advanced_medium_050",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，register_forward_hook和register_backward_hook分别可以捕获哪些信息？请举例说明一个利用hook调试梯度消失问题的场景。",
+      "reference_answer": "forward_hook可捕获模块输入和输出；backward_hook可捕获输入梯度和输出梯度。调试梯度消失时，可在网络深层模块注册backward_hook，打印梯度均值/方差，若接近0则提示梯度消失，可调整激活函数或初始化。",
+      "tags": [
+        "Hook",
+        "梯度调试",
+        "反向传播"
+      ],
+      "id": "pytorch_advanced_medium_051",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在DistributedDataParallel（DDP）中，为什么要求模型在初始化DDP前将参数放置在设备上？如果未放置会引发什么错误？",
+      "reference_answer": "DDP在构造函数中会广播模型参数并同步梯度，要求所有参数已位于目标设备（如GPU）。未放置时，参数默认在CPU，DDP将无法正确执行分布式通信，引发RuntimeError（如“expected all tensors to be on the same device”）。",
+      "tags": [
+        "DDP",
+        "分布式训练",
+        "设备管理"
+      ],
+      "id": "pytorch_advanced_medium_052",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "使用torch.save保存模型时，保存state_dict与保存完整模型（model.state_dict() vs model）各有什么优缺点？推荐使用哪种方式？",
+      "reference_answer": "保存state_dict仅存储参数，占用空间小、跨版本兼容性好、加载时需先实例化模型。保存完整模型会序列化整个对象，包括代码依赖，易因版本变化导致加载失败。推荐使用state_dict方式，更安全灵活。",
+      "tags": [
+        "模型保存",
+        "模型加载",
+        "state_dict"
+      ],
+      "id": "pytorch_advanced_medium_053",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，如果要在训练过程中实时监控并修改中间层的梯度（例如梯度裁剪后重新注入），应如何设计？请对比register_hook与自定义autograd.Function两种方案的适用场景和潜在风险。",
+      "reference_answer": "使用register_hook可以挂载在Tensor上，在反向传播时执行自定义操作（如梯度裁剪），但无法修改前向计算；自定义Function则需重写forward/backward，可同时干预前向与反向。风险：hook若修改梯度需in-place操作，可能破坏计算图；自定义Function需手动管理梯度流，易出错。",
+      "tags": [
+        "Hook",
+        "自定义层",
+        "梯度操作",
+        "PyTorch进阶"
+      ],
+      "id": "pytorch_advanced_advanced_058",
+      "subtopic": "advanced",
+      "subtopic_zh": "进阶技巧（自定义层 / Hook / DDP / 模型保存加载）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "torch.compile 的基本工作原理是什么？它如何提升模型执行性能？",
+      "reference_answer": "torch.compile 通过 JIT 编译将 PyTorch 动态图转换为优化的静态图，利用 TorchDynamo 捕获图结构，再通过后端编译器（如 Inductor）生成高效内核，减少 Python 解释开销并融合操作，从而提升性能。",
+      "tags": [
+        "torch.compile",
+        "JIT编译",
+        "性能优化"
+      ],
+      "id": "pytorch_modern_torch_basic_051",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PyTorch 中动态量化（Dynamic Quantization）的核心原理是什么？通常应用于哪些场景？",
+      "reference_answer": "动态量化在推理时将权重静态量化为 int8，而激活值动态量化，适用于权重固定但输入动态变化的场景，如 LSTM、Transformer 等 NLP 模型，可减少内存占用并加速 CPU 推理。",
+      "tags": [
+        "量化API",
+        "动态量化",
+        "推理优化"
+      ],
+      "id": "pytorch_modern_torch_basic_052",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "FSDP（Fully Sharded Data Parallel）与传统 DDP 在显存管理上的主要区别是什么？",
+      "reference_answer": "DDP 在每个 GPU 上保留完整模型副本，仅梯度同步；FSDP 将模型参数、梯度和优化器状态分片到各 GPU，仅在计算时按需收集，显著降低显存占用，适合大规模模型训练。",
+      "tags": [
+        "FSDP",
+        "分布式训练",
+        "显存优化"
+      ],
+      "id": "pytorch_modern_torch_basic_053",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "PyTorch Profiler 中 trace 和 profile 的主要用途分别是什么？",
+      "reference_answer": "trace 记录详细的操作时间线（如 CUDA 内核启动、CPU 操作），用于可视化性能瓶颈；profile 提供聚合统计（如平均耗时、调用次数），帮助分析整体执行效率。两者结合可定位优化点。",
+      "tags": [
+        "Profiler",
+        "性能分析",
+        "调试"
+      ],
+      "id": "pytorch_modern_torch_basic_054",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在使用torch.compile时，如果模型包含动态控制流（如if语句依赖于张量值），可能会遇到什么问题？如何解决？",
+      "reference_answer": "torch.compile默认使用静态图编译，动态控制流可能导致图断裂或编译失败。解决方案包括：使用`torch.jit.script`或`torch.jit.trace`进行显式追踪；或将动态逻辑封装在`torch.compiler.disable`标记的函数中，让该部分回退到Eager模式执行。",
+      "tags": [
+        "torch.compile",
+        "动态图",
+        "编译优化"
+      ],
+      "id": "pytorch_modern_torch_medium_059",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch中，使用`torch.quantization.quantize_dynamic`进行动态量化时，权重和激活的量化方式有何不同？适用于哪些场景？",
+      "reference_answer": "动态量化仅将权重从FP32转换为INT8（通常使用per-channel对称量化），而激活在推理时动态量化（per-tensor非对称），保证计算精度。适用于RNN、LSTM、Transformer等对激活范围敏感的模型，在CPU上加速效果明显。",
+      "tags": [
+        "量化API",
+        "动态量化",
+        "推理加速"
+      ],
+      "id": "pytorch_modern_torch_medium_060",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在FSDP（Fully Sharded Data Parallel）中，当使用`sharding_strategy.SHARD_GRAD_OP`时，优化器状态如何在各GPU间分布？与`NO_SHARD`相比，显存节省体现在哪里？",
+      "reference_answer": "`SHARD_GRAD_OP`策略下，每个GPU只存储部分参数的梯度，优化器状态（如momentum）也随之分片，仅计算本地分片的参数更新。相比`NO_SHARD`（全参数复制），可节省约模型参数大小×优化器状态倍数的显存，因为梯度不再全量复制。",
+      "tags": [
+        "FSDP",
+        "分布式训练",
+        "显存优化"
+      ],
+      "id": "pytorch_modern_torch_medium_061",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch Profiler中，`with torch.profiler.profile(activities=[torch.profiler.ProfilerActivity.CUDA])`用于分析GPU时间。如果发现某个kernel的`self_cuda_time`远高于`cuda_time`，可能说明什么？",
+      "reference_answer": "`cuda_time`包含该kernel及其子操作的总时间，`self_cuda_time`仅自身时间。若`self_cuda_time`远高于`cuda_time`，说明该kernel内部计算密集，无显著子操作（如大矩阵乘法）。可能需优化算法或使用Triton编写融合kernel减少启动开销。",
+      "tags": [
+        "Profiler",
+        "性能分析",
+        "CUDA kernel"
+      ],
+      "id": "pytorch_modern_torch_medium_062",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在PyTorch 2.0中，torch.compile通过图捕获和JIT编译优化模型执行。请分析其针对动态控制流（如if分支、循环依赖张量形状）的编译策略，并对比使用`torch.jit.script`时的处理差异。",
+      "reference_answer": "torch.compile默认采用eager模式捕获，对动态控制流通过guard机制（如检查张量形状）生成多个专用图，运行时根据实际输入选择；而torch.jit.script通过静态分析将Python控制流转换为TensorFlow-style图，要求控制流条件基于张量，否则会失败。torch.compile更灵活，但可能产生多个编译版本；torch.jit.script图更稳定，但受限于静态条件。",
+      "tags": [
+        "torch.compile",
+        "动态控制流",
+        "图捕获"
+      ],
+      "id": "pytorch_modern_torch_advanced_067",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在大规模模型训练中，FSDP（Fully Sharded Data Parallel）通过分片参数、梯度和优化器状态减少显存。请对比FSDP的sharding_strategy（如FULL_SHARD、HYBRID_SHARD）在通信开销与内存节省上的权衡，并说明在跨节点场景下如何选择。",
+      "reference_answer": "FULL_SHARD分片所有状态，通信量最大（每次前/后向需all-gather参数，后向需reduce-scatter梯度），但显存节省最多；HYBRID_SHARD在节点内使用FULL_SHARD，节点间使用DDP（复制），减少跨节点通信（仅梯度all-reduce），适合跨节点带宽低场景。权衡：节点内带宽高可容忍FULL_SHARD，跨节点带宽受限时HYBRID_SHARD更优。",
+      "tags": [
+        "FSDP",
+        "sharding_strategy",
+        "通信开销"
+      ],
+      "id": "pytorch_modern_torch_advanced_068",
+      "subtopic": "modern_torch",
+      "subtopic_zh": "现代PyTorch（torch.compile/量化API/FSDP/Profiler/Triton）",
+      "difficulty": "advanced"
+    }
+  ]
+}

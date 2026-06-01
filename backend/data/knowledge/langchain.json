@@ -1,0 +1,287 @@
+{
+  "module": "langchain",
+  "module_name": "LangChain框架",
+  "total": 18,
+  "cards": [
+    {
+      "title": "LangChain（框架）",
+      "summary": "简化LLM应用开发，集成数据与决策。",
+      "points": [
+        "提供组件化抽象，便于替换和定制",
+        "支持外部数据集成，如文件、API",
+        "赋予LLM决策能力，与环境交互",
+        "加速开发，社区活跃，更新迅速"
+      ],
+      "tip": "LangChain = 集成 + 代理，让LLM更强大。",
+      "id": "langchain_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Schema（模式）",
+      "summary": "定义LLM交互的数据结构基础。",
+      "points": [
+        "Text：自然语言字符串，最基础形式",
+        "Chat Messages：带类型（System/Human/AI）的消息",
+        "Documents：包含文本和元数据的对象",
+        "支持结构化对话和上下文传递"
+      ],
+      "tip": "Schema是LLM的输入输出规范，Text最简，Chat Messages最常用。",
+      "id": "langchain_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Text（文本）",
+      "summary": "LLM交互的自然语言字符串形式。",
+      "points": [
+        "最简单的交互方式，输入输出均为字符串",
+        "适用于单轮问答或简单任务",
+        "复杂度可随应用增长而提升",
+        "是其他Schema组件的基础"
+      ],
+      "tip": "Text就是纯文本，LLM的‘母语’。",
+      "id": "langchain_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Chat Messages（聊天消息）",
+      "summary": "带类型的消息，模拟多轮对话。",
+      "points": [
+        "System：设定AI角色和背景",
+        "Human：代表用户输入",
+        "AI：代表模型回复",
+        "支持历史消息传递，实现上下文对话"
+      ],
+      "tip": "System定角色，Human问问题，AI给答案。",
+      "id": "langchain_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Documents（文档）",
+      "summary": "包含文本和元数据的结构化对象。",
+      "points": [
+        "page_content：存储主要文本内容",
+        "metadata：附加信息如ID、来源、时间",
+        "元数据可选，但便于检索和过滤",
+        "常用于知识库或数据加载场景"
+      ],
+      "tip": "Document = 文本 + 标签，方便管理和查找。",
+      "id": "langchain_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Language Model（语言模型）",
+      "summary": "文本输入到文本输出的核心模型。",
+      "points": [
+        "基础LLM，输入文本返回文本",
+        "支持多种模型如text-ada-001",
+        "可通过参数调整性能与成本",
+        "是构建复杂链的基础组件"
+      ],
+      "tip": "LLM是AI大脑，文本进文本出。",
+      "id": "langchain_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Text vs Chat Messages",
+      "summary": "文本是字符串，聊天消息带角色类型。",
+      "points": [
+        "结构：纯字符串，无角色区分",
+        "结构：包含System/Human/AI三种角色类型",
+        "用途：简单输入输出场景",
+        "用途：模拟多轮对话历史",
+        "灵活性：低，仅文本",
+        "灵活性：高，可指定消息来源"
+      ],
+      "tip": "简单问答用Text，需要上下文或角色控制用Chat Messages。",
+      "id": "langchain_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Language Model vs Chat Model",
+      "summary": "语言模型文本进出，聊天模型消息进出。",
+      "points": [
+        "输入输出：文本→文本",
+        "输入输出：消息序列→消息",
+        "接口：llm(\"text\")",
+        "接口：chat([messages])",
+        "典型模型：text-ada-001",
+        "典型模型：ChatOpenAI"
+      ],
+      "tip": "纯文本生成任务用Language Model，多轮对话或带系统指令用Chat Model。",
+      "id": "langchain_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "System/Human/AI Messages",
+      "summary": "System设背景，Human代表用户，AI是回复。",
+      "points": [
+        "System：提供AI行为背景和指令",
+        "Human：模拟用户输入",
+        "AI：表示AI的回复内容",
+        "作用：控制AI角色和风格",
+        "作用：传递用户问题",
+        "作用：保留对话历史"
+      ],
+      "tip": "System用于设定规则，Human和AI交替构成对话历史。",
+      "id": "langchain_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Document vs Plain Text",
+      "summary": "Document带元数据，纯文本只有内容。",
+      "points": [
+        "结构：page_content + metadata字典",
+        "结构：仅字符串",
+        "用途：携带来源、ID等附加信息",
+        "用途：简单文本传递",
+        "灵活性：高，可附加任意元数据",
+        "灵活性：低，无额外信息"
+      ],
+      "tip": "需要跟踪文本来源或属性时用Document，简单场景用Plain Text。",
+      "id": "langchain_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "LLM文本生成公式（Text-in → Text-out）",
+      "summary": "输出 = LLM(输入文本)，将文本映射为文本。",
+      "points": [
+        "LLM：语言模型，如OpenAI的text-ada-001",
+        "输入文本：用户提供的自然语言字符串",
+        "输出文本：模型生成的连续文本",
+        "直觉理解：就像把一句话扔进黑箱，出来另一句话"
+      ],
+      "tip": "注意：模型输出是概率性的，temperature参数控制随机性，temperature=0时输出最确定。",
+      "id": "langchain_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "聊天消息序列处理公式",
+      "summary": "输出消息 = ChatModel([System, Human, AI, ...])，基于消息列表生成回复。",
+      "points": [
+        "ChatModel：聊天模型，如ChatOpenAI",
+        "SystemMessage：系统级指令，设定AI角色和行为",
+        "HumanMessage：用户输入的消息",
+        "AIMessage：AI历史回复，用于上下文",
+        "直觉理解：聊天模型像对话者，根据整个聊天历史决定下一句"
+      ],
+      "tip": "常见误区：SystemMessage不是必须的，但省略后模型缺乏背景约束，输出可能偏离预期。",
+      "id": "langchain_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "文档对象结构公式",
+      "summary": "Document = (page_content, metadata)，文本+元数据对。",
+      "points": [
+        "page_content：文档的纯文本内容",
+        "metadata：字典，存储文档ID、来源、创建时间等附加信息",
+        "直觉理解：文档就像带标签的文件，内容本身+描述它的属性"
+      ],
+      "tip": "元数据可选，但推荐始终添加来源信息，便于追溯和过滤。",
+      "id": "langchain_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "ChatMessage 交互示例",
+      "summary": "展示System、Human、AI三种消息类型的使用。",
+      "points": [
+        "chat = ChatOpenAI(temperature=.7, openai_api_key=openai_api_key) # 初始化聊天模型，temperature控制随机性",
+        "chat([SystemMessage(content=\"You are a nice AI bot...\"), HumanMessage(content=\"I like tomatoes, what should I eat?\")]) # 传入System和Human消息，返回AI回复",
+        "chat([SystemMessage(...), HumanMessage(...), AIMessage(content=\"You should go to Nice, France\"), HumanMessage(...)]) # 传入历史对话，让模型基于上下文继续回答"
+      ],
+      "tip": "SystemMessage用于设定AI角色和背景，可省略但建议使用；AIMessage用于传递历史回复，保持对话连贯性。",
+      "id": "langchain_code_014",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "Document 对象创建",
+      "summary": "创建包含文本内容和元数据的文档对象。",
+      "points": [
+        "from langchain.schema import Document # 导入Document类",
+        "Document(page_content=\"This is my document...\", metadata={'my_document_id': 234234, 'my_document_source': \"The LangChain Papers\"}) # 创建文档，page_content为文本内容，metadata为字典格式的元数据",
+        "Document(page_content=\"This is my document...\") # 也可省略metadata，仅提供文本内容"
+      ],
+      "tip": "metadata常用于存储来源、时间戳等附加信息，便于后续检索和过滤；page_content必须是字符串。",
+      "id": "langchain_code_015",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "语言模型基础调用",
+      "summary": "使用LLM模型进行文本输入到文本输出。",
+      "points": [
+        "from langchain.llms import OpenAI # 导入OpenAI语言模型类",
+        "llm = OpenAI(model_name=\"text-ada-001\", openai_api_key=openai_api_key) # 初始化模型，指定模型名称和API密钥",
+        "llm(\"What day comes after Friday?\") # 直接传入字符串，模型返回文本回复"
+      ],
+      "tip": "model_name可选多种模型（如text-davinci-003），不同模型性能和成本差异大；需确保API密钥有效。",
+      "id": "langchain_code_016",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "ChatMessage类型只有System和Human",
+      "summary": "ChatMessage包含System、Human、AI三种类型",
+      "points": [
+        "容易忽略AI消息类型，认为只有用户和系统消息",
+        "正确理解：System提供背景指令，Human代表用户，AI代表模型回复，三者共同构成对话历史"
+      ],
+      "tip": "记住SHA：System-Human-AI三种消息类型缺一不可",
+      "id": "langchain_gotcha_017",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "Document必须包含metadata",
+      "summary": "Document的metadata是可选的，不是必须的",
+      "points": [
+        "容易认为Document必须包含metadata信息",
+        "正确理解：Document由page_content和可选的metadata组成，不提供metadata也可以正常使用"
+      ],
+      "tip": "Document核心是文本内容，metadata只是附加信息",
+      "id": "langchain_gotcha_018",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

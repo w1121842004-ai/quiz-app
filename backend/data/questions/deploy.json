@@ -1,0 +1,616 @@
+{
+  "module": "deploy",
+  "module_name": "推理与部署",
+  "total": 43,
+  "subtopics": [
+    {
+      "id": "serving",
+      "name_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "target": 10
+    },
+    {
+      "id": "quantization",
+      "name_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "target": 10
+    },
+    {
+      "id": "inference_opt",
+      "name_zh": "推理优化（KV Cache管理 / 投机解码 / 前缀缓存 / 动态形状）",
+      "target": 9
+    },
+    {
+      "id": "distillation",
+      "name_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "target": 8
+    },
+    {
+      "id": "production",
+      "name_zh": "生产部署（吞吐/延迟权衡 / 监控 / 成本控制 / SLA）",
+      "target": 8
+    },
+    {
+      "id": "hardware",
+      "name_zh": "硬件与框架（GPU选型 / CUDA优化 / torch.compile / Triton）",
+      "target": 5
+    }
+  ],
+  "questions": [
+    {
+      "question": "什么是 PagedAttention？它在 vLLM 中如何提升推理效率？",
+      "reference_answer": "PagedAttention 是一种注意力键值（KV）缓存管理技术，它将 KV 缓存划分为固定大小的页（Page），类似操作系统虚拟内存管理。通过非连续存储和按需分配，它消除了传统连续缓存的内存碎片和预分配浪费，从而显著提升内存利用率和推理吞吐量。",
+      "tags": [
+        "vLLM",
+        "PagedAttention",
+        "推理优化"
+      ],
+      "id": "deploy_serving_basic_001",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "解释连续批处理（Continuous Batching）在推理服务中的基本原理。",
+      "reference_answer": "连续批处理是一种动态请求调度机制，它允许推理引擎在生成每个 token 后立即将新请求加入当前批次，或移除已完成的请求。与静态批处理不同，它无需等待整个批次完成，从而减少空闲等待时间，提高 GPU 利用率和系统吞吐量。",
+      "tags": [
+        "连续批处理",
+        "推理优化",
+        "vLLM"
+      ],
+      "id": "deploy_serving_basic_002",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "vLLM 与 TGI 在实现上共同采用了哪两种核心技术来提升 LLM 推理性能？",
+      "reference_answer": "vLLM 和 TGI 都采用了 PagedAttention 和连续批处理技术。PagedAttention 优化 KV 缓存内存管理，减少碎片；连续批处理动态调度请求，最大化 GPU 利用率。这两种技术共同实现了高吞吐量和低延迟的 LLM 服务。",
+      "tags": [
+        "vLLM",
+        "TGI",
+        "PagedAttention",
+        "连续批处理"
+      ],
+      "id": "deploy_serving_basic_003",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在推理服务中，chunked prefill（分块预填充）主要解决什么问题？",
+      "reference_answer": "Chunked prefill 将长输入 prompt 的预填充阶段拆分为多个较小的块进行处理。它解决了预填充与解码阶段混合批处理时，长 prompt 可能导致其他请求等待时间过长的问题，从而降低整体延迟并提高系统吞吐量。",
+      "tags": [
+        "vLLM",
+        "chunked prefill",
+        "推理优化"
+      ],
+      "id": "deploy_serving_basic_004",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在vLLM中，PagedAttention是如何管理Attention的Key和Value内存的？它解决了传统方法中的什么问题？",
+      "reference_answer": "PagedAttention将KV缓存划分为固定大小的块（Page），并像操作系统管理虚拟内存一样管理这些块，支持非连续存储。这解决了传统方法中因KV缓存需要连续显存空间而导致的内部碎片和显存浪费问题，从而大幅提升显存利用率和可服务的请求数量。",
+      "tags": [
+        "vLLM",
+        "PagedAttention",
+        "内存管理"
+      ],
+      "id": "deploy_serving_medium_009",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "连续批处理（Continuous Batching）与传统的静态批处理相比，在推理服务中如何提升吞吐量？请简要解释其核心机制。",
+      "reference_answer": "传统静态批处理需等待整个批次所有序列生成完毕才能处理新请求，导致GPU空闲。连续批处理在每个推理步骤（iteration）动态调整批次：完成或阻塞的序列被移出，新请求立即加入，从而最大化GPU利用率，显著提升系统吞吐量。",
+      "tags": [
+        "连续批处理",
+        "推理服务",
+        "吞吐量"
+      ],
+      "id": "deploy_serving_medium_010",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在TGI（Text Generation Inference）中，Speculative Decoding（推测解码）是如何实现约2倍延迟降低的？其核心思想是什么？",
+      "reference_answer": "推测解码使用一个轻量级的草稿模型快速生成多个候选token，然后由目标模型并行验证这些token的正确性。如果所有候选token都被接受，单次推理即可生成多个新token，从而在不牺牲生成质量的前提下，显著减少目标模型的串行推理次数，降低延迟。",
+      "tags": [
+        "TGI",
+        "推测解码",
+        "延迟优化"
+      ],
+      "id": "deploy_serving_medium_011",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在vLLM中，chunked prefill技术解决了什么问题？它是如何工作的？",
+      "reference_answer": "Chunked prefill解决了长prompt在预填充阶段占用过多显存和计算资源，导致解码阶段（decode）被阻塞的问题。它将长prompt的预填充计算拆分成多个较小的块（chunk），并允许这些块与解码请求交错处理，从而减少单个请求的端到端延迟，并提高整体资源利用率。",
+      "tags": [
+        "vLLM",
+        "Chunked Prefill",
+        "预填充"
+      ],
+      "id": "deploy_serving_medium_012",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在vLLM中，PagedAttention如何解决传统KV缓存管理中的内部碎片和外部碎片问题？请从内存分配与回收机制角度分析。",
+      "reference_answer": "PagedAttention将KV缓存划分为固定大小的块（Page），通过非连续物理内存映射实现虚拟连续。内部碎片通过块内按需分配（仅分配有效token的块）缓解；外部碎片通过块级回收与重分配消除，无需连续大块内存。同时，共享前缀场景下多个序列可共享相同物理块，减少冗余存储。",
+      "tags": [
+        "PagedAttention",
+        "内存管理",
+        "碎片问题",
+        "vLLM"
+      ],
+      "id": "deploy_serving_advanced_017",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "连续批处理（Continuous Batching）与静态批处理相比，在处理混合长度请求（如短对话与长文档生成并存）时，如何权衡吞吐与延迟？请分析其核心实现机制及边界情况。",
+      "reference_answer": "连续批处理通过迭代级调度（iteration-level scheduling），在每步解码时动态加入/移除请求，避免静态批处理的填充（padding）浪费，显著提升吞吐。但边界情况如：极短请求频繁插入可能增加调度开销；长请求独占资源时可能延迟其他请求。实现上需结合chunked prefill分块处理，并设置最大批大小与等待超时阈值来平衡。",
+      "tags": [
+        "连续批处理",
+        "吞吐-延迟权衡",
+        "混合请求",
+        "chunked prefill"
+      ],
+      "id": "deploy_serving_advanced_018",
+      "subtopic": "serving",
+      "subtopic_zh": "推理服务框架（vLLM/TGI/SGLang / PagedAttention / 连续批处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在 vLLM 和 TGI 中，GPTQ 和 AWQ 都属于哪种类型的量化技术？它们通常支持的最低比特数是多少？",
+      "reference_answer": "GPTQ 和 AWQ 都是后训练量化（Post-Training Quantization, PTQ）技术，用于将模型权重从 FP16 压缩到低比特整数。它们通常支持 4 比特（INT4）量化，部分实现也支持 3 比特或 2 比特。",
+      "tags": [
+        "GPTQ",
+        "AWQ",
+        "后训练量化",
+        "比特数"
+      ],
+      "id": "deploy_quantization_basic_011",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在 llama.cpp 中，GGUF 格式主要支持哪几种比特数的整数量化？",
+      "reference_answer": "GGUF 格式支持 1.5 比特、2 比特、3 比特、4 比特、5 比特、6 比特和 8 比特的整数量化，通过 k-quants 等算法实现不同精度和模型大小的权衡。",
+      "tags": [
+        "GGUF",
+        "llama.cpp",
+        "量化比特数"
+      ],
+      "id": "deploy_quantization_basic_012",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在 TGI 中，bitsandbytes（BnB）量化与 GPTQ 的主要区别是什么？",
+      "reference_answer": "BnB 是一种基于 8 比特或 4 比特的即时量化方法，不需要校准数据集，在加载模型时动态将权重转换为低精度；GPTQ 则需要先使用校准数据集进行静态量化，生成量化后的模型权重，推理时直接加载。",
+      "tags": [
+        "BnB",
+        "GPTQ",
+        "量化方式",
+        "TGI"
+      ],
+      "id": "deploy_quantization_basic_013",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在量化技术中，精度权衡（accuracy trade-off）的核心矛盾是什么？",
+      "reference_answer": "核心矛盾是模型压缩（降低比特数以减小内存占用和加速推理）与保持模型输出质量（避免过大的精度损失）之间的平衡。更低的比特数会引入更多量化噪声，可能导致任务性能下降。",
+      "tags": [
+        "精度权衡",
+        "量化",
+        "模型压缩"
+      ],
+      "id": "deploy_quantization_basic_014",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GPTQ和AWQ都是模型后训练量化方法，它们在量化策略上的核心区别是什么？",
+      "reference_answer": "GPTQ基于近似海森矩阵的权重量化，通过最小化量化误差的平方和来调整未量化权重，实现全局最优。AWQ则通过分析激活值分布，识别对输出影响大的显著权重通道，并对其进行缩放保护，保留其高精度，从而减少量化损失。",
+      "tags": [
+        "GPTQ",
+        "AWQ",
+        "后训练量化",
+        "量化策略"
+      ],
+      "id": "deploy_quantization_medium_019",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在vLLM或TGI等推理框架中，使用bitsandbytes（BnB）进行4-bit量化时，其底层实现（如QLoRA中的NF4）与GPTQ/AWQ相比，主要区别是什么？",
+      "reference_answer": "BnB的4-bit量化（如NF4）通常采用分块归一化（block-wise normalization）和双重量化（double quantization），在运行时动态反量化计算，与GPTQ/AWQ的静态量化权重不同。BnB更灵活，但推理速度可能略慢，因为每次计算都需要反量化。",
+      "tags": [
+        "bitsandbytes",
+        "NF4",
+        "双重量化",
+        "推理框架"
+      ],
+      "id": "deploy_quantization_medium_020",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "GGUF格式与传统的Hugging Face模型格式相比，在量化部署场景下有什么优势？",
+      "reference_answer": "GGUF是llama.cpp等C++推理引擎的原生格式，具有自包含、无运行时依赖的特点，可直接加载量化权重（如Q4_K_M）进行推理。它支持多种量化方案（如q2_K到q8_0）并内置元数据，无需依赖transformers库，适合边缘设备部署。",
+      "tags": [
+        "GGUF",
+        "模型格式",
+        "量化部署",
+        "llama.cpp"
+      ],
+      "id": "deploy_quantization_medium_021",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在量化感知训练（QAT）中，如何通过直通估计器（STE）解决量化函数不可导的问题？",
+      "reference_answer": "STE在前向传播时使用真实的量化操作（如round/clamp），反向传播时忽略量化函数，将梯度直接传递给量化前的浮点权重（即假设量化函数导数为1）。这使得网络能在训练中适应量化噪声，从而在低比特（如4-bit）下恢复模型精度。",
+      "tags": [
+        "量化感知训练",
+        "QAT",
+        "直通估计器",
+        "STE"
+      ],
+      "id": "deploy_quantization_medium_022",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在vLLM和TGI等推理框架中，同时支持GPTQ、AWQ和GGUF等多种量化格式。请从部署场景（如边缘设备 vs. 云端高并发）、硬件兼容性（如NVIDIA vs. CPU/Apple Silicon）以及精度与吞吐量的权衡角度，对比分析这三种量化方案的主要设计差异和适用边界。",
+      "reference_answer": "GPTQ和AWQ为权重量化，适合NVIDIA GPU，利用CUDA内核实现高吞吐，但需校准数据集，精度较高；GGUF由llama.cpp提出，支持CPU和Apple Silicon，通过自定义量化级别（如2-8 bit）优化内存占用，适合边缘设备。GPTQ/AWQ在云端高并发场景吞吐更优，GGUF在CPU推理和内存受限场景更灵活。边界情况：GGUF在GPU上性能可能不及前两者。",
+      "tags": [
+        "GPTQ",
+        "AWQ",
+        "GGUF",
+        "部署场景",
+        "硬件兼容性",
+        "精度权衡"
+      ],
+      "id": "deploy_quantization_advanced_027",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在量化感知训练（QAT）中，通常需要模拟量化操作（如伪量化节点）来调整权重以适应低精度。请分析QAT与训练后量化（如GPTQ/AWQ）在模型精度恢复机制上的核心差异，并讨论在混合精度推理（如部分层用FP16、部分层用INT4）的架构下，如何设计QAT策略以平衡整体精度损失和推理加速。",
+      "reference_answer": "QAT在训练中引入伪量化节点，通过梯度更新使权重适应量化噪声，精度恢复更好但需重训练，成本高；GPTQ/AWQ通过优化权重矩阵的Hessian矩阵或激活值缩放来最小化量化误差，无需训练。混合精度下，QAT可对敏感层（如注意力层）保留高精度，对非敏感层（如FFN）进行低精度量化，并通过逐层损失分析或敏感度度量（如L1范数）指导策略，从而在精度和速度间取得平衡。",
+      "tags": [
+        "量化感知训练",
+        "GPTQ",
+        "AWQ",
+        "混合精度",
+        "精度权衡"
+      ],
+      "id": "deploy_quantization_advanced_028",
+      "subtopic": "quantization",
+      "subtopic_zh": "量化技术（GPTQ/AWQ/BnB/GGUF / 量化感知训练 / 精度权衡）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "vLLM中用于高效管理注意力键值内存的核心技术是什么？请简述其基本原理。",
+      "reference_answer": "PagedAttention。它将每个序列的KV Cache划分为固定大小的块（Page），通过非连续的内存块存储，类似操作系统虚拟内存分页，从而消除内部碎片，实现近乎零浪费的内存管理，并支持高效的内存共享（如并行采样）。",
+      "tags": [
+        "KV Cache管理",
+        "PagedAttention",
+        "vLLM"
+      ],
+      "id": "deploy_inference_opt_basic_021",
+      "subtopic": "inference_opt",
+      "subtopic_zh": "推理优化（KV Cache管理 / 投机解码 / 前缀缓存 / 动态形状）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LLM推理中，投机解码（Speculative Decoding）的核心思想是什么？",
+      "reference_answer": "使用一个轻量级的草稿模型快速生成多个候选token，再由目标模型并行验证这些token的正确性。如果草稿模型的预测准确率高，可以在不牺牲生成质量的前提下显著加速推理。",
+      "tags": [
+        "投机解码",
+        "推理加速",
+        "草稿模型"
+      ],
+      "id": "deploy_inference_opt_basic_022",
+      "subtopic": "inference_opt",
+      "subtopic_zh": "推理优化（KV Cache管理 / 投机解码 / 前缀缓存 / 动态形状）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "vLLM中的前缀缓存（Prefix Caching）技术主要优化什么场景？",
+      "reference_answer": "主要优化包含相同系统提示词（System Prompt）或共享前缀的请求。通过缓存已计算的前缀部分的KV Cache，当新请求到来时直接复用，避免重复计算相同前缀的注意力，从而减少首token延迟并提高吞吐量。",
+      "tags": [
+        "前缀缓存",
+        "KV Cache复用",
+        "推理优化"
+      ],
+      "id": "deploy_inference_opt_basic_023",
+      "subtopic": "inference_opt",
+      "subtopic_zh": "推理优化（KV Cache管理 / 投机解码 / 前缀缓存 / 动态形状）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在推理引擎中，动态形状（Dynamic Shape）问题通常指什么？vLLM如何缓解该问题？",
+      "reference_answer": "指模型输入（如序列长度、批次大小）在推理过程中频繁变化，导致GPU kernel编译和内存分配开销。vLLM通过连续批处理、PagedAttention和CUDA图（CUDA Graphs）来缓解，将动态的请求调度转化为相对静态的执行图，减少kernel启动开销。",
+      "tags": [
+        "动态形状",
+        "连续批处理",
+        "CUDA图",
+        "vLLM"
+      ],
+      "id": "deploy_inference_opt_basic_024",
+      "subtopic": "inference_opt",
+      "subtopic_zh": "推理优化（KV Cache管理 / 投机解码 / 前缀缓存 / 动态形状）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在vLLM中，PagedAttention通过非连续显存块管理KV Cache，而TGI和llama.cpp则采用连续缓存。请从内存利用率、请求调度灵活性及批量推理性能三个维度，对比这两种设计在长序列（如32K tokens）场景下的核心权衡，并指出PagedAttention可能面临的一个边界问题。",
+      "reference_answer": "PagedAttention通过分页消除内部碎片，内存利用率高；支持按需分配，请求调度灵活，可动态增减序列长度。连续缓存预分配固定大小，长序列下易浪费显存。但PagedAttention在极端高并发或频繁前缀缓存命中时，非连续块间的地址转换和寻址开销可能成为瓶颈，降低批量推理的吞吐量。",
+      "tags": [
+        "KV Cache管理",
+        "PagedAttention",
+        "连续缓存",
+        "内存利用率",
+        "调度灵活性"
+      ],
+      "id": "deploy_inference_opt_advanced_033",
+      "subtopic": "inference_opt",
+      "subtopic_zh": "推理优化（KV Cache管理 / 投机解码 / 前缀缓存 / 动态形状）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "知识蒸馏的核心思想是什么？请简要说明学生模型与教师模型的关系。",
+      "reference_answer": "知识蒸馏的核心思想是利用一个复杂但性能强的教师模型（teacher model）的输出（如软标签或中间层特征）来指导一个轻量级学生模型（student model）的训练，使学生模型在保持较小规模的同时，学习并逼近教师模型的泛化能力。",
+      "tags": [
+        "知识蒸馏原理",
+        "模型压缩"
+      ],
+      "id": "deploy_distillation_basic_026",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在模型剪枝中，结构化剪枝与非结构化剪枝的主要区别是什么？",
+      "reference_answer": "结构化剪枝移除整个神经元、通道或层，保持网络结构规则，易于硬件加速；非结构化剪枝移除单个权重，导致稀疏连接，需专用硬件或库支持才能获得实际加速。",
+      "tags": [
+        "剪枝",
+        "结构化压缩"
+      ],
+      "id": "deploy_distillation_basic_027",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "蒸馏数据在知识蒸馏流程中的作用是什么？",
+      "reference_answer": "蒸馏数据是用于训练学生模型的数据集，通常包括原始训练数据或通过教师模型生成的合成数据。其作用是提供输入样本，使学生模型能基于教师模型的输出（如软标签）进行学习，从而迁移知识。",
+      "tags": [
+        "蒸馏数据",
+        "知识蒸馏原理"
+      ],
+      "id": "deploy_distillation_basic_028",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在知识蒸馏中，学生模型的温度参数T如何影响软标签的分布和蒸馏效果？请说明T值过大或过小分别会导致什么问题。",
+      "reference_answer": "温度T控制软标签的平滑程度。T越大，软标签分布越平滑，类间相对概率差异缩小，能提供更多暗知识，但过大会导致信息过度模糊，学生难以区分类别；T越小，软标签越接近硬标签，蒸馏效果减弱，可能丢失教师模型的泛化信息。通常T取2-8。",
+      "tags": [
+        "知识蒸馏原理",
+        "温度参数"
+      ],
+      "id": "deploy_distillation_medium_032",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "结构化剪枝中，如何确定哪些通道或神经元需要移除？请结合L1范数剪枝和基于重要性评分的方法简述其原理。",
+      "reference_answer": "结构化剪枝通过评估每个通道/神经元的重要性来决定移除对象。L1范数剪枝计算每个通道权重的L1范数，范数小的视为不重要并移除。基于重要性评分的方法则利用梯度或激活值等指标（如Taylor展开）计算对损失的影响，移除影响小的结构。",
+      "tags": [
+        "剪枝",
+        "结构化压缩"
+      ],
+      "id": "deploy_distillation_medium_033",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在蒸馏数据生成中，为什么有时使用教师模型的输出分布（软标签）比直接使用真实标签（硬标签）更有效？请结合知识迁移的机制解释。",
+      "reference_answer": "软标签包含类别间的相对相似性信息（暗知识），例如猫和狗的概率分布差异比硬标签更丰富，能帮助学生模型学习教师模型的泛化模式。硬标签仅提供离散类别，丢失了类间关系，导致学生只拟合正确类别而忽略潜在关联，因此软标签蒸馏通常效果更好。",
+      "tags": [
+        "蒸馏数据",
+        "知识蒸馏原理"
+      ],
+      "id": "deploy_distillation_medium_034",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在结构化剪枝中，针对Transformer的注意力头剪枝与FFN层神经元剪枝，哪种剪枝策略对模型输出质量影响更大？请从模型压缩与知识蒸馏的协同角度分析。",
+      "reference_answer": "FFN层剪枝通常影响更大，因为FFN层存储更多知识（如事实记忆），而注意力头剪枝主要影响上下文交互。在知识蒸馏中，若剪枝后模型作为学生，需用教师模型蒸馏FFN层输出（如hidden states）以恢复性能，注意力头剪枝可通过logit蒸馏补偿。",
+      "tags": [
+        "结构化剪枝",
+        "知识蒸馏",
+        "Transformer"
+      ],
+      "id": "deploy_distillation_advanced_038",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在知识蒸馏中，使用logits蒸馏与中间层特征蒸馏（如FitNet）对剪枝后的学生模型有何不同影响？请设计一个对比实验方案。",
+      "reference_answer": "Logits蒸馏侧重于最终输出概率分布，适合恢复分类边界；中间层特征蒸馏能更直接迁移教师模型的表示能力，尤其对剪枝后丢失的深层特征有利。对比实验：固定剪枝率，分别用logits、中间层（如第6层）及两者联合训练学生，评估下游任务准确率与推理延迟。",
+      "tags": [
+        "知识蒸馏",
+        "蒸馏数据",
+        "剪枝"
+      ],
+      "id": "deploy_distillation_advanced_039",
+      "subtopic": "distillation",
+      "subtopic_zh": "模型压缩（知识蒸馏原理 / 剪枝 / 结构化压缩 / 蒸馏数据）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在生产部署中，使用vLLM的PagedAttention技术时，如何权衡吞吐量和延迟？请分析其实现原理对这两者的影响。",
+      "reference_answer": "PagedAttention通过将KV缓存分页管理，减少内存碎片和浪费，从而支持更大的批处理大小，提升吞吐量。但分页管理可能增加额外寻址开销，导致单请求延迟微增。在低延迟场景下，需限制批处理大小或启用chunked prefill以平衡。",
+      "tags": [
+        "吞吐/延迟权衡",
+        "PagedAttention",
+        "vLLM"
+      ],
+      "id": "deploy_production_medium_037",
+      "subtopic": "production",
+      "subtopic_zh": "生产部署（吞吐/延迟权衡 / 监控 / 成本控制 / SLA）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在生产环境部署TGI或vLLM时，如何设计监控指标来同时满足SLA（如P99延迟<500ms）和成本控制？请列出至少三个关键指标。",
+      "reference_answer": "关键指标包括：1) P99/P95延迟，用于SLA监控；2) 每秒请求数（RPS）和吞吐量，衡量资源利用效率；3) GPU利用率与内存占用，识别资源浪费以控制成本。通过设置告警阈值，在延迟超标时触发扩容，或在利用率低时缩容。",
+      "tags": [
+        "监控",
+        "SLA",
+        "成本控制"
+      ],
+      "id": "deploy_production_medium_038",
+      "subtopic": "production",
+      "subtopic_zh": "生产部署（吞吐/延迟权衡 / 监控 / 成本控制 / SLA）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在llama.cpp中，使用4-bit量化部署模型时，如何影响生产环境的吞吐、延迟和成本？请从实现细节角度分析。",
+      "reference_answer": "4-bit量化通过降低模型精度和内存占用，使模型能装入更少或更低成本的GPU，减少硬件成本。同时，减少内存带宽需求可提升吞吐量，但量化引入的额外反量化计算可能轻微增加单token延迟。实际测试中，延迟增加通常小于10%，而成本降低可达50%以上。",
+      "tags": [
+        "成本控制",
+        "吞吐/延迟权衡",
+        "量化"
+      ],
+      "id": "deploy_production_medium_039",
+      "subtopic": "production",
+      "subtopic_zh": "生产部署（吞吐/延迟权衡 / 监控 / 成本控制 / SLA）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在生产环境中部署vLLM服务时，假设你需要在延迟敏感型应用（如实时对话）和吞吐优先型应用（如离线批量生成）之间做出权衡。请详细分析vLLM的PagedAttention、连续批处理和chunked prefill这三个核心机制如何影响吞吐与延迟的取舍，并给出针对两种场景的参数调优建议（如max_num_batched_tokens、max_num_seqs、enable_chunked_prefill等）。",
+      "reference_answer": "PagedAttention通过分页管理KV缓存消除内部碎片，增加有效批处理大小，提升吞吐但可能引入小延迟。连续批处理在prefill阶段后动态插入decode，降低首token延迟但增加调度开销。Chunked prefill将长prompt拆分为块，减少首token延迟但可能降低吞吐。延迟敏感场景应降低max_num_batched_tokens、启用chunked prefill并限制max_num_seqs；吞吐优先场景应增大批处理容量、禁用chunked prefill以最大化连续批处理效率。",
+      "tags": [
+        "吞吐-延迟权衡",
+        "PagedAttention",
+        "连续批处理",
+        "chunked prefill",
+        "参数调优"
+      ],
+      "id": "deploy_production_advanced_043",
+      "subtopic": "production",
+      "subtopic_zh": "生产部署（吞吐/延迟权衡 / 监控 / 成本控制 / SLA）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "假设你使用llama.cpp在边缘设备（如树莓派或低端GPU）上部署一个7B模型，并需要满足严格的SLA（如P99首token延迟<500ms，吞吐至少1 token/s）。请对比llama.cpp的GGUF量化（如Q4_K_M）与vLLM的FP8量化在以下三方面的差异：1) 对模型精度和显存占用的影响；2) 在低计算资源下对延迟和吞吐的权衡；3) 如何设计监控指标（如GPU利用率、KV缓存命中率）来提前预警SLA违反。",
+      "reference_answer": "GGUF量化（如Q4_K_M）针对CPU/边缘优化，精度损失略高但显存占用极低，适合无GPU场景；FP8量化依赖NVIDIA GPU的硬件加速，精度保留更好但显存需求更高。边缘设备上，llama.cpp的量化能获得更低的首token延迟（因避免GPU传输），但吞吐受CPU算力限制；vLLM的FP8吞吐更高但延迟可能因GPU内存瓶颈而波动。监控应关注GPU/CPU利用率、KV缓存命中率（低于90%预警）、批处理队列长度和P99延迟，结合阈值告警。",
+      "tags": [
+        "量化对比",
+        "边缘部署",
+        "SLA监控",
+        "延迟-吞吐权衡",
+        "llama.cpp vs vLLM"
+      ],
+      "id": "deploy_production_advanced_044",
+      "subtopic": "production",
+      "subtopic_zh": "生产部署（吞吐/延迟权衡 / 监控 / 成本控制 / SLA）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在vLLM中，PagedAttention技术主要解决了LLM推理中的什么问题？",
+      "reference_answer": "PagedAttention通过将注意力机制的Key和Value内存分页管理，解决了传统推理中KV缓存占用大量显存且利用率低的问题，从而显著提升了服务吞吐量。",
+      "tags": [
+        "vLLM",
+        "PagedAttention",
+        "CUDA优化"
+      ],
+      "id": "deploy_hardware_basic_039",
+      "subtopic": "hardware",
+      "subtopic_zh": "硬件与框架（GPU选型 / CUDA优化 / torch.compile / Triton）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "llama.cpp支持通过哪种量化格式从Hugging Face直接下载和运行模型？",
+      "reference_answer": "llama.cpp支持GGUF格式，用户可以通过`-hf`参数（如`llama-cli -hf ggml-org/gemma-3-1b-it-GGUF`）直接从Hugging Face下载并运行量化后的模型。",
+      "tags": [
+        "llama.cpp",
+        "GGUF",
+        "GPU选型"
+      ],
+      "id": "deploy_hardware_basic_040",
+      "subtopic": "hardware",
+      "subtopic_zh": "硬件与框架（GPU选型 / CUDA优化 / torch.compile / Triton）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在vLLM中，PagedAttention如何通过非连续显存分配解决KV Cache碎片化问题？请简述其核心机制。",
+      "reference_answer": "PagedAttention将KV Cache划分为固定大小的块（page），按需分配，类似虚拟内存的页表机制。这消除了传统连续预分配导致的内存碎片，支持非连续存储，并实现零碎片的内存共享（如并行采样时多个序列共享相同前缀的KV块），从而大幅提升显存利用率和吞吐量。",
+      "tags": [
+        "vLLM",
+        "PagedAttention",
+        "CUDA优化"
+      ],
+      "id": "deploy_hardware_medium_043",
+      "subtopic": "hardware",
+      "subtopic_zh": "硬件与框架（GPU选型 / CUDA优化 / torch.compile / Triton）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "llama.cpp使用GGUF格式对模型进行量化（如4-bit），其核心优势是什么？相比于直接加载FP16模型，在GPU推理时可能引入哪些性能权衡？",
+      "reference_answer": "GGUF量化将模型权重压缩为低精度整数（如4-bit），核心优势是大幅减少显存占用和内存带宽需求，使得更大模型能在有限显存上运行。性能权衡：量化引入精度损失，可能降低生成质量；同时，GPU上执行反量化操作需要额外计算，若带宽瓶颈严重（如大模型、小批量），整体吞吐量仍可能提升，但延迟可能略有增加。",
+      "tags": [
+        "llama.cpp",
+        "GGUF",
+        "GPU选型",
+        "量化"
+      ],
+      "id": "deploy_hardware_medium_044",
+      "subtopic": "hardware",
+      "subtopic_zh": "硬件与框架（GPU选型 / CUDA优化 / torch.compile / Triton）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在vLLM中，torch.compile被用于自动内核生成和图级变换。请分析torch.compile在LLM推理场景下的主要优势与潜在挑战，并对比其与手工编写Triton或CUDA内核（如FlashAttention）在性能、灵活性和部署复杂度上的权衡。",
+      "reference_answer": "torch.compile通过JIT编译将PyTorch模型图动态优化为融合内核，减少内核启动开销并自动利用算子融合，提升吞吐量。但LLM推理中动态形状（如可变序列长度）和复杂注意力模式可能使图捕获不完整，导致回退或编译重触发，降低效率。手工编写的Triton/CUDA内核（如FlashAttention）针对特定操作极致优化，性能更可预测，但开发成本高、移植性差。torch.compile在快速部署和跨硬件适配上有优势，但极端性能场景下手工内核仍占优。",
+      "tags": [
+        "torch.compile",
+        "CUDA优化",
+        "Triton",
+        "vLLM",
+        "性能权衡"
+      ],
+      "id": "deploy_hardware_advanced_047",
+      "subtopic": "hardware",
+      "subtopic_zh": "硬件与框架（GPU选型 / CUDA优化 / torch.compile / Triton）",
+      "difficulty": "advanced"
+    }
+  ]
+}

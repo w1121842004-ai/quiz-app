@@ -1,0 +1,684 @@
+{
+  "module": "agent",
+  "module_name": "AI Agent架构",
+  "total": 49,
+  "subtopics": [
+    {
+      "id": "basics",
+      "name_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "target": 8
+    },
+    {
+      "id": "reasoning",
+      "name_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "target": 9
+    },
+    {
+      "id": "tools",
+      "name_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "target": 8
+    },
+    {
+      "id": "memory",
+      "name_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "target": 7
+    },
+    {
+      "id": "multi_agent",
+      "name_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "target": 9
+    },
+    {
+      "id": "evaluation",
+      "name_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "target": 9
+    }
+  ],
+  "questions": [
+    {
+      "question": "在GPT Researcher的架构中，'planner'和'execution' agent分别承担了感知-思考-行动循环中的哪些环节？",
+      "reference_answer": "Planner agent承担'思考'环节，负责生成研究问题；Execution agent承担'行动'环节，负责收集相关信息。两者共同协作，最终由publisher聚合所有发现生成报告。",
+      "tags": [
+        "Agent基础",
+        "感知-思考-行动循环",
+        "GPT Researcher架构"
+      ],
+      "id": "agent_basics_basic_001",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GPT Researcher如何通过并行化agent工作来提升感知-思考-行动循环的效率？",
+      "reference_answer": "GPT Researcher通过并行化agent工作来提升效率，即同时运行多个execution agent分别处理不同的子问题或子任务，从而加速信息收集过程，提高整体研究速度和稳定性。",
+      "tags": [
+        "Agent基础",
+        "并行化",
+        "效率提升"
+      ],
+      "id": "agent_basics_basic_002",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher中，'publisher'在感知-思考-行动循环中扮演什么角色？",
+      "reference_answer": "Publisher在感知-思考-行动循环中负责最终的'行动'输出环节，它将planner和execution agent收集的所有研究结果进行过滤和聚合，生成一份完整、有引用的研究报告。",
+      "tags": [
+        "Agent基础",
+        "感知-思考-行动循环",
+        "报告生成"
+      ],
+      "id": "agent_basics_basic_003",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Agent的感知-思考-行动循环中，GPT Researcher的'planner'和'execution'代理分别对应哪个环节？请结合代码说明其实现方式。",
+      "reference_answer": "Planner对应思考环节，负责根据用户查询生成子问题；Execution对应行动环节，负责为每个子问题执行搜索和内容抓取。代码中，planner通过generate_research_questions方法生成问题列表，execution通过get_search_results和爬虫收集信息。",
+      "tags": [
+        "感知-思考-行动循环",
+        "Planner-Execution架构",
+        "GPT Researcher实现"
+      ],
+      "id": "agent_basics_medium_007",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "GPT Researcher的Memory模块在Agent循环中扮演什么角色？如何影响感知和思考环节？",
+      "reference_answer": "Memory模块存储中间结果和上下文，使Agent在感知环节能引用历史信息，在思考环节能基于累积数据优化后续问题。它通过ContextManager维护会话状态，确保子问题解答不重复，提升报告一致性。",
+      "tags": [
+        "Agent记忆",
+        "感知-思考-行动循环",
+        "上下文管理"
+      ],
+      "id": "agent_basics_medium_008",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "假设你需要设计一个Agent自动撰写行业趋势报告，请描述其感知-思考-行动循环的具体步骤，并指出如何避免信息过时和偏见。",
+      "reference_answer": "感知：收集多源数据（新闻、论文、财报）；思考：利用LLM分析趋势、识别关键事件；行动：生成结构化报告。避免过时：设置数据新鲜度阈值，优先使用近期来源；避免偏见：交叉验证多个来源，使用客观语调（Tone.Objective），并聚合超过20个源。",
+      "tags": [
+        "应用场景",
+        "数据新鲜度",
+        "偏见消除"
+      ],
+      "id": "agent_basics_medium_009",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher的架构中，'planner'和'execution'两个Agent如何体现感知-思考-行动循环？这种分工设计相比单一Agent在深度研究场景下有哪些架构权衡？",
+      "reference_answer": "Planner Agent负责'思考'阶段，将用户查询分解为子问题并规划研究路径；Execution Agent负责'感知'（从网络抓取信息）和'行动'（执行搜索并返回结果）。这种分工的权衡是：优点包括并行化执行提升速度、减少单一Agent的token限制和幻觉风险；缺点则是增加了协调复杂性和上下文传递的延迟，且需额外设计聚合机制来保证结论一致性。",
+      "tags": [
+        "感知-思考-行动循环",
+        "Agent架构",
+        "并行化",
+        "深度研究"
+      ],
+      "id": "agent_basics_advanced_013",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT Researcher的报告中，如何通过'感知-思考-行动'循环机制处理信息源冲突（如两个网页给出矛盾数据）？请设计一种边界情况下的处理策略。",
+      "reference_answer": "当感知阶段发现矛盾信息时，思考阶段会触发'来源可信度评估'子循环：使用LLM分析每个来源的权威性、时效性和一致性，然后行动阶段通过重新搜索第三方验证或要求更多上下文来消歧。边界情况如所有来源均不可信时，思考阶段会生成'不确定性标记'并记录到报告中，而非强行统一结论。这种设计保证了报告的事实性和可追溯性。",
+      "tags": [
+        "边界情况",
+        "信息冲突",
+        "可信度评估",
+        "不确定性处理"
+      ],
+      "id": "agent_basics_advanced_014",
+      "subtopic": "basics",
+      "subtopic_zh": "Agent基础（定义 / 感知-思考-行动循环）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在ReAct（Reasoning + Acting）框架中，推理轨迹和动作执行是如何交替进行的？请结合其核心流程简要说明。",
+      "reference_answer": "ReAct交替执行推理和动作：模型首先输出推理步骤（如思考当前状态和下一步计划），然后执行一个动作（如调用API或搜索），再将观察结果作为输入继续推理，形成思考-行动-观察的循环。",
+      "tags": [
+        "ReAct",
+        "推理规划",
+        "Agent"
+      ],
+      "id": "agent_reasoning_basic_009",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Chain-of-Thought（CoT）提示与标准提示相比，其核心差异是什么？请从推理过程的角度解释。",
+      "reference_answer": "CoT提示通过引入中间推理步骤（如逐步解释、链式逻辑）来引导模型，而非直接输出答案。它让模型显式地分解复杂问题为一系列子步骤，从而提升在数学、常识推理等任务上的准确性。",
+      "tags": [
+        "Chain-of-Thought",
+        "推理规划",
+        "提示工程"
+      ],
+      "id": "agent_reasoning_basic_010",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Tree-of-Thought（ToT）框架如何扩展Chain-of-Thought？请描述其核心机制。",
+      "reference_answer": "ToT将线性推理链扩展为树状结构，允许模型在多个推理分支上进行探索和回溯。它通过广度优先或深度优先搜索评估不同思维节点的价值，并选择最优路径，适用于需要规划或战略决策的任务。",
+      "tags": [
+        "Tree-of-Thought",
+        "推理规划",
+        "搜索策略"
+      ],
+      "id": "agent_reasoning_basic_011",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在反思（Reflection）机制中，模型如何利用过去错误来改进后续推理？请简述其基本流程。",
+      "reference_answer": "反思机制让模型在生成推理或答案后，通过自我评估或外部反馈识别错误，然后生成修正后的推理路径。例如，模型先输出初始推理，再生成反思文本指出问题，最后基于反思调整输出。",
+      "tags": [
+        "反思",
+        "推理规划",
+        "自我修正"
+      ],
+      "id": "agent_reasoning_basic_012",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在ReAct模式中，如何避免推理与行动循环陷入死循环或发散？请列举两种常见策略。",
+      "reference_answer": "1. 设置最大迭代次数（如10步），超限则强制终止并返回已有结果。2. 引入“反思”机制，在每步行动后评估当前状态是否接近目标，若发现重复或无效行动则切换策略或回退。",
+      "tags": [
+        "ReAct",
+        "循环控制",
+        "反思机制"
+      ],
+      "id": "agent_reasoning_medium_017",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Tree-of-Thought（ToT）与Chain-of-Thought（CoT）的核心区别是什么？ToT如何实现分支搜索？",
+      "reference_answer": "CoT是单链线性推理，每一步只有一个延续；ToT则维护多个推理分支构成的树，在每个节点生成多个候选下一步，并通过广度优先或深度优先搜索（如BFS/DFS）探索，最后用评估函数（如LLM打分）选择最优路径。",
+      "tags": [
+        "Tree-of-Thought",
+        "Chain-of-Thought",
+        "分支搜索"
+      ],
+      "id": "agent_reasoning_medium_018",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在实现Agent的反思（Reflection）机制时，通常会采用“自我提问”方式。请说明其具体流程并指出一个关键设计点。",
+      "reference_answer": "流程：Agent执行行动后，LLM以“当前结果是否合理？有无遗漏？如何改进？”等提示自我评估，生成反馈并调整下一步行动。关键设计点：反馈必须结构化（如列出错误、建议替代方案），而非泛泛的“重新尝试”。",
+      "tags": [
+        "反思",
+        "自我评估",
+        "结构化反馈"
+      ],
+      "id": "agent_reasoning_medium_019",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher中，Planner和Executor分离的设计体现了哪种推理规划思想？请解释其优势。",
+      "reference_answer": "体现了Plan-and-Solve思想。Planner将复杂查询分解为多个子问题（计划），Executor并行执行子问题搜索。优势：提高效率（并行化）、减少单步推理负担、提升最终报告的结构化与完整性。",
+      "tags": [
+        "Plan-and-Solve",
+        "Planner-Executor",
+        "并行化"
+      ],
+      "id": "agent_reasoning_medium_020",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher的架构中，其核心采用了类似Plan-and-Solve的规划-执行分离模式。请对比这种模式与ReAct（推理-行动循环）范式在长链自主研究场景下的核心差异，并分析在何种边界条件下（如任务复杂度、环境反馈延迟）ReAct会优于Plan-and-Solve，反之亦然？",
+      "reference_answer": "Plan-and-Solve通过预先生成完整的子问题计划，再并行执行搜索，适合确定性高、子任务间依赖弱的长链研究，效率高且不易偏离。ReAct则是边推理边行动，每一步都依赖环境反馈，适合动态性强、中间结果会影响后续路径的任务。边界条件：当环境反馈延迟低且任务路径不确定时，ReAct的灵活性更优；当任务结构清晰、并行化收益高时，Plan-and-Solve更优。",
+      "tags": [
+        "ReAct",
+        "Plan-and-Solve",
+        "自主研究",
+        "架构权衡"
+      ],
+      "id": "agent_reasoning_advanced_025",
+      "subtopic": "reasoning",
+      "subtopic_zh": "推理规划（ReAct / CoT / Tree-of-Thought / 反思）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT Researcher中，当启用MCP（Model Context Protocol）时，`mcp_strategy`参数可以设置哪三种值？分别描述它们的行为差异。",
+      "reference_answer": "三种值为'fast'、'deep'和'disabled'。'fast'为默认值，仅用原始查询运行一次MCP以获得最佳性能；'deep'会对所有子查询运行MCP以实现最大彻底性；'disabled'则完全跳过MCP，仅使用Web检索器。",
+      "tags": [
+        "Function Calling",
+        "MCP",
+        "工具调用策略"
+      ],
+      "id": "agent_tools_basic_018",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher的`GPTResearcher`类初始化中，`mcp_configs`参数支持哪三种连接类型？请列出。",
+      "reference_answer": "支持三种连接类型：stdio（标准输入输出）、websocket（WebSocket连接）和http（HTTP连接）。这些通过`connection_type`字段指定。",
+      "tags": [
+        "工具调用设计原则",
+        "MCP",
+        "连接类型"
+      ],
+      "id": "agent_tools_basic_019",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher的`GPTResearcher`类中，`mcp_configs`参数中的`connection_token`字段有何用途？",
+      "reference_answer": "`connection_token`用于远程连接时的身份验证令牌，确保只有授权的客户端可以连接到MCP服务器，增强安全性。",
+      "tags": [
+        "工具调用设计原则",
+        "MCP",
+        "安全机制"
+      ],
+      "id": "agent_tools_basic_020",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher中，如果某个子任务（如网页爬取）持续出错，系统应如何处理以保证整体研究流程的鲁棒性？请结合错误处理策略说明。",
+      "reference_answer": "系统应实现重试机制（如指数退避）和超时控制，对失败任务标记后跳过，避免阻塞。同时记录错误日志供分析，并利用上下文管理确保后续任务基于已成功获取的信息继续执行。",
+      "tags": [
+        "错误处理",
+        "鲁棒性",
+        "重试机制"
+      ],
+      "id": "agent_tools_medium_024",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Function Calling设计中，如何确保LLM调用的工具函数返回结果能被后续流程正确解析？请说明关键设计原则。",
+      "reference_answer": "工具函数应返回结构化数据（如JSON），并定义清晰的输出模式（schema）。LLM调用时需指定返回格式约束，同时在后处理中校验字段完整性和类型，异常时触发降级或重试。",
+      "tags": [
+        "Function Calling",
+        "结构化输出",
+        "设计原则"
+      ],
+      "id": "agent_tools_medium_025",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "GPT Researcher中集成了MCP（Model Context Protocol）工具，请分析在调用远程MCP服务器时，如何设计连接失败或超时的容错机制？",
+      "reference_answer": "应设置连接超时和重试次数，使用断路器模式避免连续失败。失败时回退到本地检索或缓存数据，并记录错误以便监控。同时支持异步非阻塞调用，防止阻塞主流程。",
+      "tags": [
+        "MCP",
+        "错误处理",
+        "容错机制"
+      ],
+      "id": "agent_tools_medium_026",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher的架构中，plan-and-solve策略通过planner agent和execution agent分离来实现工具调用。请分析这种设计在function calling执行链中的优缺点，并对比一种替代设计（如单agent循环调用多个工具），讨论在错误处理（如工具返回异常或超时）场景下各自的鲁棒性差异。",
+      "reference_answer": "优点：planner预先分解任务，execution并行调用多个工具（如搜索、爬虫），减少单点失败影响；错误处理可隔离到单个execution agent，不影响整体规划。缺点：planner可能生成不合理的子任务，导致执行阶段浪费资源；并行调用增加系统复杂度。替代设计（单agent循环调用）优点：上下文连贯，可动态调整下一步工具；缺点：单点故障风险大，一个工具错误可能导致整个链中断。鲁棒性上，分离架构更优：execution agent失败可重试或跳过，planner可重新生成任务；单agent需复杂重试逻辑。",
+      "tags": [
+        "工具调用设计原则",
+        "Function Calling",
+        "错误处理",
+        "架构权衡"
+      ],
+      "id": "agent_tools_advanced_030",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "考虑边界情况：在GPT Researcher中，MCP客户端配置支持多种连接类型（stdio、websocket、http），且允许自定义工具名称。当MCP服务器返回格式错误（如JSON解析失败）或工具不存在时，GPT Researcher应如何设计错误处理策略？请对比在stdio（本地进程）与websocket（远程）连接下，错误恢复的权衡，并给出推荐方案。",
+      "reference_answer": "错误处理策略：1）捕获JSON解析异常，记录错误并返回fallback结果（如空数据或提示信息）；2）工具不存在时，检查配置中tool_name是否匹配，若不匹配则尝试默认工具或跳过该MCP。权衡：stdio连接下，错误通常由本地进程崩溃引起，可重启子进程；websocket下，网络中断或超时更常见，需实现重连机制和超时重试。推荐方案：统一抽象错误类型（解析错误、连接错误、工具缺失），对stdio采用进程重启+指数退避，对websocket采用连接池+心跳检测+超时重试。",
+      "tags": [
+        "错误处理",
+        "Function Calling",
+        "边界情况",
+        "MCP集成"
+      ],
+      "id": "agent_tools_advanced_031",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（设计原则 / Function Calling / 错误处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT Researcher中，Memory模块主要负责存储哪两类关键信息？",
+      "reference_answer": "Memory模块主要负责存储研究过程中的上下文信息（如已访问的URL、已收集的摘要）以及用于跟踪研究进度的中间状态，例如当前正在处理的子问题。",
+      "tags": [
+        "工作记忆",
+        "GPT Researcher"
+      ],
+      "id": "agent_memory_basic_026",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GPT Researcher的架构中，'planner'和'execution'两种agent分别利用哪种记忆类型来完成任务？",
+      "reference_answer": "'Planner' agent利用语义记忆生成研究问题，它基于对任务的理解和领域知识来规划问题。'Execution' agent则依赖工作记忆来临时存储每个子问题的搜索结果和摘要，以便进行后续处理。",
+      "tags": [
+        "语义记忆",
+        "工作记忆",
+        "GPT Researcher"
+      ],
+      "id": "agent_memory_basic_027",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher中，当生成最终研究报告时，它会引用原始来源。这一过程主要涉及哪种记忆类型的应用？",
+      "reference_answer": "这主要涉及情节记忆的应用。GPT Researcher需要记住每个信息片段是从哪个URL或文档中获取的（即来源情节），并在报告中准确引用这些来源，以提供可追溯的证据。",
+      "tags": [
+        "情节记忆",
+        "GPT Researcher"
+      ],
+      "id": "agent_memory_basic_028",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher中，工作记忆（Working Memory）是如何实现上下文保持的？请解释其具体机制。",
+      "reference_answer": "GPT Researcher通过ContextManager类维护一个累积的context列表，在每次搜索和内容抓取后，将新信息追加到该列表。ResearchConductor在生成子问题或执行搜索时，会传递当前context作为工作记忆，确保后续步骤能参考先前发现，避免重复搜索和上下文丢失。",
+      "tags": [
+        "工作记忆",
+        "GPTResearcher",
+        "上下文管理"
+      ],
+      "id": "agent_memory_medium_032",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "GPT Researcher的情节记忆（Episodic Memory）体现在哪个模块？请说明其如何存储和利用过去的搜索经验。",
+      "reference_answer": "情节记忆由Memory类实现，它存储了每次研究任务中的具体事件序列，如访问过的URL（visited_urls）、已执行的子查询和对应的搜索结果。在后续子任务中，通过检查visited_urls避免重复抓取，并通过subtopics列表记录已探索方向，从而利用历史经验指导当前决策。",
+      "tags": [
+        "情节记忆",
+        "GPTResearcher",
+        "搜索去重"
+      ],
+      "id": "agent_memory_medium_033",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher的架构中，语义记忆（Semantic Memory）如何通过向量存储（VectorStore）支持长文档检索？",
+      "reference_answer": "VectorStoreWrapper封装了向量数据库，将抓取的文档内容编码为向量并存储，形成语义记忆。当需要检索时，通过语义相似度匹配返回最相关的文档片段，而非精确关键词匹配。这使Agent能基于概念关联获取信息，支持对大量本地文档的高效、语义化查询。",
+      "tags": [
+        "语义记忆",
+        "向量存储",
+        "文档检索"
+      ],
+      "id": "agent_memory_medium_034",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher的架构中，planner和execution agents分别模拟了哪种记忆类型？如果execution agent在运行中需要动态调整后续子问题（例如发现某来源不可靠），这主要依赖哪种记忆机制？这种机制与传统的RAG系统有何核心区别？",
+      "reference_answer": "Planner模拟语义记忆（生成客观子问题），Execution agents模拟程序记忆（执行爬取和总结）。动态调整依赖工作记忆（短期存储当前状态和上下文），结合情节记忆（记录失败来源）。与RAG核心区别：RAG是静态检索-生成，而GPT Researcher通过工作记忆和情节记忆实现迭代式探索和错误修正，类似人类研究过程。",
+      "tags": [
+        "工作记忆",
+        "情节记忆",
+        "语义记忆",
+        "程序记忆",
+        "RAG对比",
+        "架构分析"
+      ],
+      "id": "agent_memory_advanced_038",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆类型（工作记忆 / 情节记忆 / 语义记忆 / 程序记忆）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "GPT Researcher中'planner'和'execution'两种Agent的主要分工是什么？",
+      "reference_answer": "Planner Agent负责根据研究查询生成一系列研究问题，Execution Agent负责针对每个问题收集相关信息，最后由Publisher聚合所有发现生成综合报告。",
+      "tags": [
+        "角色分工",
+        "多Agent架构",
+        "GPT Researcher"
+      ],
+      "id": "agent_multi_agent_basic_033",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GPT Researcher中多个Execution Agent之间采用什么协调模式来收集信息？",
+      "reference_answer": "采用并行化工作模式，多个Execution Agent同时针对不同子问题独立执行信息收集任务，通过并行化提高整体速度和稳定性。",
+      "tags": [
+        "协调模式",
+        "并行化",
+        "多Agent架构"
+      ],
+      "id": "agent_multi_agent_basic_034",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher架构中，planner agent和execution agent之间通过什么机制传递任务和结果？",
+      "reference_answer": "Planner生成的研究问题作为任务传递给Execution Agent；Execution Agent完成信息收集后，将带来源追踪的摘要结果返回给Publisher，由Publisher进行过滤和聚合。",
+      "tags": [
+        "通信协议",
+        "任务传递",
+        "多Agent架构"
+      ],
+      "id": "agent_multi_agent_basic_035",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GPT Researcher中'publisher' Agent在整个多Agent流程中承担什么角色？",
+      "reference_answer": "Publisher Agent负责聚合所有Execution Agent收集到的信息，对每个来源进行摘要和追踪，并过滤和汇总这些摘要，最终生成完整的研究报告。",
+      "tags": [
+        "角色分工",
+        "聚合",
+        "多Agent架构"
+      ],
+      "id": "agent_multi_agent_basic_036",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher的架构中，'planner'和'execution' agent是如何协调工作的？这种协调模式与ReAct模式相比有何优劣？",
+      "reference_answer": "Planner负责将用户任务分解为一系列研究子问题，形成执行计划；Execution agent则并行执行每个子问题的信息收集。这属于'计划-执行'协调模式。相比ReAct的观察-思考-行动循环，该模式通过预先规划避免重复推理，适合长周期、多步骤任务；但缺乏动态调整能力，对计划外变化适应性弱。",
+      "tags": [
+        "协调模式",
+        "计划-执行",
+        "ReAct"
+      ],
+      "id": "agent_multi_agent_medium_041",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher中，角色分工如何体现在'crawler agent'和'publisher agent'上？请说明各自职责及这种分工带来的好处。",
+      "reference_answer": "Crawler agent负责针对每个研究子问题，执行网页爬取、内容提取与摘要生成，并记录来源；Publisher agent（即报告生成器）则汇总所有crawler的输出，进行去重、排序和结构化，生成最终研究报告。这种分工实现了关注点分离：crawler专注数据采集与验证，publisher专注综合与撰写，提升了系统的并行处理能力和报告质量。",
+      "tags": [
+        "角色分工",
+        "crawler",
+        "publisher"
+      ],
+      "id": "agent_multi_agent_medium_042",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在多Agent系统中，通信协议通常涉及消息格式与路由。GPT Researcher中，'planner'与'execution agent'之间通过何种数据结构传递任务？这种设计对系统可靠性有何影响？",
+      "reference_answer": "Planner生成一个包含多个子问题（subtopics）的列表或队列，作为任务消息传递给execution agents。每个子问题是一个结构化的字典，包含查询文本、上下文等字段。这种基于共享内存/队列的同步通信协议简单高效，避免了Agent间复杂的消息解析开销。但若planner出错，错误会扩散至所有executor，缺乏容错机制。",
+      "tags": [
+        "通信协议",
+        "消息传递",
+        "任务队列"
+      ],
+      "id": "agent_multi_agent_medium_043",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "假设你要设计一个多Agent研究系统，需要集成外部MCP（Model Context Protocol）服务，如GitHub API或数据库。在GPT Researcher的架构基础上，你会如何设计协调模式来管理'web搜索Agent'与'MCP Agent'的执行顺序与结果融合？",
+      "reference_answer": "采用'并行-聚合'协调模式：Planner将任务同时分配给web搜索Agent和MCP Agent，两者各自独立执行并返回结果。系统设计一个'结果融合器'（Result Aggregator），负责按相关性或时间戳对齐两种来源的信息，去重后传递给Publisher。这种设计可充分利用不同数据源优势，但需处理结果冲突和延迟差异。",
+      "tags": [
+        "协调模式",
+        "MCP",
+        "多源融合"
+      ],
+      "id": "agent_multi_agent_medium_044",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher的架构中，'planner'和'execution'两类Agent采用了何种协调模式？请分析这种分工设计的核心优势，并指出在通信协议层面，当'planner'生成的多个研究子问题高度耦合或存在依赖时，该架构可能面临的边界情况与设计权衡。",
+      "reference_answer": "采用Plan-and-Solve协调模式，planner负责分解任务、生成子问题，execution Agent并行执行。优势在于解耦规划与执行，提升效率与确定性。边界情况：子问题间存在依赖时，并行执行可能导致信息不一致或重复，需引入依赖图或顺序执行，但这会增加通信开销与延迟，需在并行度与准确性间权衡。",
+      "tags": [
+        "协调模式",
+        "角色分工",
+        "通信协议",
+        "Plan-and-Solve",
+        "并行执行"
+      ],
+      "id": "agent_multi_agent_advanced_049",
+      "subtopic": "multi_agent",
+      "subtopic_zh": "多Agent架构（协调模式 / 角色分工 / 通信协议）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在GPT Researcher中，轨迹评估（Trajectory Evaluation）主要用于监控和分析什么内容？",
+      "reference_answer": "轨迹评估主要用于监控和分析研究代理在任务执行过程中的完整步骤序列，包括生成的子问题、搜索查询、爬取的URL、提取的摘要、中间推理结果以及最终报告生成路径，以诊断代理行为的合理性和效率。",
+      "tags": [
+        "轨迹评估",
+        "代理行为分析"
+      ],
+      "id": "agent_evaluation_basic_042",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GPT Researcher在基准测试中如何评估其研究报告的可靠性？",
+      "reference_answer": "GPT Researcher通过事实性、引用准确性、信息覆盖广度、偏见检测和输出一致性等维度进行基准测试，并与人工研究报告对比，利用自动度量指标和人工评估来量化报告的质量和可信度。",
+      "tags": [
+        "基准测试",
+        "报告可靠性"
+      ],
+      "id": "agent_evaluation_basic_043",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "GPT Researcher中常见的失败模式（Failure Mode）有哪些？请列举至少两种。",
+      "reference_answer": "常见的失败模式包括：1）信息源不可用或爬取失败导致搜索无结果；2）LLM生成幻觉信息或引用错误来源；3）子问题分解不合理导致研究方向偏离；4）上下文长度超限导致报告截断或不完整。",
+      "tags": [
+        "失败模式分析",
+        "错误诊断"
+      ],
+      "id": "agent_evaluation_basic_044",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher的评估调试中，'轨迹评估'与'失败模式分析'之间的核心关系是什么？",
+      "reference_answer": "轨迹评估通过记录代理的完整执行轨迹（如子问题、搜索、摘要步骤），为失败模式分析提供数据基础；分析轨迹中的异常点（如重复搜索、空结果、推理中断）可以定位具体的失败模式，从而指导调试优化。",
+      "tags": [
+        "轨迹评估",
+        "失败模式分析",
+        "调试关系"
+      ],
+      "id": "agent_evaluation_basic_045",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在GPT Researcher中，轨迹评估（trajectory evaluation）通常用于分析agent的哪些行为？请列举至少两个具体评估维度，并说明其与最终报告质量的关系。",
+      "reference_answer": "轨迹评估分析agent的子任务分解（如规划器生成的研究问题是否覆盖关键方面）和搜索执行路径（如爬虫是否有效获取相关源）。若子任务遗漏重要角度或执行路径重复/偏离，将导致报告片面或信息冗余，直接影响结论的全面性和准确性。",
+      "tags": [
+        "轨迹评估",
+        "失败模式分析",
+        "子任务分解"
+      ],
+      "id": "agent_evaluation_medium_050",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher的基准测试中，为什么需要同时使用‘事实性’和‘引用完整性’两个指标？请解释二者之间的权衡关系。",
+      "reference_answer": "事实性衡量报告内容是否准确，引用完整性确保每个声明都有对应来源。二者存在权衡：强制高引用完整性可能导致模型过度依赖某些源而忽略其他事实，降低整体事实性；而追求高事实性可能引入无源信息。平衡两者才能生成可靠且可验证的报告。",
+      "tags": [
+        "基准测试",
+        "评估指标",
+        "事实性",
+        "引用完整性"
+      ],
+      "id": "agent_evaluation_medium_051",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在GPT Researcher中，如果最终报告出现‘信息重复’或‘结论矛盾’的失败模式，应从agent的哪个环节进行调试？请给出具体步骤。",
+      "reference_answer": "应首先检查规划器生成的子问题是否重叠或冲突，其次审查上下文管理器（ContextManager）在聚合多个来源时的去重和一致性逻辑。调试步骤：1) 输出规划器子问题列表，识别冗余项；2) 检查上下文管理中是否未按来源时间或相关度排序；3) 调整子问题生成 prompts 或增加去重阈值。",
+      "tags": [
+        "失败模式分析",
+        "调试",
+        "上下文管理",
+        "规划器"
+      ],
+      "id": "agent_evaluation_medium_052",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在评估GPT Researcher的搜索策略时，如何设计基准测试来量化‘源多样性’对报告客观性的影响？请描述实验设计。",
+      "reference_answer": "实验设计：控制变量法。固定查询，设置两组运行——A组使用默认搜索（含源多样性约束），B组限制搜索至单一领域或前k个相似源。分别生成报告，由人工或LLM裁判对‘观点覆盖度’和‘偏见程度’打分。对比两组得分差异，量化源多样性对客观性的提升效果。",
+      "tags": [
+        "基准测试",
+        "评估指标",
+        "源多样性",
+        "客观性"
+      ],
+      "id": "agent_evaluation_medium_053",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估调试（基准测试 / 轨迹评估 / 失败模式分析）",
+      "difficulty": "medium"
+    }
+  ]
+}

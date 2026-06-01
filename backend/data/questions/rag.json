@@ -1,0 +1,716 @@
+{
+  "module": "rag",
+  "module_name": "RAG检索增强生成",
+  "total": 51,
+  "subtopics": [
+    {
+      "id": "pipeline",
+      "name_zh": "基础流程（索引/检索/生成三阶段）",
+      "target": 8
+    },
+    {
+      "id": "chunking",
+      "name_zh": "文档分块（策略选择、重叠、层次分块）",
+      "target": 7
+    },
+    {
+      "id": "retrieval",
+      "name_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "target": 9
+    },
+    {
+      "id": "embedding",
+      "name_zh": "向量嵌入（模型选择、归一化、更新策略）",
+      "target": 6
+    },
+    {
+      "id": "advanced_rag",
+      "name_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "target": 10
+    },
+    {
+      "id": "evaluation",
+      "name_zh": "评估体系（RAGAS / Faithfulness / Relevance）",
+      "target": 6
+    },
+    {
+      "id": "systems",
+      "name_zh": "系统设计（延迟/成本/一致性权衡）",
+      "target": 4
+    }
+  ],
+  "questions": [
+    {
+      "question": "在RAG的基础流程中，索引阶段主要包括哪三个步骤？",
+      "reference_answer": "索引阶段主要包括三个步骤：加载文档、文档分割和嵌入存储。首先使用文档加载器加载文档，然后使用文本分割器将文档分割成指定大小的块，最后使用嵌入模型将每个块转换为向量并存储在向量数据库中。",
+      "tags": [
+        "索引阶段",
+        "基础流程"
+      ],
+      "id": "rag_pipeline_basic_001",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "检索阶段中，如何从向量数据库获取与用户问题相关的文档？",
+      "reference_answer": "检索阶段通过将用户问题转换为向量，然后在向量数据库中进行相似性搜索（如使用余弦相似度）来获取最相关的文档块。通常使用检索器（retriever）封装此过程，并可设置返回文档数量（如k=1）。",
+      "tags": [
+        "检索阶段",
+        "基础流程"
+      ],
+      "id": "rag_pipeline_basic_002",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "生成阶段中，RAG系统如何利用检索到的文档生成答案？",
+      "reference_answer": "生成阶段将检索到的文档作为上下文，与用户问题一起放入提示模板中，然后传递给大语言模型（LLM），LLM基于提供的上下文生成答案。通常会使用后处理函数（如format_docs）格式化文档，并设置输出解析器提取最终文本。",
+      "tags": [
+        "生成阶段",
+        "基础流程"
+      ],
+      "id": "rag_pipeline_basic_003",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG的索引阶段，使用RecursiveCharacterTextSplitter进行文档分割时，其默认分割字符顺序是什么？这种设计如何帮助保持语义完整性？",
+      "reference_answer": "默认分割字符顺序为[\"\\n\\n\", \"\\n\", \" \", \"\"]。它优先尝试按段落（双换行）分割，其次是句子（单换行），再是单词（空格），最后是字符。这种从大到小的顺序能尽量将语义相关的文本（如完整段落）保留在同一块中，减少因分割导致的信息断裂。",
+      "tags": [
+        "索引",
+        "文本分割",
+        "语义完整性"
+      ],
+      "id": "rag_pipeline_medium_007",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG检索阶段，Multi-Query检索的核心思想是什么？它如何克服传统向量检索的局限性？",
+      "reference_answer": "Multi-Query检索通过LLM生成用户问题的多个不同版本（如不同视角或措辞的查询），然后分别检索并合并结果（去重）。它克服了传统距离相似度搜索可能因查询表述单一而遗漏相关文档的局限性，通过多角度查询提高召回率，尤其适用于问题表述模糊或存在同义词的情况。",
+      "tags": [
+        "检索",
+        "Multi-Query",
+        "召回率"
+      ],
+      "id": "rag_pipeline_medium_008",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG生成阶段，假设你使用了一个检索链返回多个文档，但模型回答时仍然出现幻觉。请分析可能的原因，并给出至少两种改进策略。",
+      "reference_answer": "可能原因：1) 检索到的文档本身不相关或包含噪声；2) 提示词未明确限制模型仅基于上下文回答；3) 模型能力不足或温度设置过高。改进策略：1) 优化检索质量（如增加检索数量、使用重排序）；2) 在提示词中加入强制指令如“仅根据以下上下文回答，若无法回答则说不知道”；3) 降低生成温度或使用更强大的LLM。",
+      "tags": [
+        "生成",
+        "幻觉",
+        "提示词工程"
+      ],
+      "id": "rag_pipeline_medium_009",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG基础流程中，索引阶段的文本分块策略（如chunk_size和chunk_overlap）如何影响检索质量与生成质量？请从语义完整性、计算开销和上下文窗口利用率三个角度进行权衡分析。",
+      "reference_answer": "chunk_size过小会导致语义碎片化，丢失上下文；过大则增加计算开销且可能超出LLM上下文窗口。chunk_overlap可缓解边界语义断裂，但过度重叠会引入冗余。需根据文档特性与模型窗口平衡三者，例如代码文档适合较小chunk，长文本适合较大chunk。",
+      "tags": [
+        "索引",
+        "文本分块",
+        "权衡分析"
+      ],
+      "id": "rag_pipeline_advanced_013",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG生成阶段，当检索到的文档与用户问题不相关时，有哪些策略可以提升生成质量？请对比至少两种方法（如查询重写、多查询检索）的适用场景与局限性。",
+      "reference_answer": "查询重写通过LLM改写问题以匹配语义，适用于检索结果偏差；多查询检索生成多个相关查询，适合问题模糊或覆盖多主题。局限性：重写可能引入噪声，多查询增加计算成本。也可结合重排序过滤不相关文档。",
+      "tags": [
+        "生成",
+        "检索增强",
+        "查询重写",
+        "多查询"
+      ],
+      "id": "rag_pipeline_advanced_014",
+      "subtopic": "pipeline",
+      "subtopic_zh": "基础流程（索引/检索/生成三阶段）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG中，使用RecursiveCharacterTextSplitter进行文档分块时，默认的字符分割顺序是什么？这种设计有什么好处？",
+      "reference_answer": "默认分割顺序为[\"\\n\\n\", \"\\n\", \" \", \"\"]。这种设计会优先尝试按段落（双换行）分割，然后按句子（单换行）、单词（空格）分割，最后按字符分割。好处是尽可能保持语义相关的文本段落（如段落、句子）完整，从而保留最强的语义关联性。",
+      "tags": [
+        "策略选择",
+        "基本原理"
+      ],
+      "id": "rag_chunking_basic_009",
+      "subtopic": "chunking",
+      "subtopic_zh": "文档分块（策略选择、重叠、层次分块）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG文档分块中，chunk_overlap（重叠）参数的作用是什么？请举例说明。",
+      "reference_answer": "chunk_overlap参数用于设置相邻文档块之间的重叠字符数，目的是避免在分块边界处切断关键信息或语义上下文。例如，设置chunk_size=1000, chunk_overlap=200，则相邻两个块会有200个字符的共享内容，确保跨块的信息（如句子或概念）不会丢失。",
+      "tags": [
+        "重叠",
+        "基本原理"
+      ],
+      "id": "rag_chunking_basic_010",
+      "subtopic": "chunking",
+      "subtopic_zh": "文档分块（策略选择、重叠、层次分块）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "什么是层次分块（Hierarchical Chunking）？它与普通分块相比有什么优势？",
+      "reference_answer": "层次分块是一种将文档按不同粒度（如章节、段落、句子）进行多层次分割的策略。优势在于：粗粒度块（如章节）提供全局上下文，细粒度块（如句子）提供精确信息，检索时可根据需求在不同层次间切换，平衡检索的准确性和上下文完整性。",
+      "tags": [
+        "层次分块",
+        "策略选择"
+      ],
+      "id": "rag_chunking_basic_011",
+      "subtopic": "chunking",
+      "subtopic_zh": "文档分块（策略选择、重叠、层次分块）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG系统中，使用RecursiveCharacterTextSplitter时，设置chunk_size=300和chunk_overlap=50的核心目的是什么？请结合文本语义连贯性分析其原理。",
+      "reference_answer": "核心目的是在控制分块大小的同时，保持相邻块之间的语义连续性。chunk_size=300限制每个块的最大字符数，确保块大小适中，便于嵌入和检索；chunk_overlap=50使相邻块有50字符的重叠，避免关键信息在切分点被截断，从而提升检索时相关内容的召回率。这种策略基于文本的段落、句子等自然边界进行递归分割，优先保持语义单元完整。",
+      "tags": [
+        "策略选择",
+        "重叠",
+        "RecursiveCharacterTextSplitter"
+      ],
+      "id": "rag_chunking_medium_015",
+      "subtopic": "chunking",
+      "subtopic_zh": "文档分块（策略选择、重叠、层次分块）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG索引构建中，层次分块（如先按段落再按句子分割）相比单一固定大小分块，在检索效果上有什么优势？请从语义粒度和检索效率两个角度分析。",
+      "reference_answer": "层次分块能更好地保留文档的结构化语义信息。按段落分割保持宏观主题一致性，再按句子分割获取细粒度细节，使检索时既能匹配高层次概念，又能定位具体事实。单一固定分块可能破坏段落边界，导致语义碎片化，降低检索精度。在效率上，层次分块允许根据查询复杂度选择合适粒度，减少无关块的数量，提升检索速度和准确性。",
+      "tags": [
+        "层次分块",
+        "策略选择",
+        "语义粒度"
+      ],
+      "id": "rag_chunking_medium_016",
+      "subtopic": "chunking",
+      "subtopic_zh": "文档分块（策略选择、重叠、层次分块）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在处理长文档时，为什么推荐使用RecursiveCharacterTextSplitter并设置chunk_overlap？请结合该分割器的默认分割字符列表（[\"\\n\\n\", \"\\n\", \" \", \"\"]）说明其工作原理。",
+      "reference_answer": "RecursiveCharacterTextSplitter按优先级依次尝试用分隔符分割文本，优先保持段落完整，其次句子，再是单词。设置chunk_overlap可以缓解边界信息丢失问题，使相邻块共享部分上下文，提升检索连续性。默认列表从大到小逐级分割，确保块大小不超过chunk_size时，尽量保留语义完整的文本单元，避免生硬截断。",
+      "tags": [
+        "策略选择",
+        "重叠",
+        "RecursiveCharacterTextSplitter"
+      ],
+      "id": "rag_chunking_medium_017",
+      "subtopic": "chunking",
+      "subtopic_zh": "文档分块（策略选择、重叠、层次分块）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG系统中，当处理具有明确层级结构（如法律条款、学术论文）的文档时，你会如何设计层次分块策略来平衡检索精度和上下文完整性？请对比基于固定大小和语义边界的传统分块方法，并分析重叠窗口大小对层次分块的影响。",
+      "reference_answer": "层次分块策略先按章节或标题粗分，再对每个粗分块按语义边界（如段落、句子）细分。这种设计能保留文档结构，提升检索相关性。相比固定大小分块（如RecursiveCharacterTextSplitter），层次分块更适应文档逻辑；重叠窗口（如50-200字符）可缓解边界信息丢失，但过大重叠会增加冗余和计算开销，需根据内容密度调整。",
+      "tags": [
+        "文档分块",
+        "层次分块",
+        "策略选择",
+        "重叠窗口"
+      ],
+      "id": "rag_chunking_advanced_021",
+      "subtopic": "chunking",
+      "subtopic_zh": "文档分块（策略选择、重叠、层次分块）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG系统中，稠密检索和稀疏检索的核心区别是什么？",
+      "reference_answer": "稠密检索使用神经网络（如BERT）生成的稠密向量表示文本语义，通过余弦相似度匹配；稀疏检索（如BM25）基于词频-逆文档频率（TF-IDF）统计，匹配关键词。稠密检索能捕捉语义相似但词汇不同的查询，稀疏检索对精确关键词匹配更有效。",
+      "tags": [
+        "稠密检索",
+        "稀疏检索",
+        "基本原理"
+      ],
+      "id": "rag_retrieval_basic_016",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "MMR（最大边际相关性）检索策略如何平衡相关性与多样性？",
+      "reference_answer": "MMR在检索时同时考虑文档与查询的相关性和已选文档之间的相似性。它通过公式：MMR = λ * Sim(d,q) - (1-λ) * max Sim(d, d_selected) 来选择文档，其中λ控制权衡。高λ偏向相关性，低λ增加多样性，避免返回高度重复的结果。",
+      "tags": [
+        "MMR",
+        "检索策略",
+        "多样性"
+      ],
+      "id": "rag_retrieval_basic_017",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "多路召回策略中，如何融合来自不同检索器的结果？",
+      "reference_answer": "多路召回将多个检索器（如稠密、稀疏检索）的结果合并，常用方法包括：互惠排名融合（RRF），根据文档在各自列表中的排名计算分数（1/(rank+k)）求和；或通过无监督/有监督学习分配权重后合并，然后去重并重新排序。",
+      "tags": [
+        "多路召回",
+        "结果融合",
+        "RRF"
+      ],
+      "id": "rag_retrieval_basic_018",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "混合检索（Hybrid Search）通常结合哪两种检索方式，其优势是什么？",
+      "reference_answer": "混合检索通常结合稠密检索（语义匹配）和稀疏检索（关键词匹配）。优势在于：稠密检索能处理同义词和语义相似问题，稀疏检索能精确匹配稀有或专有名词。两者互补，在多种查询场景下提升检索的准确率和召回率。",
+      "tags": [
+        "混合检索",
+        "稠密检索",
+        "稀疏检索"
+      ],
+      "id": "rag_retrieval_basic_019",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG系统中，稠密检索（Dense Retrieval）和稀疏检索（Sparse Retrieval）的核心区别是什么？请从向量表示和相似度计算的角度解释。",
+      "reference_answer": "稠密检索使用神经网络（如BERT）将文本映射为低维、连续的稠密向量，通过余弦相似度等计算语义相似度，能捕捉同义词和上下义关系。稀疏检索（如BM25）基于词袋模型，向量维度等于词汇表大小，每个维度对应一个词的TF-IDF权重，通过词项重叠匹配计算得分，依赖精确词匹配，无法处理语义差异。",
+      "tags": [
+        "稠密检索",
+        "稀疏检索",
+        "向量表示",
+        "相似度计算"
+      ],
+      "id": "rag_retrieval_medium_024",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "混合检索（Hybrid Retrieval）通常结合稠密和稀疏检索，请说明一种常见的融合策略（如加权求和或倒数排序融合）及其在RAG中的优势。",
+      "reference_answer": "常见策略是倒数排序融合（RRF）：对每个检索结果列表中的文档按排名赋予分数1/(rank+k)，汇总所有文档得分后排序。优势在于结合了稠密检索的语义理解能力和稀疏检索的关键词精确匹配能力，提升召回率和鲁棒性，尤其适用于查询含专业术语或罕见词时。",
+      "tags": [
+        "混合检索",
+        "倒数排序融合",
+        "稠密检索",
+        "稀疏检索",
+        "融合策略"
+      ],
+      "id": "rag_retrieval_medium_025",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "MMR（最大边际相关性）在RAG检索中如何平衡相关性与多样性？请简述其核心公式和实现步骤。",
+      "reference_answer": "MMR公式：MMR = argmax[λ·Sim1(d_i,Q) - (1-λ)·max Sim2(d_i,d_j)]，其中Sim1是文档与查询的相似度，Sim2是文档与已选文档的相似度。实现步骤：初始选择与查询最相关的文档；迭代选择与查询相关且与已选文档差异最大的文档，λ控制权衡。这避免返回冗余结果，提升生成质量。",
+      "tags": [
+        "MMR",
+        "最大边际相关性",
+        "多样性",
+        "相关性",
+        "重排序"
+      ],
+      "id": "rag_retrieval_medium_026",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG中，多路召回（Multi-Route Retrieval）如何实现？请描述一种典型流程，并说明它相比单路召回的优势。",
+      "reference_answer": "典型流程：将用户查询通过不同检索策略（如稠密、稀疏、图检索）或不同数据源（如数据库、知识图谱、网页）并行检索，获得多个候选文档列表；然后合并（如去重、RRF融合）后输入生成模型。优势是覆盖不同语义和结构信息，提高召回率和鲁棒性，避免单一路径的局限性（如稠密检索对罕见词失效）。",
+      "tags": [
+        "多路召回",
+        "融合策略",
+        "稠密检索",
+        "稀疏检索",
+        "鲁棒性"
+      ],
+      "id": "rag_retrieval_medium_027",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在一个多路召回RAG系统中，同时使用了稠密向量检索（如OpenAI Embeddings+Chroma）和稀疏检索（如BM25），但最终结果需要合并排序。请分析：直接合并去重 vs 先对各路结果分别进行MMR去重后再合并，两种策略在结果多样性和相关性上的优劣，并说明什么场景下应优先选择后者。",
+      "reference_answer": "直接合并去重简单高效，但可能因各路召回结果高度重叠导致多样性不足。MMR去重后再合并，通过平衡相关性与多样性，能更好避免冗余，尤其适合处理同义改写或语义相近的检索结果。优先选择后者：当检索结果重复率高（如多路召回覆盖相同语义空间）、或用户期望覆盖多角度信息时（如问答需综合不同子话题）。",
+      "tags": [
+        "多路召回",
+        "MMR",
+        "稠密检索",
+        "稀疏检索",
+        "结果融合"
+      ],
+      "id": "rag_retrieval_advanced_032",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索策略（稠密/稀疏/混合/MMR/多路召回）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG系统中，选择向量嵌入模型时，通常推荐使用哪种相似度度量方法来评估查询与文档的匹配程度？",
+      "reference_answer": "余弦相似度（Cosine Similarity）。对于OpenAI等主流嵌入模型，余弦相似度是推荐的度量方法，其值越接近1表示向量越相似。",
+      "tags": [
+        "向量嵌入",
+        "模型选择",
+        "相似度度量"
+      ],
+      "id": "rag_embedding_basic_025",
+      "subtopic": "embedding",
+      "subtopic_zh": "向量嵌入（模型选择、归一化、更新策略）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG的索引阶段，使用OpenAIEmbeddings类创建向量存储时，是否需要手动对嵌入向量进行归一化处理？",
+      "reference_answer": "不需要。OpenAIEmbeddings类在生成嵌入向量时会自动进行归一化处理，因此用户无需手动归一化。直接使用该类即可确保向量处于合适的尺度。",
+      "tags": [
+        "向量嵌入",
+        "归一化",
+        "OpenAIEmbeddings"
+      ],
+      "id": "rag_embedding_basic_026",
+      "subtopic": "embedding",
+      "subtopic_zh": "向量嵌入（模型选择、归一化、更新策略）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG系统中，选择向量嵌入模型时通常需要考虑哪些关键因素？请结合具体场景分析。",
+      "reference_answer": "选择向量嵌入模型需考虑：1）语义表达能力，如OpenAI的text-embedding-ada-002在通用语义理解上表现优异；2）维度与计算效率，高维度（如1536维）精度高但存储和检索成本高；3）领域适配性，专业领域需选领域预训练模型；4）延迟与吞吐量，实时应用需轻量模型（如Sentence-BERT）。",
+      "tags": [
+        "模型选择",
+        "应用场景"
+      ],
+      "id": "rag_embedding_medium_029",
+      "subtopic": "embedding",
+      "subtopic_zh": "向量嵌入（模型选择、归一化、更新策略）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG系统中，为什么需要对向量嵌入进行归一化处理？未归一化可能导致什么问题？",
+      "reference_answer": "归一化将向量缩放至单位长度（L2归一化），使余弦相似度等价于点积，简化计算。未归一化时，不同文档的向量长度差异会导致相似度计算偏向长向量（高模长），干扰检索结果。例如，长文本的嵌入向量模长通常更大，即使语义不相关也可能获得高相似度分数，降低检索质量。",
+      "tags": [
+        "归一化",
+        "检索质量"
+      ],
+      "id": "rag_embedding_medium_030",
+      "subtopic": "embedding",
+      "subtopic_zh": "向量嵌入（模型选择、归一化、更新策略）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG系统中，选择向量嵌入模型时，如何权衡模型维度、编码能力和推理延迟？请对比OpenAI Embeddings与开源模型（如BGE）的适用场景。",
+      "reference_answer": "高维度模型（如OpenAI的1536维）语义捕捉强但计算开销大，适合精度优先场景；低维度模型（如BGE的768维）延迟低、存储小，适合实时或资源受限场景。OpenAI Embeddings闭源但通用性好，开源模型可本地部署避免API依赖。需根据数据规模、查询频率和延迟容忍度选择。",
+      "tags": [
+        "模型选择",
+        "嵌入维度",
+        "推理延迟"
+      ],
+      "id": "rag_embedding_advanced_033",
+      "subtopic": "embedding",
+      "subtopic_zh": "向量嵌入（模型选择、归一化、更新策略）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG的索引更新中，如何高效处理增量文档的嵌入更新，同时避免频繁重建向量库？请设计一种基于归一化的更新策略。",
+      "reference_answer": "采用增量嵌入策略：新文档单独嵌入并追加到向量库，无需全量重建。归一化更新可结合缓存机制：维护文档ID到嵌入的映射，仅对新或变更文档调用嵌入模型，对旧文档复用缓存的归一化向量。定期（如每日）全量重算以修正累积偏差。",
+      "tags": [
+        "更新策略",
+        "增量嵌入",
+        "归一化"
+      ],
+      "id": "rag_embedding_advanced_034",
+      "subtopic": "embedding",
+      "subtopic_zh": "向量嵌入（模型选择、归一化、更新策略）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在高级RAG中，HyDE（假设文档嵌入）技术的基本原理是什么？",
+      "reference_answer": "HyDE技术首先生成一个假设性的文档（即对查询的理想化回答），然后对该假设文档进行嵌入，再用这个嵌入去检索相似的文档。其核心思想是：由于查询和文档在嵌入空间中可能存在差异，通过先合成一个假想的文档，可以弥合这种语义鸿沟，从而提高检索的准确性。",
+      "tags": [
+        "HyDE",
+        "假设文档嵌入",
+        "查询改写"
+      ],
+      "id": "rag_advanced_rag_basic_031",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "RAG中的查询改写技术（如Multi-Query）是如何工作的？",
+      "reference_answer": "查询改写技术（如Multi-Query）通过LLM将原始用户问题生成多个不同角度的子查询，然后分别用这些子查询进行检索，最后合并去重所有检索到的文档。这样做可以克服单一查询在语义相似度搜索中的局限性，从多个维度覆盖用户意图，提高检索结果的全面性和相关性。",
+      "tags": [
+        "查询改写",
+        "Multi-Query",
+        "检索增强"
+      ],
+      "id": "rag_advanced_rag_basic_032",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG中，Re-ranking（重排序）的主要目的是什么？",
+      "reference_answer": "Re-ranking的主要目的是对初步检索到的文档进行精细化的相关性排序。初步检索（如向量相似度搜索）可能返回包含噪声的结果，通过使用更精确的模型（如交叉编码器）对候选文档重新评分，将最相关的文档排在前面，从而提升最终生成答案的质量和准确性。",
+      "tags": [
+        "Re-ranking",
+        "重排序",
+        "检索后处理"
+      ],
+      "id": "rag_advanced_rag_basic_033",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Self-RAG的核心思想是什么？",
+      "reference_answer": "Self-RAG的核心思想是让模型在生成过程中进行自我反思和检索判断。它通过训练模型生成特殊的反思标记（reflection tokens），让模型自主决定是否需要检索、检索到的段落是否相关、以及生成的内容是否支持已有证据，从而动态地控制检索和生成过程，减少不必要的检索并提高答案的可靠性。",
+      "tags": [
+        "Self-RAG",
+        "自我反思",
+        "动态检索"
+      ],
+      "id": "rag_advanced_rag_basic_034",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在高级RAG中，HyDE（Hypothetical Document Embeddings）的核心思想是什么？它如何解决传统检索中的语义不匹配问题？",
+      "reference_answer": "HyDE通过LLM生成与用户查询相关的假设性文档（假想答案），然后用该文档的嵌入向量代替原始查询进行检索。这解决了查询与文档间词汇或语义鸿沟的问题，因为假设性文档更接近目标文档的语义分布，从而提升检索相关性。",
+      "tags": [
+        "HyDE",
+        "查询改写",
+        "语义匹配"
+      ],
+      "id": "rag_advanced_rag_medium_039",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "查询改写（Query Rewriting）中，Multi-Query策略和RAG-Fusion的倒数秩融合（RRF）分别如何工作？请简述其流程差异。",
+      "reference_answer": "Multi-Query：让LLM生成查询的多个变体，分别检索后合并去重。RAG-Fusion：生成多个相关子查询，分别检索后使用RRF公式（1/(rank+k)）融合分数排序。差异在于Multi-Query重在视角拓展，RAG-Fusion通过加权融合提升结果鲁棒性。",
+      "tags": [
+        "查询改写",
+        "RAG-Fusion",
+        "Multi-Query"
+      ],
+      "id": "rag_advanced_rag_medium_040",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在高级RAG中，Re-ranking（重排序）通常出现在哪个环节？请解释一种常见的重排序方法（如基于交叉编码器）及其优势。",
+      "reference_answer": "Re-ranking通常出现在初始检索之后、生成之前。基于交叉编码器的方法将查询和候选文档对输入深度交互模型计算相关性分数，然后重排序。优势在于能捕捉细粒度语义匹配，优于双编码器的向量相似度，显著提升最终生成质量。",
+      "tags": [
+        "Re-ranking",
+        "交叉编码器",
+        "检索后处理"
+      ],
+      "id": "rag_advanced_rag_medium_041",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Self-RAG的核心机制是什么？它如何通过反思（Reflection）来减少幻觉并提高答案的可靠性？",
+      "reference_answer": "Self-RAG通过训练一个语言模型在生成每个段落前自省是否需要检索，以及生成后验证检索文档的相关性和支持度。它使用反思令牌（如检索、相关、支持）控制流程，从而动态决定是否检索、是否采纳信息，有效减少不相关信息导致的幻觉。",
+      "tags": [
+        "Self-RAG",
+        "反思机制",
+        "幻觉控制"
+      ],
+      "id": "rag_advanced_rag_medium_042",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG系统中，HyDE（假设性文档嵌入）与查询改写（Multi-Query）两种查询变换策略在解决用户查询与文档语义不匹配问题时，其核心差异和适用场景是什么？请从计算开销、检索精度和生成质量三个维度进行对比分析。",
+      "reference_answer": "HyDE先生成一个假设性答案文档，再用其嵌入检索，擅长处理抽象或复杂查询，但生成假设文档可能引入噪声。Multi-Query则通过LLM生成多个语义变体查询并行检索，再融合结果，计算开销更高但能覆盖更多视角，适合模糊或歧义查询。HyDE更侧重语义对齐，Multi-Query侧重召回率提升。",
+      "tags": [
+        "HyDE",
+        "查询改写",
+        "Multi-Query",
+        "对比分析"
+      ],
+      "id": "rag_advanced_rag_advanced_047",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在高级RAG管道中集成Re-ranking（重排序）步骤时，如何平衡检索效率与最终生成质量？请讨论将Re-ranking作为粗检索后置过滤器的架构权衡，并说明在什么边界情况下，Re-ranking可能反而降低系统性能。",
+      "reference_answer": "Re-ranking通常置于初检（如向量相似度）之后，用更精细的模型（如Cross-encoder）对Top-K文档重新排序，牺牲一定延迟换取精度。权衡在于：初检K值过小可能遗漏相关文档，过大则增加重排序计算成本。边界情况包括：当查询非常明确且初检已高度相关时，重排序收益甚微；或当重排序模型与生成模型偏置不一致时，可能引入错误排序，降低生成质量。",
+      "tags": [
+        "Re-ranking",
+        "架构权衡",
+        "检索效率",
+        "边界情况"
+      ],
+      "id": "rag_advanced_rag_advanced_048",
+      "subtopic": "advanced_rag",
+      "subtopic_zh": "高级RAG（HyDE/查询改写/Re-ranking/Self-RAG）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG评估体系RAGAS中，Faithfulness（忠实度）指标衡量的是什么？",
+      "reference_answer": "Faithfulness衡量生成的答案是否基于检索到的上下文，即答案中的每个陈述都必须能从提供的上下文中得到支持，不能包含与上下文矛盾或无法从上下文中推导出的信息。",
+      "tags": [
+        "RAGAS",
+        "Faithfulness",
+        "定义"
+      ],
+      "id": "rag_evaluation_basic_041",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估体系（RAGAS / Faithfulness / Relevance）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "RAG评估中的Relevance（相关性）指标通常如何定义？",
+      "reference_answer": "Relevance衡量检索到的文档片段与用户原始问题的相关程度，即检索结果是否真正回答了用户的问题。它关注的是检索质量，确保返回的上下文内容与查询意图匹配，避免返回无关或冗余信息。",
+      "tags": [
+        "RAGAS",
+        "Relevance",
+        "定义"
+      ],
+      "id": "rag_evaluation_basic_042",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估体系（RAGAS / Faithfulness / Relevance）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG评估体系（RAGAS）中，Faithfulness（忠实度）和Relevance（相关性）两个指标分别衡量什么？请结合具体场景说明它们的区别。",
+      "reference_answer": "Faithfulness衡量生成答案是否忠实于检索到的上下文，即答案内容是否完全基于提供的文档，不包含幻觉或外部知识。Relevance衡量检索到的文档与用户问题的相关程度，即文档是否直接回答了问题。例如：问题'什么是任务分解'，检索到关于LLM代理的文档，Faithfulness检查答案是否仅从文档中提取，Relevance检查文档是否真正包含任务分解的定义。",
+      "tags": [
+        "RAGAS",
+        "Faithfulness",
+        "Relevance"
+      ],
+      "id": "rag_evaluation_medium_045",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估体系（RAGAS / Faithfulness / Relevance）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在实现RAGAS评估时，如何计算Faithfulness分数？请描述其核心原理和具体步骤。",
+      "reference_answer": "Faithfulness计算基于将生成答案拆分为多个声明（claims），然后验证每个声明是否可从检索到的上下文中推导出来。核心原理是检查答案是否存在幻觉。具体步骤：1. 使用LLM将答案分解为原子声明；2. 对每个声明，在上下文中搜索支持证据；3. 计算可被支持的声明比例作为Faithfulness分数。例如，若答案有5个声明，其中4个被上下文支持，则Faithfulness为0.8。",
+      "tags": [
+        "RAGAS",
+        "Faithfulness",
+        "实现细节"
+      ],
+      "id": "rag_evaluation_medium_046",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估体系（RAGAS / Faithfulness / Relevance）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG系统中，Faithfulness（忠实度）评估旨在检测生成内容是否与检索到的上下文相矛盾。请分析如果采用基于LLM的自动评估方法（如RAGAS中的faithfulness分数），当LLM本身存在幻觉倾向时，这种评估是否会陷入循环论证？请提出一种能够自我纠偏的评估架构设计。",
+      "reference_answer": "会陷入循环论证。LLM作为评估器可能将自身的幻觉错误地判定为忠实，导致评估结果不可靠。纠偏架构可采用多模型交叉验证，如使用不同LLM（如GPT-4与Claude）分别评估，再取一致性结果；或引入外部知识库（如维基百科）作为事实基准，将生成内容与基准对比；也可结合规则性检查（如命名实体匹配）降低对LLM评估的依赖。",
+      "tags": [
+        "Faithfulness",
+        "RAGAS",
+        "评估架构",
+        "LLM幻觉"
+      ],
+      "id": "rag_evaluation_advanced_049",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估体系（RAGAS / Faithfulness / Relevance）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG系统中，Relevance（相关性）评估通常分为上下文相关性和答案相关性两个维度。请对比这两种评估在指标设计上的核心差异，并分析当检索到的上下文与问题高度相关但答案却偏离上下文时，RAGAS的relevance分数会如何表现？这种边界情况暴露了评估体系的什么缺陷？",
+      "reference_answer": "上下文相关性评估检索块与问题的语义匹配度（如余弦相似度），答案相关性评估生成答案是否回答了问题。当上下文相关但答案偏离时，RAGAS的relevance分数可能因分别计算而出现矛盾：上下文相关性高，答案相关性低。这暴露了评估体系缺乏对检索-生成联合一致性的度量，即无法检测生成是否利用了检索到的相关信息，可能掩盖RAG系统的生成阶段缺陷。",
+      "tags": [
+        "Relevance",
+        "RAGAS",
+        "评估设计",
+        "边界情况"
+      ],
+      "id": "rag_evaluation_advanced_050",
+      "subtopic": "evaluation",
+      "subtopic_zh": "评估体系（RAGAS / Faithfulness / Relevance）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在RAG系统中，为了降低检索延迟，通常可以采用哪些策略？请列举至少两种，并简要说明其原理。",
+      "reference_answer": "1. 使用近似最近邻（ANN）搜索算法代替精确搜索，如HNSW，牺牲少量精度换取更低延迟。2. 减少检索文档数量（k值），如将k从10降至3，直接减少检索和后续生成阶段的计算量。3. 使用更小维度的嵌入向量，如从1536维降至384维，降低向量相似度计算成本。",
+      "tags": [
+        "延迟优化",
+        "检索策略",
+        "ANN"
+      ],
+      "id": "rag_systems_basic_047",
+      "subtopic": "systems",
+      "subtopic_zh": "系统设计（延迟/成本/一致性权衡）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG系统中，当需要同时平衡检索结果的一致性和系统成本时，可以采用哪种查询变换策略？请说明其工作原理。",
+      "reference_answer": "可以采用Multi-Query策略。它通过LLM将原始问题生成多个不同视角的变体，分别进行检索，再对结果进行去重合并。这提高了召回率和一致性，但增加了LLM调用和多次检索的成本，在一致性和成本之间做了权衡。",
+      "tags": [
+        "一致性",
+        "成本权衡",
+        "Multi-Query"
+      ],
+      "id": "rag_systems_basic_048",
+      "subtopic": "systems",
+      "subtopic_zh": "系统设计（延迟/成本/一致性权衡）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在RAG系统中，使用Multi-Query策略（如生成多个查询并融合结果）会如何影响系统的延迟和成本？请分析其权衡。",
+      "reference_answer": "Multi-Query策略通过生成多个查询变体来提升召回率和一致性，但会增加延迟（因多次向量检索）和成本（多倍嵌入和LLM调用）。适用于对准确性要求高、可容忍较高延迟的场景。",
+      "tags": [
+        "延迟",
+        "成本",
+        "Multi-Query"
+      ],
+      "id": "rag_systems_medium_051",
+      "subtopic": "systems",
+      "subtopic_zh": "系统设计（延迟/成本/一致性权衡）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG系统中，使用语义路由（Semantic Routing）相比逻辑路由（Logical Routing）在系统设计上有何延迟和一致性权衡？",
+      "reference_answer": "语义路由通过嵌入相似度判断路由，延迟较低但可能因语义模糊导致路由不一致；逻辑路由基于结构化输出（如function calling）更精确，但需要额外LLM调用，增加延迟和成本。选择需根据对一致性和延迟的容忍度权衡。",
+      "tags": [
+        "延迟",
+        "一致性",
+        "路由"
+      ],
+      "id": "rag_systems_medium_052",
+      "subtopic": "systems",
+      "subtopic_zh": "系统设计（延迟/成本/一致性权衡）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在RAG系统中，为了降低检索延迟，你可能会选择减少检索的文档数（k值）或使用更快的向量检索库（如FAISS）。然而，这可能导致检索到的文档相关性下降，进而影响生成回答的准确性。请分析在延迟、成本和一致性之间的权衡，并设计一个自适应检索策略来平衡三者。",
+      "reference_answer": "自适应检索策略可结合多查询扩展（如RAG-Fusion）以提升召回，同时利用文档评分或阈值过滤来保证相关性。在低延迟要求场景下，使用更小的k值和缓存常见查询结果，并引入异步检索或预计算嵌入。成本方面，可选用低成本嵌入模型，并利用路由（如逻辑或语义路由）将简单查询导向轻量级检索，复杂查询使用全量检索。一致性通过定期更新向量库和结合LLM验证来维护。",
+      "tags": [
+        "延迟优化",
+        "成本控制",
+        "一致性保证",
+        "自适应检索",
+        "系统设计权衡"
+      ],
+      "id": "rag_systems_advanced_055",
+      "subtopic": "systems",
+      "subtopic_zh": "系统设计（延迟/成本/一致性权衡）",
+      "difficulty": "advanced"
+    }
+  ]
+}

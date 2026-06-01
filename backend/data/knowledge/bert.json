@@ -1,0 +1,305 @@
+{
+  "module": "bert",
+  "module_name": "BERT微调",
+  "total": 18,
+  "cards": [
+    {
+      "title": "BERT微调 (Fine-tuning)",
+      "summary": "在预训练BERT基础上，用下游任务数据调整全部参数。",
+      "points": [
+        "使用预训练权重作为初始化，而非随机初始化。",
+        "在特定任务（如分类、问答）数据集上继续训练。",
+        "更新所有模型参数，包括Transformer层和分类头。",
+        "通常需要较小的学习率（如5e-5）和少量epoch（如3）。",
+        "微调后的模型能适应特定任务，性能优于从头训练。"
+      ],
+      "tip": "微调是迁移学习在NLP中的典型应用，核心是‘站在巨人肩膀上’。",
+      "id": "bert_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "输入示例 (InputExample)",
+      "summary": "表示单个训练/测试样本的数据结构，包含文本和标签。",
+      "points": [
+        "包含guid唯一标识、text_a第一句、text_b第二句（可选）、label标签。",
+        "text_b用于句子对任务（如文本蕴含），单句任务可省略。",
+        "训练和验证样本必须提供label，测试样本可省略。",
+        "是数据预处理的第一步，将原始文本转换为结构化对象。"
+      ],
+      "tip": "面试常问：text_b何时使用？答：句子对任务，如问答、文本匹配。",
+      "id": "bert_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "输入特征 (InputFeatures)",
+      "summary": "将文本转换为模型可理解的数值特征，包括ID和掩码。",
+      "points": [
+        "input_ids：token在词汇表中的索引序列。",
+        "input_mask：区分真实token与填充token的掩码（1为真实，0为填充）。",
+        "segment_ids：区分句子A和B的段ID（0为A，1为B）。",
+        "label_id：标签的整数编码。",
+        "is_real_example：标记是否为真实样本（用于TPU填充）。"
+      ],
+      "tip": "input_mask和segment_ids是BERT处理变长输入和句子对的关键。",
+      "id": "bert_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "数据处理器 (DataProcessor)",
+      "summary": "负责从文件读取数据并生成InputExample列表的基类。",
+      "points": [
+        "提供get_train_examples、get_dev_examples等方法。",
+        "子类需实现具体的数据读取逻辑（如CSV、TSV文件解析）。",
+        "返回InputExample对象集合，供后续特征化使用。",
+        "抽象了数据加载过程，便于适配不同数据集格式。"
+      ],
+      "tip": "设计模式：模板方法模式，子类实现具体数据解析逻辑。",
+      "id": "bert_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "分词器 (Tokenizer)",
+      "summary": "将文本转换为模型可处理的token ID序列的工具。",
+      "points": [
+        "使用WordPiece算法，将词拆分为子词单元。",
+        "提供encode、batch_encode_plus等方法处理单句或句子对。",
+        "支持padding、truncation、return_tensors等参数。",
+        "自动添加[CLS]和[SEP]特殊token。",
+        "需加载与预训练模型相同的词汇表（vocab_file）。"
+      ],
+      "tip": "[CLS]用于分类任务，[SEP]用于分隔句子对。",
+      "id": "bert_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "训练器API (Trainer)",
+      "summary": "🤗 Transformers提供的高级训练接口，封装训练循环。",
+      "points": [
+        "自动处理批次、梯度累积、学习率调度等。",
+        "需配置TrainingArguments指定超参数（如输出目录、批次大小）。",
+        "支持分布式训练（GPU/TPU）和混合精度。",
+        "内置评估和模型保存功能。",
+        "简化了微调流程，只需提供模型、数据集和参数即可。"
+      ],
+      "tip": "面试常问：Trainer相比手动训练循环的优势？答：减少样板代码，集成最佳实践。",
+      "id": "bert_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "InputExample vs InputFeatures 对比",
+      "summary": "原始数据与模型输入特征的表示差异",
+      "points": [
+        "数据来源：原始文本（text_a, text_b） / 编码后ID（input_ids, segment_ids）",
+        "处理阶段：数据加载时创建 / 数据预处理后生成",
+        "字段内容：guid, text_a, text_b, label / input_ids, input_mask, segment_ids, label_id",
+        "用途：作为预处理输入 / 直接喂给模型"
+      ],
+      "tip": "用InputExample组织原始数据，用InputFeatures喂给模型进行训练/推理",
+      "id": "bert_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "do_train/do_eval/do_predict 对比",
+      "summary": "三种运行模式：训练、评估、预测",
+      "points": [
+        "目的：更新模型参数 / 评估模型性能 / 生成预测结果",
+        "数据集：训练集 / 验证集 / 测试集",
+        "输出：模型检查点 / 评估指标（如准确率） / 预测标签",
+        "典型设置：do_train=True, do_eval=True / do_eval=True / do_predict=True"
+      ],
+      "tip": "训练时同时启用do_train和do_eval以监控过拟合；预测时仅用do_predict",
+      "id": "bert_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "单序列 vs 序列对 任务对比",
+      "summary": "输入文本数量不同的两种分类任务",
+      "points": [
+        "输入结构：仅text_a / text_a和text_b",
+        "典型任务：情感分析、主题分类 / 自然语言推理、文本匹配",
+        "模型处理：使用[CLS] token表示整句 / 使用[CLS] token融合两序列",
+        "数据格式：InputExample中text_b为None / InputExample中text_b有值"
+      ],
+      "tip": "单序列任务用简单分类头；序列对任务需注意两序列的顺序和分隔符",
+      "id": "bert_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "GPU/CPU vs TPU 训练对比",
+      "summary": "不同硬件加速器的训练配置差异",
+      "points": [
+        "硬件类型：GPU（NVIDIA）或CPU / TPU（Google Cloud TPU）",
+        "批大小：灵活，可小批量（如8-32） / 需固定批大小（如8倍数）",
+        "配置参数：use_tpu=False, master可选 / use_tpu=True, tpu_name, tpu_zone, gcp_project必需",
+        "数据填充：无需特殊处理 / 需PaddingInputExample保证批大小倍数"
+      ],
+      "tip": "小规模实验用GPU/CPU；大规模训练或Google Colab免费TPU用TPU加速",
+      "id": "bert_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "AdamW 优化器更新公式",
+      "summary": "θ_t = θ_{t-1} - η * (m_t / (√v_t + ε) + λθ_{t-1})",
+      "points": [
+        "θ_t: 第 t 步的模型参数",
+        "η: 学习率 (learning_rate), 默认5e-5",
+        "m_t: 一阶动量 (梯度均值), v_t: 二阶动量 (梯度方差)",
+        "ε: 小常数防除零, λ: 权重衰减系数",
+        "直觉: 自适应调整学习率并施加L2正则化，防止过拟合"
+      ],
+      "tip": "常见误区: 认为AdamW与Adam相同，实际AdamW将权重衰减与自适应学习率解耦，更稳定。",
+      "id": "bert_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "线性学习率预热 (Linear Warmup)",
+      "summary": "lr = lr_base * min(1, step / warmup_steps)",
+      "points": [
+        "lr: 当前学习率",
+        "lr_base: 初始学习率 (如5e-5)",
+        "step: 当前训练步数",
+        "warmup_steps: 预热步数 = num_train_epochs * total_steps * warmup_proportion",
+        "直觉: 训练初期缓慢增大学习率，避免模型震荡，后期线性衰减"
+      ],
+      "tip": "记忆法: 预热比例warmup_proportion通常设为0.1，即前10%步数线性上升。",
+      "id": "bert_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "交叉熵损失函数 (Cross-Entropy Loss)",
+      "summary": "L = -Σ y_i * log(p_i)",
+      "points": [
+        "y_i: 真实标签的one-hot编码 (如[0,1])",
+        "p_i: 模型预测的概率分布 (softmax输出)",
+        "i: 类别索引 (二分类时i=0,1)",
+        "直觉: 衡量预测分布与真实分布的差异，值越小预测越准"
+      ],
+      "tip": "常见误区: 混淆交叉熵与KL散度；交叉熵等价于真实分布与预测分布的交叉熵，最小化交叉熵等价于最小化KL散度。",
+      "id": "bert_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "定义数据示例与特征结构",
+      "summary": "定义InputExample和InputFeatures类用于数据封装",
+      "points": [
+        "class InputExample(object): 定义单个训练/测试样本的数据结构",
+        "guid: 样本唯一标识符",
+        "text_a: 第一段文本（单序列任务必填）",
+        "text_b: 第二段文本（序列对任务可选）",
+        "label: 样本标签（训练/验证集需指定，测试集可省略）",
+        "class InputFeatures(object): 定义模型输入特征",
+        "input_ids: 分词后的token ID序列",
+        "input_mask: 注意力掩码（1表示真实token，0表示填充）",
+        "segment_ids: 句子分段ID（区分两个句子）",
+        "label_id: 标签对应的整数ID"
+      ],
+      "tip": "text_b为None时表示单序列任务，需确保segment_ids全为0；label在测试集可设为None，但特征中label_id需用默认值（如0）填充。",
+      "id": "bert_code_014",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "使用HuggingFace Trainer进行微调",
+      "summary": "加载数据集、分词、定义Trainer并训练",
+      "points": [
+        "raw_datasets = load_dataset('glue', 'mrpc'): 从Hub加载MRPC数据集",
+        "tokenizer = AutoTokenizer.from_pretrained(checkpoint): 加载BERT分词器",
+        "def tokenize_function(example): 定义分词函数，对句子对进行截断",
+        "return tokenizer(example['sentence1'], example['sentence2'], truncation=True)",
+        "tokenized_datasets = raw_datasets.map(tokenize_function, batched=True): 批量应用分词",
+        "data_collator = DataCollatorWithPadding(tokenizer=tokenizer): 动态填充至批次最大长度",
+        "from transformers import TrainingArguments, Trainer: 导入训练组件",
+        "training_args = TrainingArguments(output_dir='./results'): 设置输出目录和超参数",
+        "trainer = Trainer(model, training_args, train_dataset, eval_dataset, data_collator): 初始化Trainer",
+        "trainer.train(): 开始微调训练"
+      ],
+      "tip": "务必设置truncation=True避免序列过长报错；data_collator动态填充比固定max_length更高效；若使用GPU，确保batch_size适配显存。",
+      "id": "bert_code_015",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "手动微调：单批次前向与反向传播",
+      "summary": "展示单批次数据的前向计算、损失计算和反向传播",
+      "points": [
+        "from torch.optim import AdamW: 导入AdamW优化器",
+        "from transformers import AutoModelForSequenceClassification: 导入分类模型",
+        "model = AutoModelForSequenceClassification.from_pretrained(checkpoint): 加载预训练模型",
+        "batch = tokenizer(sequences, padding=True, truncation=True, return_tensors='pt'): 将文本转为PyTorch张量",
+        "batch['labels'] = torch.tensor([1, 1]): 手动设置标签（需与模型输出维度匹配）",
+        "optimizer = AdamW(model.parameters()): 初始化优化器",
+        "loss = model(**batch).loss: 前向传播计算损失",
+        "loss.backward(): 反向传播计算梯度",
+        "optimizer.step(): 更新模型参数"
+      ],
+      "tip": "必须设置return_tensors='pt'以返回PyTorch张量；labels需与模型输出形状一致（分类任务为标量）；每次迭代后需调用optimizer.zero_grad()清零梯度，避免累积。",
+      "id": "bert_code_016",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "微调时学习率默认使用1e-4",
+      "summary": "BERT微调推荐学习率是5e-5，而非1e-4。",
+      "points": [
+        "BERT微调与从头训练不同，需要更小的学习率来避免破坏预训练权重，但很多人误用更大的默认值（如1e-4）。",
+        "官方代码中learning_rate默认为5e-5，这是一个平衡收敛速度和稳定性的经验值，适用于大多数分类任务。"
+      ],
+      "tip": "BERT微调用5e-5，过大学习率会破坏预训练特征。",
+      "id": "bert_gotcha_017",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "微调时不需要设置max_seq_length",
+      "summary": "max_seq_length必须显式设置，默认128但需按任务调整。",
+      "points": [
+        "很多人认为max_seq_length可以省略或默认值自动适应所有数据，但实际必须根据输入文本长度手动设定。",
+        "若设置过短（如128）会截断长文本丢失信息；设置过长（如512）会浪费计算资源，增加显存占用和训练时间。"
+      ],
+      "tip": "max_seq_length要按数据最长长度设定，不是越大越好。",
+      "id": "bert_gotcha_018",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

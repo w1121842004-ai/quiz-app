@@ -1,0 +1,600 @@
+{
+  "module": "langchain",
+  "module_name": "LangChain框架",
+  "total": 44,
+  "subtopics": [
+    {
+      "id": "core",
+      "name_zh": "核心组件（LLM/Chain/Prompt/OutputParser）",
+      "target": 10
+    },
+    {
+      "id": "lcel",
+      "name_zh": "LCEL 表达式语言（管道操作符、并行、分支）",
+      "target": 8
+    },
+    {
+      "id": "agents",
+      "name_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "target": 9
+    },
+    {
+      "id": "memory",
+      "name_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "target": 7
+    },
+    {
+      "id": "retrieval",
+      "name_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "target": 8
+    },
+    {
+      "id": "practical",
+      "name_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "target": 8
+    }
+  ],
+  "questions": [
+    {
+      "question": "在LangChain中，Prompt Template和ChatPromptTemplate有何区别？各自适用于什么场景？",
+      "reference_answer": "Prompt Template用于文本补全模型，接收字符串模板和变量，输出格式化字符串。ChatPromptTemplate用于聊天模型，接收消息列表（SystemMessage、HumanMessage、AIMessage等），支持多轮对话场景。",
+      "tags": [
+        "Prompt",
+        "核心组件",
+        "应用场景"
+      ],
+      "id": "langchain_core_medium_005",
+      "subtopic": "core",
+      "subtopic_zh": "核心组件（LLM/Chain/Prompt/OutputParser）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "LangChain的LLMChain如何将Prompt、LLM和OutputParser组合在一起工作？请简述其内部执行流程。",
+      "reference_answer": "LLMChain接收输入变量，通过Prompt Template格式化生成完整提示，传递给LLM获取原始输出，然后由OutputParser解析为结构化结果（如JSON、列表等）。整个过程封装在Chain中，支持自定义各组件。",
+      "tags": [
+        "Chain",
+        "核心组件",
+        "实现细节"
+      ],
+      "id": "langchain_core_medium_006",
+      "subtopic": "core",
+      "subtopic_zh": "核心组件（LLM/Chain/Prompt/OutputParser）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在自定义OutputParser时，需要实现哪些核心方法？请说明get_format_instructions和parse方法的作用。",
+      "reference_answer": "必须实现parse方法，将LLM的字符串输出解析为目标类型。get_format_instructions方法返回提示，指导LLM按指定格式输出（如JSON、Markdown）。parse方法负责解析，可抛出OutputParserException处理格式错误。",
+      "tags": [
+        "OutputParser",
+        "核心组件",
+        "实现细节"
+      ],
+      "id": "langchain_core_medium_007",
+      "subtopic": "core",
+      "subtopic_zh": "核心组件（LLM/Chain/Prompt/OutputParser）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在构建对话系统时，使用ChatOpenAI模型，如何通过SystemMessage和HumanMessage组合控制AI的行为和回复风格？请举例说明。",
+      "reference_answer": "SystemMessage设置AI的角色和行为准则，如'你是一个友好的助手'。HumanMessage是用户输入。AI根据System和Human消息生成回复。例如：System('你只用中文回答') + Human('Hello')，AI会回复中文。多次Human/AIMessage可维护对话历史。",
+      "tags": [
+        "LLM",
+        "核心组件",
+        "应用场景"
+      ],
+      "id": "langchain_core_medium_008",
+      "subtopic": "core",
+      "subtopic_zh": "核心组件（LLM/Chain/Prompt/OutputParser）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "请对比Chain和PromptTemplate在LangChain中的设计哲学差异，并分析何时应该将复杂逻辑封装为Chain而非通过PromptTemplate实现？",
+      "reference_answer": "PromptTemplate专注于将用户输入和上下文模板化为LLM可理解的文本，适合简单、直接的输入输出映射。Chain则提供了更复杂的编排能力，可组合多个步骤、集成外部工具或条件逻辑。当任务需要多步推理、状态管理、错误处理或调用外部系统时，应优先使用Chain；而单一查询或简单格式化场景适合PromptTemplate。",
+      "tags": [
+        "Chain",
+        "PromptTemplate",
+        "架构权衡"
+      ],
+      "id": "langchain_core_advanced_013",
+      "subtopic": "core",
+      "subtopic_zh": "核心组件（LLM/Chain/Prompt/OutputParser）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "设计一个OutputParser时，如何处理LLM输出不符合预期格式的边界情况？请从解析策略和容错机制两方面阐述。",
+      "reference_answer": "解析策略上，可采用多级解析：先尝试严格格式解析，失败后使用正则或模糊匹配提取关键信息。容错机制包括：设置重试次数，让LLM重新生成；提供默认值或降级输出；记录解析失败日志并人工审核。还可结合Prompt优化，在指令中明确格式要求并给出示例，降低格式错误概率。",
+      "tags": [
+        "OutputParser",
+        "边界情况",
+        "容错设计"
+      ],
+      "id": "langchain_core_advanced_014",
+      "subtopic": "core",
+      "subtopic_zh": "核心组件（LLM/Chain/Prompt/OutputParser）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在LCEL中，管道操作符（|）的主要作用是什么？请简要说明其工作原理。",
+      "reference_answer": "管道操作符（|）用于将两个或多个组件串联起来，前一个组件的输出自动作为后一个组件的输入，形成一个顺序执行链。例如，`chain = prompt | model | output_parser`，数据按顺序流经每个组件。",
+      "tags": [
+        "LCEL",
+        "管道操作符"
+      ],
+      "id": "langchain_lcel_basic_007",
+      "subtopic": "lcel",
+      "subtopic_zh": "LCEL 表达式语言（管道操作符、并行、分支）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "LCEL中如何使用RunnableParallel实现并行执行？请给出一个基本示例。",
+      "reference_answer": "使用`RunnableParallel`可以将多个可运行对象组合，使它们并行处理相同的输入。例如：`chain = RunnableParallel({'context': retriever, 'question': RunnablePassthrough()})`，其中retriever和RunnablePassthrough会同时接收输入并独立处理。",
+      "tags": [
+        "LCEL",
+        "并行"
+      ],
+      "id": "langchain_lcel_basic_008",
+      "subtopic": "lcel",
+      "subtopic_zh": "LCEL 表达式语言（管道操作符、并行、分支）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LCEL中，分支（RunnableBranch）用于什么场景？它如何根据条件选择执行路径？",
+      "reference_answer": "RunnableBranch用于根据输入数据的条件动态选择不同的执行路径。它接受一组(条件, 可运行对象)对，按顺序检查条件，当条件为真时执行对应的可运行对象；如果没有匹配条件，则执行默认路径。",
+      "tags": [
+        "LCEL",
+        "分支"
+      ],
+      "id": "langchain_lcel_basic_009",
+      "subtopic": "lcel",
+      "subtopic_zh": "LCEL 表达式语言（管道操作符、并行、分支）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain的LCEL中，管道操作符（|）如何将多个组件串联成一个链？请解释其内部实现机制。",
+      "reference_answer": "管道操作符（|）通过重写`__or__`方法实现，将左侧组件的输出作为右侧组件的输入。内部会构建一个`RunnableSequence`对象，按顺序执行各组件，前一组件输出自动匹配后一组件输入参数。",
+      "tags": [
+        "管道操作符",
+        "实现细节"
+      ],
+      "id": "langchain_lcel_medium_013",
+      "subtopic": "lcel",
+      "subtopic_zh": "LCEL 表达式语言（管道操作符、并行、分支）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "LCEL中如何实现多个Runnable并行执行？请说明具体方法和数据合并方式。",
+      "reference_answer": "使用`RunnableParallel`或字典映射（如`{'a': runnable1, 'b': runnable2}`）实现并行。每个Runnable独立接收相同输入并执行，结果以字典形式合并，键对应各Runnable名称，值对应输出。",
+      "tags": [
+        "并行",
+        "实现细节"
+      ],
+      "id": "langchain_lcel_medium_014",
+      "subtopic": "lcel",
+      "subtopic_zh": "LCEL 表达式语言（管道操作符、并行、分支）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LCEL中，如何使用`RunnableBranch`实现条件分支？请给出一个实际应用场景。",
+      "reference_answer": "`RunnableBranch`接受多个(condition, runnable)对，按顺序评估条件，执行第一个满足条件的runnable。例如：根据用户输入语言，分支到不同翻译模型链，若输入为英文则走英译中链，否则走中译英链。",
+      "tags": [
+        "分支",
+        "应用场景"
+      ],
+      "id": "langchain_lcel_medium_015",
+      "subtopic": "lcel",
+      "subtopic_zh": "LCEL 表达式语言（管道操作符、并行、分支）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LangChain的ReAct框架中，Agent如何决定下一步要执行的动作？",
+      "reference_answer": "ReAct（Reasoning + Acting）框架中，Agent通过将用户的输入、当前状态和可用工具的描述拼接成提示，交给LLM进行推理。LLM输出包含思考（Thought）和行动（Action）的文本，Agent解析出Action字段，调用对应的工具并获取观察（Observation），然后循环此过程直到得出最终答案。",
+      "tags": [
+        "Agent",
+        "ReAct",
+        "推理与行动"
+      ],
+      "id": "langchain_agents_basic_013",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "OpenAI Function Calling中，函数描述（Function Description）的哪个字段用于定义模型应何时调用该函数？",
+      "reference_answer": "在OpenAI Function Calling中，函数描述没有直接定义调用时机的字段；调用时机由模型根据用户输入和系统提示自主决定。开发者可以通过在messages中传入functions参数列出可用函数，模型会在需要时返回function_call对象，其中包含函数名和参数。",
+      "tags": [
+        "OpenAI Function Calling",
+        "函数调用",
+        "模型决策"
+      ],
+      "id": "langchain_agents_basic_014",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，Tool（工具）对象必须实现哪两个核心方法才能被Agent使用？",
+      "reference_answer": "Tool对象必须实现_run方法（用于执行工具的逻辑）和_arun方法（异步版本）。此外，Tool还需要定义name（工具名称）和description（工具描述），description对Agent选择工具至关重要，因为Agent会基于描述判断工具的适用性。",
+      "tags": [
+        "Tool",
+        "工具定义",
+        "Agent集成"
+      ],
+      "id": "langchain_agents_basic_015",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain的AgentExecutor中，Agent与Tool交互的循环通常包含哪几个步骤？",
+      "reference_answer": "循环步骤为：1) Agent接收用户输入，结合当前步骤历史生成下一个动作（Action）；2) AgentExecutor调用动作指定的Tool，执行并返回观察（Observation）；3) 将观察加入历史，重复步骤1-2直到Agent输出最终答案（Finish）或达到最大迭代次数。",
+      "tags": [
+        "AgentExecutor",
+        "循环交互",
+        "ReAct"
+      ],
+      "id": "langchain_agents_basic_016",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，ReAct Agent的决策循环是如何实现的？请简述其核心步骤。",
+      "reference_answer": "ReAct Agent通过Thought-Action-Observation循环实现：LLM基于当前状态生成思考（Thought），决定下一步动作（Action）并调用工具；工具返回观察结果（Observation）；Agent将观察结果加入上下文，重复循环直至形成最终答案。LangChain的AgentExecutor负责调度此循环。",
+      "tags": [
+        "ReAct",
+        "Agent循环"
+      ],
+      "id": "langchain_agents_medium_021",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "OpenAI Function Calling与LangChain Tool定义的主要区别是什么？在LangChain中如何将自定义函数转换为Tool？",
+      "reference_answer": "OpenAI Function Calling要求LLM输出结构化JSON参数，LangChain Tool是更通用的抽象，包含名称、描述和参数模式。LangChain通过@tool装饰器或Tool类将Python函数包装为Tool，并自动生成OpenAI兼容的function schema，供Agent调用。",
+      "tags": [
+        "OpenAI Function",
+        "Tool定义"
+      ],
+      "id": "langchain_agents_medium_022",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "设计一个需要调用多个工具的Agent时，如何避免工具调用冲突或无限循环？请列举至少两种策略。",
+      "reference_answer": "策略包括：1) 设置最大迭代次数（max_iterations），防止无限循环；2) 在工具描述中明确限定调用条件，使LLM能正确选择；3) 实现中间步骤检查，如验证工具输出是否合理；4) 使用Human-in-the-loop机制，在关键决策点暂停等待人工确认。",
+      "tags": [
+        "Agent稳定性",
+        "工具编排"
+      ],
+      "id": "langchain_agents_medium_023",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LangChain中，如何为一个ReAct Agent添加自定义工具，并确保工具的错误信息能被Agent正确处理？",
+      "reference_answer": "通过Tool类定义工具，在func参数中封装异常处理逻辑，返回描述性错误字符串而非抛出异常。在Agent的prompt中增加指令，要求LLM根据工具返回的错误信息调整后续动作。LangChain的AgentExecutor会自动将工具返回作为Observation传递给LLM。",
+      "tags": [
+        "自定义工具",
+        "错误处理"
+      ],
+      "id": "langchain_agents_medium_024",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LangChain的ReAct Agent实现中，如果同时定义了OpenAI Function Calling工具和普通Tool工具，当LLM在一次推理中返回多个function_call时，Agent应如何协调执行顺序？请分析可能的设计权衡。",
+      "reference_answer": "Agent需按返回顺序依次执行function_call，将结果作为上下文传递，避免并行执行导致状态冲突。权衡：顺序执行简单但可能阻塞；支持部分并行可提高效率，但需确保工具无副作用且不依赖顺序。",
+      "tags": [
+        "ReAct",
+        "OpenAI Function Calling",
+        "Tool定义",
+        "执行顺序",
+        "设计权衡"
+      ],
+      "id": "langchain_agents_advanced_029",
+      "subtopic": "agents",
+      "subtopic_zh": "Agent 与工具（ReAct / OpenAI Function / Tool 定义）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在LangChain中，Buffer Memory（缓冲记忆）的基本工作原理是什么？",
+      "reference_answer": "Buffer Memory通过维护一个消息缓冲区来存储对话历史。它默认保存所有对话消息，可以设置k参数限制保留最近k轮对话，超出部分会被丢弃。每次新对话时，缓冲区内容会被格式化后注入到提示词中，使LLM获得上下文信息。",
+      "tags": [
+        "Buffer Memory",
+        "基本原理"
+      ],
+      "id": "langchain_memory_basic_022",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Summary Memory（总结记忆）与Buffer Memory的核心区别是什么？",
+      "reference_answer": "Summary Memory不直接存储原始对话历史，而是通过LLM对历史对话进行摘要总结，只保存压缩后的摘要内容。这解决了长对话中上下文窗口溢出的问题，但可能丢失细节信息。Buffer Memory则保留原始消息，更准确但占用更多token。",
+      "tags": [
+        "Summary Memory",
+        "Buffer Memory",
+        "概念对比"
+      ],
+      "id": "langchain_memory_basic_023",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，Window Memory（窗口记忆）如何控制记忆范围？",
+      "reference_answer": "Window Memory通过k参数设置一个固定大小的滑动窗口，只保留最近k轮对话消息。当新消息加入时，最早的消息被移出窗口。这种机制平衡了上下文长度和token消耗，适用于只需要短期记忆的场景。",
+      "tags": [
+        "Window Memory",
+        "基本原理"
+      ],
+      "id": "langchain_memory_basic_024",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，ConversationBufferMemory和ConversationSummaryMemory的主要区别是什么？分别适用于什么场景？",
+      "reference_answer": "ConversationBufferMemory直接缓存所有对话历史，适用于简单短对话，但长对话会消耗大量token。ConversationSummaryMemory则对历史进行总结存储，节省token，适用于长对话或需要保持上下文摘要的场景，但会损失细节。",
+      "tags": [
+        "Buffer Memory",
+        "Summary Memory",
+        "应用场景分析"
+      ],
+      "id": "langchain_memory_medium_028",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "如何利用VectorStoreRetrieverMemory实现基于语义相似度的记忆检索？请简述其核心原理和关键步骤。",
+      "reference_answer": "核心原理是将对话历史片段向量化存储到向量数据库，检索时根据当前输入向量与历史向量的相似度（如余弦相似度）召回最相关记忆。关键步骤：1. 选择嵌入模型生成向量；2. 存入向量存储；3. 设置检索器（如similarity_search）；4. 将检索结果注入提示。",
+      "tags": [
+        "Vector Memory",
+        "实现细节",
+        "原理理解"
+      ],
+      "id": "langchain_memory_medium_029",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "ConversationTokenBufferMemory与ConversationWindowMemory有何异同？在限制记忆大小时各自如何处理？",
+      "reference_answer": "两者都限制记忆大小。ConversationTokenBufferMemory按token数量截断，保留最近的对话直到达到上限，精确控制token消耗。ConversationWindowMemory按对话轮次（消息条数）截断，保留最近的k条消息，实现简单但无法精确控制token数。",
+      "tags": [
+        "Window Memory",
+        "Buffer Memory",
+        "原理理解"
+      ],
+      "id": "langchain_memory_medium_030",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在构建一个支持长对话的聊天机器人时，考虑使用Buffer Memory（缓存窗口记忆）和Summary Memory（摘要记忆）两种机制。请从内存占用、信息完整性和响应速度三个维度，对比分析这两种记忆机制的优劣，并说明在什么场景下更适合使用Vector Memory（向量存储记忆）作为替代方案？",
+      "reference_answer": "Buffer Memory通过固定窗口保留最近对话，内存占用低但会丢失早期信息；Summary Memory通过LLM生成摘要，信息完整性高但计算开销大、响应慢。Vector Memory通过嵌入和相似性检索实现长期、动态记忆，适合需要精准回忆历史细节且对话历史极长的场景，但需要额外维护向量数据库。",
+      "tags": [
+        "Buffer Memory",
+        "Summary Memory",
+        "Vector Memory",
+        "架构权衡"
+      ],
+      "id": "langchain_memory_advanced_034",
+      "subtopic": "memory",
+      "subtopic_zh": "记忆机制（Buffer/Summary/Vector/Window Memory）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在LangChain中，VectorStore（向量存储）的主要作用是什么？请列举至少两个常见的向量存储实现。",
+      "reference_answer": "VectorStore用于存储文本的向量嵌入（embedding）并支持相似性搜索，是实现语义检索的核心组件。常见实现包括FAISS（基于局部敏感哈希的向量库）、Chroma（轻量级开源向量数据库）、Pinecone（云原生向量数据库）等。",
+      "tags": [
+        "VectorStore",
+        "基础概念"
+      ],
+      "id": "langchain_retrieval_basic_029",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "什么是Retriever（检索器）？它与VectorStore的关系是怎样的？",
+      "reference_answer": "Retriever是LangChain中负责从数据源检索相关文档的组件。它通常基于VectorStore实现：首先将文档向量化存入VectorStore，然后根据查询向量执行相似性搜索，返回最相关的文档。Retriever可以封装VectorStore并添加预处理或后处理逻辑。",
+      "tags": [
+        "Retriever",
+        "VectorStore"
+      ],
+      "id": "langchain_retrieval_basic_030",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "MultiQuery（多查询检索）的核心思想是什么？它主要解决什么问题？",
+      "reference_answer": "MultiQuery的核心思想是针对同一个用户查询生成多个不同表述的变体查询，然后分别执行检索并合并结果。它主要解决用户原始查询表述不精确或单一查询可能遗漏相关文档的问题，通过多样化查询表述提高检索的召回率和准确性。",
+      "tags": [
+        "MultiQuery",
+        "检索策略"
+      ],
+      "id": "langchain_retrieval_basic_031",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，VectorStore与Retriever的核心区别是什么？各自在检索集成中扮演什么角色？",
+      "reference_answer": "VectorStore是存储和索引向量化文档的组件，负责高效存储和相似性搜索；Retriever是基于VectorStore的查询接口，负责将用户查询转化为向量搜索并返回相关文档。VectorStore提供底层存储和检索能力，Retriever封装了检索逻辑，便于在链中集成。",
+      "tags": [
+        "VectorStore",
+        "Retriever",
+        "组件区别"
+      ],
+      "id": "langchain_retrieval_medium_035",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "MultiQuery检索技术如何解决传统检索中的单一查询局限性？请描述其实现原理。",
+      "reference_answer": "MultiQuery通过LLM生成用户原始查询的多个不同变体，分别对每个变体执行检索，然后合并去重结果。这能覆盖查询的不同表述角度，提高召回率和鲁棒性。实现时需定义LLM生成查询的提示模板，对每个变体调用VectorStore的相似性搜索，最后聚合结果。",
+      "tags": [
+        "MultiQuery",
+        "检索增强",
+        "实现原理"
+      ],
+      "id": "langchain_retrieval_medium_036",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在一个知识库问答系统中，如果使用VectorStore进行文档检索，但用户问题表述不够精确导致召回结果差，你会如何结合MultiQuery和Retriever改进？",
+      "reference_answer": "首先，将Retriever封装为MultiQueryRetriever，配置LLM生成原始问题的多个同义或扩展查询。然后，MultiQueryRetriever对每个变体从VectorStore中检索，合并并去重文档。最后，将合并后的文档作为上下文传递给QA链。这样能提升召回覆盖率，改善回答质量。",
+      "tags": [
+        "MultiQuery",
+        "Retriever",
+        "应用场景"
+      ],
+      "id": "langchain_retrieval_medium_037",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在构建一个支持多语言文档的RAG系统时，你需要在MultiQueryRetriever中集成多语言查询生成。请分析使用单一LLM生成多语言查询与为每种语言单独配置LLM生成查询两种方案的架构权衡，包括延迟、成本、召回率及边界情况（如低资源语言处理）。",
+      "reference_answer": "单一LLM方案：架构简单，延迟低，成本低，但可能因LLM多语言能力不均导致低资源语言召回差；单独配置方案：可为每种语言优化模型，提升召回率，但架构复杂，延迟和成本高。边界情况：低资源语言可能无专用模型，需回退到单一LLM。",
+      "tags": [
+        "MultiQueryRetriever",
+        "多语言检索",
+        "架构权衡"
+      ],
+      "id": "langchain_retrieval_advanced_041",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "假设你使用VectorStore作为检索器，但发现返回的文档中部分内容与查询无关（低相关性）。请从检索策略（如相似度阈值、MMR）和索引结构（如分层索引、稀疏-稠密混合）两个维度，设计一种对比方案来提升检索相关性，并分析各方案在边界情况（如查询意图模糊或文档库高度重复）下的表现。",
+      "reference_answer": "检索策略：相似度阈值可过滤低分文档，但模糊查询可能丢失相关结果；MMR通过多样性重排序提升相关性，但在高度重复文档中可能过度去重。索引结构：分层索引按类别缩小搜索范围，但需维护层级；稀疏-稠密混合（如BM25+Embedding）结合关键词与语义，但融合权重需调优。边界情况：模糊查询时MMR+混合索引效果更佳。",
+      "tags": [
+        "VectorStore",
+        "检索相关性",
+        "对比设计"
+      ],
+      "id": "langchain_retrieval_advanced_042",
+      "subtopic": "retrieval",
+      "subtopic_zh": "检索集成（VectorStore / Retriever / MultiQuery）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在LangChain中，Callback（回调）机制的主要作用是什么？请给出一个典型的使用场景。",
+      "reference_answer": "Callback机制允许开发者在LLM应用的各个阶段（如开始、结束、错误发生等）插入自定义的钩子函数，用于监控、日志记录、缓存或修改行为。典型场景包括记录每次LLM调用的输入输出和耗时，以便调试或计费。",
+      "tags": [
+        "Callbacks",
+        "回调机制",
+        "基础概念"
+      ],
+      "id": "langchain_practical_basic_037",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，如何实现流式输出？请简要说明其核心原理。",
+      "reference_answer": "通过设置LLM的streaming=True参数，并传入一个实现了on_llm_new_token回调的StreamingHandler。当模型生成每个token时，该回调会被触发，从而实现逐token输出，而不是等待整个响应生成完毕。",
+      "tags": [
+        "流式输出",
+        "Streaming",
+        "实战技巧"
+      ],
+      "id": "langchain_practical_basic_038",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，如何处理LLM调用过程中的错误？请列举两种常见的错误处理策略。",
+      "reference_answer": "常见错误处理策略包括：1) 使用try-except捕获异常，如API超时或速率限制错误；2) 利用Callback中的on_llm_error事件进行统一的错误日志记录；3) 配置重试机制（如retry装饰器）自动重试失败的调用。",
+      "tags": [
+        "错误处理",
+        "异常处理",
+        "实战技巧"
+      ],
+      "id": "langchain_practical_basic_039",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在LangChain中，使用Callbacks实现流式输出时，如何确保每个token被正确处理并实时显示？请说明关键实现步骤。",
+      "reference_answer": "通过继承BaseCallbackHandler并重写on_llm_new_token方法，在方法内将token实时输出或收集。同时，在调用LLM时传递callbacks参数，并设置streaming=True以启用流式输出。关键步骤包括：1. 创建自定义回调处理器；2. 在LLM初始化时设置streaming=True；3. 在调用时传入callbacks列表。",
+      "tags": [
+        "Callbacks",
+        "流式输出",
+        "实现细节"
+      ],
+      "id": "langchain_practical_medium_043",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "使用LangChain的流式输出时，如果同时需要处理错误和记录日志，如何通过Callbacks机制实现多任务处理？",
+      "reference_answer": "可以创建多个继承BaseCallbackHandler的自定义处理器，每个处理器专注于单一任务（如一个处理流式输出，另一个处理错误记录）。在调用LLM时，将多个回调实例作为列表传入callbacks参数。LangChain会按顺序调用所有回调处理器，实现关注点分离，避免代码耦合。",
+      "tags": [
+        "Callbacks",
+        "流式输出",
+        "错误处理",
+        "应用场景"
+      ],
+      "id": "langchain_practical_medium_044",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LangChain中，当LLM调用失败时（如API超时），如何通过错误处理和Callbacks实现优雅降级（如重试或返回默认响应）？请说明实现方案。",
+      "reference_answer": "可以使用try-except捕获LLM调用异常，并在except块中实现重试逻辑（如使用tenacity库）或返回默认响应。同时，通过继承BaseCallbackHandler重写on_llm_error方法，在回调中记录错误详情或触发告警。关键点：回调中的on_llm_error在异常发生时自动触发，可与外部重试机制协同工作。",
+      "tags": [
+        "错误处理",
+        "Callbacks",
+        "应用场景"
+      ],
+      "id": "langchain_practical_medium_045",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在LangChain中，当使用流式输出（Streaming）时，如何通过Callbacks实现实时的错误处理和重试机制？请描述其设计思路和关键边界情况。",
+      "reference_answer": "通过自定义CallbackHandler，在on_llm_new_token回调中检测异常（如token截断），利用流式输出的分块特性实现局部重试。边界情况包括：流中断后状态恢复、重试次数限制、以及避免无限循环。",
+      "tags": [
+        "Callbacks",
+        "流式输出",
+        "错误处理"
+      ],
+      "id": "langchain_practical_advanced_049",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "对比LangChain中同步与异步流式输出的实现方式，在错误处理（如API超时）和回调链（Callback Chain）的触发顺序上有何关键差异？请分析其架构权衡。",
+      "reference_answer": "同步流式输出阻塞主线程，错误处理需显式捕获异常；异步流式输出利用事件循环，错误通过Future传播。回调链中，异步模式下回调可能乱序，需使用锁或队列保证顺序。架构上，异步提升吞吐但增加复杂度。",
+      "tags": [
+        "流式输出",
+        "错误处理",
+        "架构权衡"
+      ],
+      "id": "langchain_practical_advanced_050",
+      "subtopic": "practical",
+      "subtopic_zh": "实战技巧（Callbacks / 流式输出 / 错误处理）",
+      "difficulty": "advanced"
+    }
+  ]
+}

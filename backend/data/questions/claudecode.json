@@ -1,0 +1,639 @@
+{
+  "module": "claudecode",
+  "module_name": "Claude Code",
+  "total": 47,
+  "subtopics": [
+    {
+      "id": "basics",
+      "name_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "target": 8
+    },
+    {
+      "id": "api",
+      "name_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "target": 8
+    },
+    {
+      "id": "prompting",
+      "name_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "target": 10
+    },
+    {
+      "id": "tools",
+      "name_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "target": 8
+    },
+    {
+      "id": "advanced",
+      "name_zh": "高级特性（流式输出 / 缓存 / 批处理 / Vision）",
+      "target": 8
+    },
+    {
+      "id": "best_practices",
+      "name_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "target": 8
+    }
+  ],
+  "questions": [
+    {
+      "question": "Claude API 的 Python SDK 名称是什么？如何安装？",
+      "reference_answer": "Claude API 的 Python SDK 名为 anthropic，通过 pip install anthropic 命令安装。要求 Python 3.9 及以上版本。",
+      "tags": [
+        "API概述",
+        "安装"
+      ],
+      "id": "claudecode_basics_basic_001",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Claude 是否提供官方的 JSON Mode（约束采样）？如何可靠获取 JSON 输出？",
+      "reference_answer": "Claude 没有正式的 JSON Mode 或约束采样。可以通过以下方法获取可靠 JSON：1) 使用字符串解析提取 ```json 和 ``` 之间的内容；2) 用部分 Assistant 消息预填 { 字符去除前文；3) 使用 stop sequence 去除后文；4) 在复杂提示中让 Claude 用 XML 标签包裹 JSON 输出。",
+      "tags": [
+        "API概述",
+        "JSON输出",
+        "提示工程"
+      ],
+      "id": "claudecode_basics_basic_002",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "使用 Claude Python SDK 创建消息时，至少需要指定哪些参数？",
+      "reference_answer": "至少需要指定 model（如 claude-opus-4-6）、max_tokens（如 1024）和 messages 列表。messages 列表中每条消息需包含 role（如 user）和 content 字段。",
+      "tags": [
+        "API概述",
+        "基本用法"
+      ],
+      "id": "claudecode_basics_basic_003",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Python SDK中创建消息时，`max_tokens`参数的作用是什么？如果不设置该参数，Claude API会如何响应？",
+      "reference_answer": "`max_tokens`限制模型生成的最大token数，包括输入和输出。若不设置，API会使用默认值或报错（取决于API版本）。它防止无限生成并控制成本，但设置过低可能导致输出被截断。",
+      "tags": [
+        "API概述",
+        "实现细节"
+      ],
+      "id": "claudecode_basics_medium_007",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Claude没有内置的JSON模式，但可以通过哪些Prompt技巧强制输出纯JSON？请列举至少两种方法并说明其优缺点。",
+      "reference_answer": "方法1：使用前缀填充（prefill）在assistant消息中加入'{'，让Claude直接输出JSON，但会阻止思维链推理。方法2：用XML标签包裹JSON输出，通过正则提取，适用于复杂多JSON场景。方法3：设置stop序列截断尾部文本，确保输出干净。",
+      "tags": [
+        "API概述",
+        "应用场景分析"
+      ],
+      "id": "claudecode_basics_medium_008",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在调用Claude API时，`model`参数可以指定为`claude-opus-4-6`或`claude-opus-4-1`。这些模型名称中的数字部分代表什么？不同模型家族（如Haiku、Sonnet、Opus）在定价和性能上有何核心差异？",
+      "reference_answer": "数字部分代表模型版本号（如4-6表示第4代第6次迭代）。Opus是旗舰模型，性能最强但价格最高；Sonnet平衡速度与质量，适用于大多数场景；Haiku最轻量快速，成本最低。定价通常与模型能力正相关。",
+      "tags": [
+        "Claude模型家族",
+        "定价"
+      ],
+      "id": "claudecode_basics_medium_009",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Claude API的JSON模式实践中，使用Assistant预填充'{\"'可以强制Claude输出纯JSON，但会牺牲思维链能力。请分析这种设计在什么场景下是合理的权衡？如果必须同时保留思维链和JSON输出，有哪些替代架构方案？",
+      "reference_answer": "预填充适用于对输出格式严格性要求极高且无需推理的简单任务（如数据提取）。替代方案包括：使用XML标签包裹JSON部分，先输出思维链再输出XML标签内的JSON；或者让Claude在单次请求中分两段输出，通过stop sequence截断思维链部分。",
+      "tags": [
+        "API概述",
+        "JSON模式",
+        "架构权衡"
+      ],
+      "id": "claudecode_basics_advanced_013",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "假设你的应用需要高吞吐量处理短文本（平均100 tokens），但对延迟极其敏感。对比使用Claude Opus 4-6与Haiku 3-5在API调用上的定价与性能权衡，并说明在何种边界条件下Opus反而可能更经济？",
+      "reference_answer": "Haiku输入/输出价格远低于Opus，但Opus可能在高复杂度任务中减少重试次数。边界条件：当任务需要极低错误率且重试成本（时间+费用）超过Opus单次调用成本时，使用Opus更经济。例如医疗诊断场景，一次错误可能导致严重损失。",
+      "tags": [
+        "定价",
+        "模型家族",
+        "性能权衡"
+      ],
+      "id": "claudecode_basics_advanced_014",
+      "subtopic": "basics",
+      "subtopic_zh": "基础概念（Claude模型家族 / API概述 / 定价）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Python SDK中创建Messages API请求时，必须提供的参数有哪些？",
+      "reference_answer": "必须提供的参数包括：model（指定模型名称，如claude-opus-4-6）、max_tokens（最大输出token数）、messages（消息列表，每条消息包含role和content字段）。",
+      "tags": [
+        "Messages API",
+        "参数配置"
+      ],
+      "id": "claudecode_api_basic_009",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Claude没有正式的JSON模式，如何通过预填充技术让Claude直接输出JSON而不带前言？",
+      "reference_answer": "在messages列表中添加一条role为assistant的消息，其content以JSON起始字符“{”开头，例如{\"role\":\"assistant\",\"content\":\"Here is the JSON requested:\\n{\"}。这样Claude会直接续写JSON内容。",
+      "tags": [
+        "Messages API",
+        "参数配置",
+        "JSON模式"
+      ],
+      "id": "claudecode_api_basic_010",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在JSON提取过程中，如果响应包含多余文本，可以使用哪两种方法去除前后多余内容？",
+      "reference_answer": "去除前文：通过预填充Assistant消息（以{开头）跳过前言；去除后文：使用stop_sequences参数设置停止序列，让Claude在输出完JSON后停止。也可通过字符串解析提取```json和```之间的内容。",
+      "tags": [
+        "Messages API",
+        "错误处理"
+      ],
+      "id": "claudecode_api_basic_011",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Messages API中，通过prefill assistant响应（即在messages数组中添加一条role为assistant的占位内容）来强制Claude输出JSON时，这种方法的优缺点分别是什么？",
+      "reference_answer": "优点是可以跳过Claude的文本前缀，直接输出JSON结构，简化后端解析。缺点有三：一是无法利用Claude的Chain-of-Thought能力来提升复杂推理的准确性；二是如果预填充的JSON结构不完整（如只写了一个{），可能导致Claude输出格式错误；三是prefill内容会计入token消耗。",
+      "tags": [
+        "Messages API",
+        "JSON模式",
+        "参数配置"
+      ],
+      "id": "claudecode_api_medium_015",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "当使用Python SDK调用client.messages.create时，如果Claude返回了包含多个content block的响应（例如文本+工具调用），如何正确遍历并提取所有文本内容？",
+      "reference_answer": "通过message.content遍历每个block，检查block.type属性。若type为'text'，则从block.text获取文本；若type为'tool_use'，则从block.name和block.input获取工具调用信息。不能直接使用message.content[0].text，因为可能遗漏非文本block。",
+      "tags": [
+        "Messages API",
+        "错误处理",
+        "实现细节"
+      ],
+      "id": "claudecode_api_medium_016",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在实现从Claude响应中提取JSON时，若响应中包含多个JSON对象且需要区分不同用途，推荐使用哪种技术方案？请说明其实现步骤。",
+      "reference_answer": "推荐使用XML标签包裹法。步骤：1. 在prompt中要求Claude将每个JSON对象放在指定XML标签内（如<athlete>...</athlete>）；2. 使用正则表达式re.findall('<tag>(.+?)</tag>', response, re.DOTALL)提取标签内容；3. 对每个提取结果调用json.loads()解析。这种方法比字符串索引更鲁棒，尤其适合复杂prompt。",
+      "tags": [
+        "API使用",
+        "应用场景分析",
+        "错误处理"
+      ],
+      "id": "claudecode_api_medium_017",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Messages API中，通过prefill（预填充Assistant消息）实现JSON模式时，会牺牲Claude的Chain of Thought能力。请分析这种权衡背后的原理，并设计一种无需牺牲推理能力即可获得结构化JSON输出的方案。",
+      "reference_answer": "Prefill强制Claude从指定字符开始生成，跳过了思考过程。替代方案是：在System Prompt中要求Claude先进行XML标签包裹的思考过程（如<thinking>...</thinking>），再输出JSON；或使用stop_sequences参数在JSON完成后终止生成，同时利用前置指令要求输出JSON前进行思考。",
+      "tags": [
+        "Messages API",
+        "参数配置",
+        "架构权衡"
+      ],
+      "id": "claudecode_api_advanced_021",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在复杂prompt中需要输出多个JSON对象时，直接使用字符串搜索{和}会因嵌套或文本干扰而失败。请对比使用XML标签提取与使用stop_sequences+分段生成两种方案的边界情况与适用场景。",
+      "reference_answer": "XML标签方案适用于单个响应中输出多个JSON，通过正则提取标签内容，但要求Claude严格遵守标签格式，且标签内容本身不能包含未转义的标签字符。stop_sequences+分段生成方案适用于需要分步获取JSON的场景，每次只生成一个JSON并立即停止，但会增加API调用次数和延迟。边界情况下，当JSON内容包含类似标签的字符串时，XML方案会出错，而分段方案则不受影响。",
+      "tags": [
+        "API使用",
+        "错误处理",
+        "对比设计"
+      ],
+      "id": "claudecode_api_advanced_022",
+      "subtopic": "api",
+      "subtopic_zh": "API使用（Messages API / 参数配置 / 错误处理）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在提示工程中，System Prompt（系统提示）的主要作用是什么？",
+      "reference_answer": "System Prompt用于设定AI助手的全局行为、角色、输出格式和约束条件，在对话开始前提供给模型，影响整个对话过程中的回复风格和内容边界。",
+      "tags": [
+        "System Prompt",
+        "提示工程"
+      ],
+      "id": "claudecode_prompting_basic_017",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "什么是Few-shot（少样本）提示？请简述其基本原理。",
+      "reference_answer": "Few-shot提示是在用户消息中提供少量输入-输出示例，让模型通过类比学习任务模式，从而在没有显式训练的情况下完成相似任务。其原理是利用模型在大量数据中习得的模式识别和泛化能力。",
+      "tags": [
+        "Few-shot",
+        "提示工程"
+      ],
+      "id": "claudecode_prompting_basic_018",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Chain of Thought（思维链）提示的核心思想是什么？",
+      "reference_answer": "思维链提示通过引导模型在输出最终答案前，先生成中间推理步骤（如逐步思考过程），从而提升模型在数学、逻辑等复杂推理任务上的准确性和可解释性。",
+      "tags": [
+        "CoT",
+        "提示工程"
+      ],
+      "id": "claudecode_prompting_basic_019",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在提示工程中，使用XML标签（如<tag>内容</tag>）对输出进行结构化有什么好处？",
+      "reference_answer": "XML标签可为模型提供清晰的输出格式指令，便于后续用正则表达式等工具精确提取不同部分的内容；同时能避免自然语言中的歧义，尤其适合包含多个独立JSON或文本段的复杂提示。",
+      "tags": [
+        "XML结构",
+        "提示工程"
+      ],
+      "id": "claudecode_prompting_basic_020",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在提示工程中，使用XML标签结构（如<json_output>）相比直接要求模型输出JSON格式有哪些具体优势？请结合Claude SDK的实践场景说明。",
+      "reference_answer": "XML标签结构可以明确标记输出内容的边界，便于使用正则表达式（如re.findall）精确提取多个JSON对象，避免因模型生成额外文本（如自然语言解释）导致解析失败。在复杂提示中，当需要输出多个不同结构的JSON时，XML标签能区分不同部分，提高提取的可靠性和开发效率。",
+      "tags": [
+        "XML结构",
+        "JSON输出",
+        "提示工程"
+      ],
+      "id": "claudecode_prompting_medium_025",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在提示工程中，使用Assistant预填充（prefill）技术强制模型输出JSON时，会牺牲哪些能力？如何在不牺牲这些能力的情况下仍获得结构化输出？",
+      "reference_answer": "预填充会牺牲思维链（CoT）能力，因为模型在输出JSON前无法进行中间推理，可能降低复杂任务的准确性。解决方法是在用户提示中要求模型先进行CoT推理（如用<thinking>标签包裹），再输出JSON，同时使用XML标签标记JSON部分以便提取。",
+      "tags": [
+        "Assistant预填充",
+        "思维链",
+        "JSON输出"
+      ],
+      "id": "claudecode_prompting_medium_026",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在提示工程中，设计Few-shot示例时，为什么通常建议示例的输入-输出格式与最终任务完全一致？请举例说明格式不一致可能导致的错误。",
+      "reference_answer": "因为模型会从示例中学习模式，包括格式、结构和风格。如果示例输出是完整句子，而期望最终输出是纯JSON，模型可能仍会生成解释性文本，导致解析失败。例如，示例输出'这是JSON：{\"name\":\"Tom\"}'会导致模型在新任务中也添加前缀，而正确做法是示例直接输出{\"name\":\"Tom\"}。",
+      "tags": [
+        "Few-shot",
+        "格式一致性",
+        "提示工程"
+      ],
+      "id": "claudecode_prompting_medium_027",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在提示工程中，System Prompt通常用于设定模型的全局行为。请说明在需要模型严格遵循输出格式（如始终返回JSON）时，System Prompt与用户消息（User Message）中指令的职责划分原则。",
+      "reference_answer": "System Prompt应定义角色、输出格式规范（如'你是一个JSON API，只输出合法JSON'）和全局约束。用户消息则提供具体任务内容。职责划分原则是：System Prompt负责'如何输出'的格式规则，用户消息负责'输出什么'的任务内容。这样可避免重复指令，且System Prompt的稳定性有助于模型在不同任务中保持格式一致性。",
+      "tags": [
+        "System Prompt",
+        "输出格式",
+        "职责划分"
+      ],
+      "id": "claudecode_prompting_medium_028",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Claude的JSON模式实现中，使用Prefill Assistant Response（预填“{”）与使用XML标签（如<json>...</json>）两种方法在应对复杂多输出场景时，各自的优缺点和适用边界是什么？",
+      "reference_answer": "Prefill方法强制跳过前言，但无法支持CoT推理，且当输出包含多个JSON时难以精确提取。XML标签方法允许多个JSON共存于标签内，通过正则提取更可靠，且可以保留CoT空间，但增加令牌消耗和解析复杂度。复杂多输出场景推荐XML标签；单JSON且无需推理时Prefill更简洁。",
+      "tags": [
+        "JSON模式",
+        "Prefill",
+        "XML结构",
+        "CoT权衡",
+        "边界场景"
+      ],
+      "id": "claudecode_prompting_advanced_033",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在设计System Prompt时，如果既要利用CoT提升复杂推理的准确性，又要确保最终输出为严格格式化的JSON，你会如何设计提示结构？请对比两种方案：1）CoT与JSON分步输出；2）在CoT过程中嵌入XML标签后再提取JSON，并分析各自的局限性。",
+      "reference_answer": "方案1：要求模型先输出CoT（如<thinking>标签），再输出JSON。优点：推理与格式解耦，易于解析。缺点：增加额外令牌，且推理过程可能泄露无关信息。方案2：在CoT中嵌入XML标签，最后统一提取。优点：保持上下文连贯。缺点：提取逻辑复杂，若标签嵌套错误易失败。权衡：对格式严格性要求高时用方案1，对连贯性要求高时用方案2。",
+      "tags": [
+        "System Prompt",
+        "CoT",
+        "XML结构",
+        "JSON模式",
+        "架构权衡"
+      ],
+      "id": "claudecode_prompting_advanced_034",
+      "subtopic": "prompting",
+      "subtopic_zh": "提示工程（System Prompt / Few-shot / CoT / XML结构）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Claude API中，通过tool_choice参数可以强制模型调用哪个工具？请列举出tool_choice的三种可能取值及其含义。",
+      "reference_answer": "tool_choice有三种取值：'auto'（自动决定是否调用工具）、'any'（强制调用某个工具，但不指定具体哪一个）、或者一个具体的工具名称（如{'type':'tool','name':'get_weather'}），强制模型调用该指定工具。",
+      "tags": [
+        "tool_choice",
+        "工具选择",
+        "API参数"
+      ],
+      "id": "claudecode_tools_basic_027",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Claude API中，定义工具（function/tool）时，必须包含哪三个核心字段？",
+      "reference_answer": "工具定义必须包含：name（工具名称，字符串）、description（工具描述，说明何时使用该工具）和input_schema（输入参数的JSON Schema，定义工具接受的参数结构）。",
+      "tags": [
+        "function定义",
+        "工具定义",
+        "必填字段"
+      ],
+      "id": "claudecode_tools_basic_028",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "当用户请求需要多个工具协作完成时，Claude API如何处理多工具调用？",
+      "reference_answer": "Claude会在单次响应中返回多个tool_use内容块，每个块包含唯一的id、工具名称和输入参数。开发者需并行或串行执行所有工具，然后将每个工具结果以tool_result内容块（关联对应的tool_use_id）返回给模型，模型会整合结果继续推理。",
+      "tags": [
+        "多工具协作",
+        "并行调用",
+        "工具结果处理"
+      ],
+      "id": "claudecode_tools_basic_029",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Claude SDK中，如何通过tool_choice参数控制模型是否必须调用某个特定工具？请说明不同选项的含义。",
+      "reference_answer": "tool_choice支持三种值：'auto'（模型自主决定是否调用工具及调用哪个工具）、'any'（模型必须调用工具，但可自由选择具体工具）、'tool'（强制调用指定名称的工具，需配合name字段使用）。例如tool_choice={'type':'tool','name':'get_weather'}强制模型调用get_weather。",
+      "tags": [
+        "tool_choice",
+        "参数配置",
+        "强制调用"
+      ],
+      "id": "claudecode_tools_medium_033",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "使用Claude进行多工具协作时，如果第一个工具的输出需要作为第二个工具的输入，应如何设计调用流程？请描述关键步骤。",
+      "reference_answer": "首先在messages中发送用户请求和工具定义，模型返回包含tool_use的响应；然后提取第一个工具的输入参数并调用实际函数，将结果以tool_result角色添加到messages；再次请求模型，模型可能继续调用第二个工具；重复此流程直到模型返回最终文本回复。关键在于维护完整的消息历史。",
+      "tags": [
+        "多工具协作",
+        "链式调用",
+        "消息管理"
+      ],
+      "id": "claudecode_tools_medium_034",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Claude的Function Calling中，工具定义中的description字段对模型调用行为有何影响？请举例说明。",
+      "reference_answer": "description字段帮助模型理解工具用途和参数含义，影响模型何时调用该工具及如何填充参数。例如，若一个工具同时有city和location参数，description中注明'city为城市名，location为经纬度'，模型会更准确选择。清晰描述可减少误调用和参数错误，提高调用准确性。",
+      "tags": [
+        "工具定义",
+        "description",
+        "参数准确性"
+      ],
+      "id": "claudecode_tools_medium_035",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Claude API中，当需要同时使用多个工具并确保特定工具被强制调用时，tool_choice参数的不同选项（auto、any、tool）分别适用于哪些场景？请结合多工具协作的边界情况（如工具间依赖、参数冲突）分析其设计权衡。",
+      "reference_answer": "auto让模型自主选择，适合无依赖场景；any强制调用任意工具，适合必须使用工具但不确定具体哪个；tool指定特定工具，适合有明确依赖或关键工具必须执行。边界情况：工具间存在参数冲突时，any可能导致错误调用，需用tool精确控制；多工具协作中，auto可能漏调依赖工具，需结合系统提示或手动编排。",
+      "tags": [
+        "tool_choice",
+        "多工具协作",
+        "参数冲突"
+      ],
+      "id": "claudecode_tools_advanced_039",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Claude的JSON模式实现中，通过预填充assistant消息来强制输出JSON（如添加'{'）与使用XML标签（如<output>...</output>）提取JSON两种方法，在工具调用场景下（如函数参数为复杂JSON结构）有何性能与可靠性差异？请分析其适用边界。",
+      "reference_answer": "预填充法简单高效，但无法支持Chain-of-Thought前置推理，且JSON嵌套时易截断；XML标签法支持多JSON输出和推理过程，但需正则提取，增加解析开销。工具调用边界：当函数参数含深层嵌套时，预填充法可靠性下降，XML标签法更稳定；若需模型先推理再输出JSON，必须用XML标签法。",
+      "tags": [
+        "JSON模式",
+        "工具调用",
+        "预填充",
+        "XML标签",
+        "Chain-of-Thought"
+      ],
+      "id": "claudecode_tools_advanced_040",
+      "subtopic": "tools",
+      "subtopic_zh": "工具调用（Function定义 / tool_choice / 多工具协作）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Claude API中，流式输出（Streaming）的主要作用是什么？如何启用流式输出？",
+      "reference_answer": "流式输出允许服务器逐步返回响应内容，而不是等待整个响应生成完毕后再一次性返回。这可以显著降低用户感知的延迟，并支持实时显示文本。在API调用中，通过设置`stream=True`参数即可启用流式输出。",
+      "tags": [
+        "流式输出",
+        "Streaming"
+      ],
+      "id": "claudecode_advanced_basic_035",
+      "subtopic": "advanced",
+      "subtopic_zh": "高级特性（流式输出 / 缓存 / 批处理 / Vision）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Claude API的批处理（Batch Processing）中，如何一次性发送多个请求并获取结果？",
+      "reference_answer": "批处理允许用户将多个独立的请求打包成一个批次，通过`/v1/messages/batches`端点发送。每个请求只能包含一个消息。批处理会异步执行，完成后可通过`/v1/messages/batches/{batch_id}/results`端点获取结果，且成本通常更低。",
+      "tags": [
+        "批处理",
+        "Batch"
+      ],
+      "id": "claudecode_advanced_basic_036",
+      "subtopic": "advanced",
+      "subtopic_zh": "高级特性（流式输出 / 缓存 / 批处理 / Vision）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "Claude API的Vision功能支持哪些图像格式？如何将图像传递给Claude？",
+      "reference_answer": "Claude API的Vision功能支持JPEG、PNG、GIF和WebP格式的图像。传递图像时，需要在`messages`的`content`字段中使用`type: \"image\"`的块，并通过`source`指定图像的`type`（如base64或url）和`media_type`及`data`。",
+      "tags": [
+        "Vision",
+        "图像处理"
+      ],
+      "id": "claudecode_advanced_basic_037",
+      "subtopic": "advanced",
+      "subtopic_zh": "高级特性（流式输出 / 缓存 / 批处理 / Vision）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在实现流式输出时，如果同时启用了缓存（如上下文缓存或提示缓存），如何设计缓存更新策略以避免流式输出过程中缓存不一致？请分析几种可能的架构权衡。",
+      "reference_answer": "核心挑战在于流式输出的增量特性与缓存快照的原子性冲突。方案一：流式输出时不更新缓存，仅使用预填充的静态缓存，简单但可能浪费缓存容量。方案二：流式输出完成后批量更新缓存，保证一致性但延迟高。方案三：使用增量缓存更新机制，每次输出块后更新缓存，复杂度高且需处理并发冲突。权衡点包括一致性、延迟和实现复杂度。",
+      "tags": [
+        "流式输出",
+        "缓存",
+        "架构设计",
+        "一致性"
+      ],
+      "id": "claudecode_advanced_advanced_044",
+      "subtopic": "advanced",
+      "subtopic_zh": "高级特性（流式输出 / 缓存 / 批处理 / Vision）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在批处理与Vision结合的场景中，假设需要批量处理大量图片（如1000张）并提取结构化信息，如何设计批处理策略以平衡成本、延迟和准确率？请对比全量批处理、分块批处理和流式批处理三种方案。",
+      "reference_answer": "全量批处理：将所有图片一次性发送，成本最低（共享上下文），但受限于最大token数，且单点故障风险高，延迟长。分块批处理：按图片数量或token数分块（如每块10张），平衡成本和延迟，但需处理块间上下文丢失。流式批处理：逐张或小批量流式发送，延迟最低且可早期反馈，但成本最高（每张单独请求）。推荐分块批处理，块大小根据图片复杂度和模型max_tokens动态调整。",
+      "tags": [
+        "批处理",
+        "Vision",
+        "成本优化",
+        "延迟权衡"
+      ],
+      "id": "claudecode_advanced_advanced_045",
+      "subtopic": "advanced",
+      "subtopic_zh": "高级特性（流式输出 / 缓存 / 批处理 / Vision）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在Claude API中，为了可靠地获取JSON格式输出，推荐使用哪两种主要方法？",
+      "reference_answer": "第一种是使用字符串解析，提取响应中```json和```标记之间的内容；第二种是预填充Assistant消息，在用户消息后添加Assistant角色的`{\"role\":\"assistant\",\"content\":\"Here is the JSON requested:\\n{\"}`来跳过前文，直接输出JSON。",
+      "tags": [
+        "最佳实践",
+        "Claude Code CLI"
+      ],
+      "id": "claudecode_best_practices_basic_040",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Claude API的Python SDK中，初始化Anthropic客户端时，如何安全地设置API密钥？",
+      "reference_answer": "建议使用环境变量来设置API密钥，避免在代码中硬编码。示例为`api_key=os.environ.get(\"ANTHROPIC_API_KEY\")`，这样API密钥存储在环境变量中，不会直接暴露在代码中，提高了安全性。",
+      "tags": [
+        "最佳实践",
+        "安全"
+      ],
+      "id": "claudecode_best_practices_basic_041",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Claude的JSON模式中，为什么使用预填充Assistant消息可能会影响模型性能？",
+      "reference_answer": "预填充Assistant消息会跳过Claude的\"思维链\"（Chain of Thought）过程，模型在开始输出JSON前无法进行逐步推理。这虽然能直接输出JSON，但可能降低复杂任务的准确性和智能表现。",
+      "tags": [
+        "最佳实践",
+        "评估"
+      ],
+      "id": "claudecode_best_practices_basic_042",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "basic"
+    },
+    {
+      "question": "在Claude Code CLI中，如何在不暴露API密钥的情况下安全地配置和使用Claude API？请说明具体方法。",
+      "reference_answer": "推荐使用环境变量ANTHROPIC_API_KEY存储API密钥，避免在代码或配置文件中硬编码。在CLI中可通过`export ANTHROPIC_API_KEY='your-key'`设置，或使用.env文件配合dotenv库加载。这样可防止密钥泄露，符合安全最佳实践。",
+      "tags": [
+        "安全",
+        "Claude Code CLI",
+        "API密钥管理"
+      ],
+      "id": "claudecode_best_practices_medium_046",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在调用Claude API时，如何通过控制max_tokens和预填充响应来有效降低成本？请结合JSON模式示例说明。",
+      "reference_answer": "通过设置合理的max_tokens（如1024）限制输出长度，避免生成不必要内容。使用预填充（如`{\"role\":\"assistant\",\"content\":\"Here is the JSON requested:\\n{\"}`）可直接引导模型输出JSON，减少冗余token消耗。同时，配合XML标签提取结构化数据，可降低多次调用的成本。",
+      "tags": [
+        "成本控制",
+        "Claude Code CLI",
+        "JSON模式"
+      ],
+      "id": "claudecode_best_practices_medium_047",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在评估Claude生成的JSON输出质量时，你有哪些方法可以确保输出的可靠性和准确性？请至少列出两种。",
+      "reference_answer": "方法一：使用预填充响应并配合JSON解析，如提取`{`和`}`之间的内容，确保结构完整。方法二：让Claude在XML标签（如`<athlete_sports>`）内输出JSON，然后用正则表达式提取，避免文本干扰。方法三：设置stop序列截断多余文本，直接获取纯净JSON。这些方法可提升解析成功率，便于自动化评估。",
+      "tags": [
+        "评估",
+        "安全",
+        "Claude Code CLI"
+      ],
+      "id": "claudecode_best_practices_medium_048",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "medium"
+    },
+    {
+      "question": "在Claude Code CLI中，如何设计一个安全策略来防止模型意外执行危险命令（如删除文件或修改系统配置）？请从权限控制、沙箱隔离和命令审核三个角度分析。",
+      "reference_answer": "权限控制：限制CLI运行在最小权限用户下，避免使用root；沙箱隔离：使用Docker或虚拟机隔离环境，限制网络和文件系统访问；命令审核：在CLI中集成预执行钩子，对高风险命令（如rm -rf、sudo）进行二次确认或拒绝执行。",
+      "tags": [
+        "安全",
+        "Claude Code CLI"
+      ],
+      "id": "claudecode_best_practices_advanced_052",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "在评估Claude模型输出成本时，你发现不同提示策略（如使用JSON模式中的预填充响应与XML标签提取）会影响token消耗。请对比这两种策略在成本控制上的优劣，并说明在何种边界情况下应选择哪种策略。",
+      "reference_answer": "预填充响应减少输出token（跳过前缀），但可能降低推理质量；XML标签增加额外token开销，但简化解析逻辑。边界情况：当输出长度敏感且模型能力充足时选预填充；当输出结构复杂或需多段JSON时选XML标签，以避免解析错误导致的重复请求成本。",
+      "tags": [
+        "成本控制",
+        "评估"
+      ],
+      "id": "claudecode_best_practices_advanced_053",
+      "subtopic": "best_practices",
+      "subtopic_zh": "最佳实践（安全 / 成本控制 / 评估 / Claude Code CLI）",
+      "difficulty": "advanced"
+    }
+  ]
+}

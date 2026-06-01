@@ -1,0 +1,299 @@
+{
+  "module": "rag",
+  "module_name": "RAG检索增强生成",
+  "total": 18,
+  "cards": [
+    {
+      "title": "RAG (Retrieval-Augmented Generation)",
+      "summary": "检索增强生成，结合检索与生成模型提升回答质量。",
+      "points": [
+        "核心流程：索引→检索→生成",
+        "检索外部知识库，缓解LLM幻觉",
+        "支持多种文档格式和向量存储",
+        "可定制检索策略和生成提示"
+      ],
+      "tip": "面试常问：RAG三阶段——Indexing、Retrieval、Generation。",
+      "id": "rag_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "索引 (Indexing)",
+      "summary": "将文档分割、嵌入并存入向量数据库的过程。",
+      "points": [
+        "文档加载：支持网页、PDF等来源",
+        "文本分割：如RecursiveCharacterTextSplitter",
+        "向量嵌入：如OpenAIEmbeddings",
+        "存储：如Chroma向量数据库"
+      ],
+      "tip": "记忆口诀：加载→分割→嵌入→存储。",
+      "id": "rag_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "检索 (Retrieval)",
+      "summary": "根据用户查询从向量库中召回相关文档片段。",
+      "points": [
+        "基于余弦相似度计算语义匹配",
+        "可设置检索数量k（如k=1）",
+        "支持多查询生成（Multi Query）",
+        "结果可融合排序（如RRF）"
+      ],
+      "tip": "面试常问：如何提高检索精度？——多查询+融合排序。",
+      "id": "rag_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "生成 (Generation)",
+      "summary": "将检索结果与用户问题组合，输入LLM生成最终答案。",
+      "points": [
+        "使用提示模板格式化上下文",
+        "LLM基于上下文回答问题",
+        "可后处理输出（如StrOutputParser）",
+        "支持链式调用（Chain）"
+      ],
+      "tip": "面试常问：生成阶段如何避免幻觉？——限制仅基于检索上下文。",
+      "id": "rag_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "查询变换 (Query Transformation)",
+      "summary": "重写或扩展用户问题以提升检索效果。",
+      "points": [
+        "Multi Query：生成多个视角的问题",
+        "RAG-Fusion：生成相关查询并融合结果",
+        "克服距离相似度搜索的局限",
+        "常与检索链结合使用"
+      ],
+      "tip": "记忆口诀：一变多、多合一——查询变换提升召回。",
+      "id": "rag_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "路由 (Routing)",
+      "summary": "根据用户问题动态选择最相关的数据源或处理路径。",
+      "points": [
+        "基于函数调用（Function Calling）分类",
+        "支持逻辑路由（如编程语言分类）",
+        "可路由到不同索引或知识库",
+        "提升系统灵活性和准确性"
+      ],
+      "tip": "面试常问：路由与普通检索区别？——路由动态选择源，而非单一检索。",
+      "id": "rag_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "基础RAG vs 查询转换RAG",
+      "summary": "前者直接检索，后者优化查询以提升召回率。",
+      "points": [
+        "检索方式：单次检索原始问题 / 多角度生成查询后检索",
+        "召回质量：依赖原始问题表述 / 通过改写、扩展提高覆盖率",
+        "适用场景：问题清晰、术语准确 / 问题模糊或需多视角",
+        "复杂度：实现简单，延迟低 / 需额外生成步骤，延迟略高"
+      ],
+      "tip": "问题明确时用基础RAG；问题模糊或需全面信息时用查询转换RAG。",
+      "id": "rag_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Multi-Query vs RAG-Fusion",
+      "summary": "前者生成多查询去重，后者融合排序提升相关性。",
+      "points": [
+        "查询生成：生成5个不同视角的查询 / 生成4个相关查询",
+        "结果合并：取唯一文档并集 / 用倒数排名融合（RRF）重排序",
+        "目标：克服距离相似度局限 / 综合多查询结果提升排名",
+        "输出：去重后的文档列表 / 按融合分数排序的文档列表"
+      ],
+      "tip": "需简单去重时用Multi-Query；需精细排序时用RAG-Fusion。",
+      "id": "rag_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "逻辑路由 vs 语义路由",
+      "summary": "前者基于规则分类，后者基于嵌入相似度。",
+      "points": [
+        "分类依据：函数调用或规则匹配 / 向量相似度或语义模型",
+        "灵活性：需预定义类别，扩展性低 / 可动态适配新类别",
+        "实现方式：结构化输出或条件分支 / 嵌入聚类或LLM判断",
+        "适用场景：类别明确、固定 / 类别多样、动态变化"
+      ],
+      "tip": "类别固定且明确时用逻辑路由；类别动态或模糊时用语义路由。",
+      "id": "rag_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "索引阶段 vs 检索与生成阶段",
+      "summary": "索引构建知识库，检索生成回答。",
+      "points": [
+        "主要任务：文档加载、分块、嵌入存储 / 查询检索、上下文整合、生成",
+        "关键组件：加载器、文本分割器、向量库 / 检索器、提示模板、LLM",
+        "优化焦点：分块大小、重叠、嵌入质量 / 查询改写、检索策略、提示设计",
+        "输出：向量索引与检索器 / 最终答案"
+      ],
+      "tip": "先优化索引确保文档质量，再调整检索生成提升回答准确度。",
+      "id": "rag_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "余弦相似度",
+      "summary": "cos(q,d) = (q·d) / (||q|| ||d||) 衡量向量间方向相似度",
+      "points": [
+        "q 和 d 分别代表查询向量和文档向量，由嵌入模型生成。",
+        "q·d 是点积，计算对应元素乘积之和；||q|| 和 ||d|| 是向量的L2范数（长度）。",
+        "结果范围[-1,1]，1表示方向完全相同，0表示正交，-1表示完全相反。",
+        "在RAG中，用于检索阶段比较查询与文档嵌入的语义相似度，值越高越相关。"
+      ],
+      "tip": "注意：余弦相似度只关心方向，不关心向量长度；对于归一化后的向量，点积与余弦相似度等价。",
+      "id": "rag_formula_011",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "互惠排名融合(RRF)",
+      "summary": "score(d) = Σ 1/(rank_i(d) + k) 融合多检索结果，提升排序鲁棒性",
+      "points": [
+        "rank_i(d) 是文档 d 在第 i 个检索结果列表中的排名（从0或1开始）。",
+        "k 是常数（通常取60），防止分母过小，控制排名权重衰减速度。",
+        "对每个文档，累加所有检索列表中 1/(rank+k) 的值，得到最终融合分数。",
+        "分数越高表示文档在多个检索结果中排名靠前，最终按分数降序重排。"
+      ],
+      "tip": "常见误区：忘记处理排名从0开始的情况，导致分母为0；建议统一从1开始计数，或确保k≥1。",
+      "id": "rag_formula_012",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "多查询检索链",
+      "summary": "Q' = LLM(Q) → {q1, q2, ..., qn} → 检索 → 去重合并",
+      "points": [
+        "Q 是原始用户问题，LLM 根据模板生成 n 个不同视角的变体问题 q1 到 qn。",
+        "每个变体问题独立通过检索器获取相关文档，得到 n 个文档列表。",
+        "使用 get_unique_union 函数：先将每个文档序列化为字符串，取并集去重，再反序列化。",
+        "最终合并后的文档集合用于生成回答，缓解单查询的语义偏差和覆盖不足。"
+      ],
+      "tip": "注意：生成查询时需设置合理数量（如5个），过多可能引入噪声；去重时使用序列化确保文档唯一性，而非简单比较对象引用。",
+      "id": "rag_formula_013",
+      "card_type": "formula",
+      "type_zh": "公式卡"
+    },
+    {
+      "title": "RAG基础链路：索引-检索-生成",
+      "summary": "构建RAG应用的索引、检索与生成全流程。",
+      "points": [
+        "# 索引：加载、分割、嵌入文档并存入向量库",
+        "loader = WebBaseLoader(web_paths=('https://...',), bs_kwargs=dict(parse_only=bs4.SoupStrainer(class_=('post-content',))))",
+        "splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(loader.load())",
+        "vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings())",
+        "# 检索和生成：构建RAG链",
+        "retriever = vectorstore.as_retriever()",
+        "rag_chain = ({\"context\": retriever | format_docs, \"question\": RunnablePassthrough()} | prompt | llm | StrOutputParser())",
+        "rag_chain.invoke('What is Task Decomposition?')"
+      ],
+      "tip": "确保设置OPENAI_API_KEY环境变量；chunk_size和chunk_overlap需根据文档长度调整，避免上下文丢失。",
+      "id": "rag_code_014",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "多查询检索：生成不同视角",
+      "summary": "通过生成多个查询变体提升检索覆盖面。",
+      "points": [
+        "# 多查询提示：生成5个不同版本的问题",
+        "template = \"\"\"You are an AI language model assistant... Generate five different versions of the given user question... Provide these alternative questions separated by newlines. Original question: {question}\"\"\"",
+        "prompt_perspectives = ChatPromptTemplate.from_template(template)",
+        "# 构建生成链：提示→LLM→解析为列表",
+        "generate_queries = (prompt_perspectives | ChatOpenAI(temperature=0) | StrOutputParser() | (lambda x: x.split('\\n')))",
+        "# 去重合并检索结果",
+        "def get_unique_union(documents):",
+        "    flattened_docs = [dumps(doc) for sublist in documents for doc in sublist]",
+        "    unique_docs = list(set(flattened_docs))",
+        "    return [loads(doc) for doc in unique_docs]",
+        "retrieval_chain = generate_queries | retriever.map() | get_unique_union"
+      ],
+      "tip": "多查询可能产生重复或无关问题，需调整temperature控制多样性；dumps/loads用于序列化去重。",
+      "id": "rag_code_015",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "逻辑路由：基于函数调用选择数据源",
+      "summary": "使用LLM函数调用将问题路由到最相关数据源。",
+      "points": [
+        "# 定义路由数据模型",
+        "class RouteQuery(BaseModel):",
+        "    datasource: Literal['python_docs', 'js_docs', 'golang_docs'] = Field(..., description='...choose which datasource...')",
+        "# 构建结构化LLM",
+        "llm = ChatOpenAI(model='gpt-3.5-turbo-0125', temperature=0)",
+        "structured_llm = llm.with_structured_output(RouteQuery)",
+        "# 定义路由提示和链",
+        "system = 'You are an expert at routing a user question to the appropriate data source...'",
+        "prompt = ChatPromptTemplate.from_messages([('system', system), ('human', '{question}')])",
+        "router = prompt | structured_llm"
+      ],
+      "tip": "with_structured_output依赖函数调用能力，需使用支持该功能的模型（如gpt-3.5-turbo-0125）；Literal类型确保输出严格匹配预定义选项。",
+      "id": "rag_code_016",
+      "card_type": "code",
+      "type_zh": "代码卡"
+    },
+    {
+      "title": "RAG中检索到的文档越多，生成结果越好",
+      "summary": "检索文档过多会引入噪声，降低生成质量",
+      "points": [
+        "容易犯错：认为检索到的文档数量越多，模型能获取的信息越丰富，答案越准确。实际上，检索到的文档中可能包含大量不相关或冗余信息，会增加LLM的上下文负担，导致生成结果偏离核心问题。",
+        "正确理解：RAG系统需要平衡检索的召回率和精确度。通过设置合理的检索数量（如k=1或k=3），并使用去重和融合技术（如get_unique_union或reciprocal_rank_fusion）来筛选最相关的文档，才能提升生成质量。"
+      ],
+      "tip": "检索不是越多越好，精挑细选才是王道",
+      "id": "rag_gotcha_017",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "RAG中查询转换只是简单改写问题",
+      "summary": "查询转换包括多查询生成和融合，优化检索效果",
+      "points": [
+        "容易犯错：认为查询转换仅是对用户问题进行同义改写，以匹配文档表述。实际上，RAG中的查询转换（如Multi Query和RAG-Fusion）会生成多个不同角度的查询，并通过融合算法（如reciprocal_rank_fusion）合并检索结果，以克服单一查询的局限性。",
+        "正确理解：查询转换的核心是生成多个视角的查询，并利用融合策略（如RRF）对检索结果进行重排序，从而提升相关文档的召回率和多样性。这不仅仅是改写，而是系统性的检索优化。"
+      ],
+      "tip": "多查询生成加融合，检索效果翻倍",
+      "id": "rag_gotcha_018",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}

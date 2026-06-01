@@ -1,0 +1,200 @@
+{
+  "module": "agent",
+  "module_name": "AI Agent架构",
+  "total": 12,
+  "cards": [
+    {
+      "title": "GPT Researcher (深度研究Agent)",
+      "summary": "基于规划与执行架构的自主研究Agent。",
+      "points": [
+        "核心思想：Planner生成研究问题，Execution agents并行收集信息，Publisher聚合报告。",
+        "解决LLM幻觉、信息过时、token限制和来源偏见问题。",
+        "支持Web搜索与本地文档两种研究来源。",
+        "可生成超过2000字的详细、客观、带引用的研究报告。"
+      ],
+      "tip": "记住“规划-执行-发布”三阶段，面试常问如何保证报告客观性。",
+      "id": "agent_concept_001",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Plan-and-Solve (规划与执行架构)",
+      "summary": "Agent先规划子问题，再并行执行搜索。",
+      "points": [
+        "Planner agent根据查询生成多个研究子问题。",
+        "Execution agents为每个子问题独立收集信息。",
+        "Publisher汇总所有子问题结果，生成完整报告。",
+        "并行化工作提升了速度和稳定性。"
+      ],
+      "tip": "面试常问：与ReAct架构区别？Plan-and-Solve更强调先规划后执行。",
+      "id": "agent_concept_002",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "MCP (模型上下文协议)",
+      "summary": "连接Agent与外部数据源的标准协议。",
+      "points": [
+        "支持连接GitHub、数据库、自定义API等数据源。",
+        "可通过stdio、WebSocket、HTTP三种方式连接。",
+        "支持fast、deep、disabled三种执行策略。",
+        "与Tavily等Web检索器混合使用，增强研究深度。"
+      ],
+      "tip": "MCP是Agent的“万能插头”，面试常问如何配置MCP服务器。",
+      "id": "agent_concept_003",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "ReportType (报告类型)",
+      "summary": "Agent可生成多种格式和来源的研究报告。",
+      "points": [
+        "支持ResearchReport、ResourceReport等多种报告类型。",
+        "输出格式包括Markdown、PDF、Word等。",
+        "报告来源可选择Web、本地文档或两者混合。",
+        "可设置报告语气（客观、批判性等）。"
+      ],
+      "tip": "面试常问：如何让报告更可信？通过多源聚合和引用追踪。",
+      "id": "agent_concept_004",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Memory (上下文记忆)",
+      "summary": "Agent在研究中维护上下文和已访问URL。",
+      "points": [
+        "记录已访问的URL集合，避免重复爬取。",
+        "维护研究过程中的上下文信息。",
+        "支持子主题的层级记忆（parent_query）。",
+        "记忆机制提高了研究的一致性和效率。"
+      ],
+      "tip": "记忆是Agent的“短期工作台”，面试常问如何避免信息重复。",
+      "id": "agent_concept_005",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "GenericLLMProvider (通用LLM提供商)",
+      "summary": "抽象化LLM调用，支持多种模型和API。",
+      "points": [
+        "支持OpenAI、自定义API、本地模型等多种提供商。",
+        "通过OPENAI_BASE_URL可切换至兼容API。",
+        "统一接口，简化不同LLM的集成。",
+        "支持LangChain追踪和可观测性。"
+      ],
+      "tip": "面试常问：如何让Agent使用本地模型？设置OPENAI_BASE_URL即可。",
+      "id": "agent_concept_006",
+      "card_type": "concept",
+      "type_zh": "概念卡"
+    },
+    {
+      "title": "Planner vs Execution Agent",
+      "summary": "规划与执行分离，提升研究效率与质量。",
+      "points": [
+        "职责:Planner生成研究问题 / Execution Agent收集信息",
+        "工作方式:Planner制定策略 / Execution Agent并行爬取",
+        "输出:Planner输出问题列表 / Execution Agent输出原始资料",
+        "依赖:Planner依赖LLM推理 / Execution Agent依赖搜索与抓取"
+      ],
+      "tip": "复杂多步研究用Planner+Execution；简单查询可直接用Execution Agent。",
+      "id": "agent_compare_007",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Web vs Local Research",
+      "summary": "网络搜索与本地文档两种数据源。",
+      "points": [
+        "数据来源:Web Research使用搜索引擎 / Local Research使用本地文档或向量库",
+        "适用场景:Web适合实时、广泛信息 / Local适合私有、离线数据",
+        "配置:Web需API Key（如Tavily） / Local需配置向量存储路径",
+        "结果质量:Web依赖搜索结果准确性 / Local依赖文档完整度"
+      ],
+      "tip": "需要最新信息或外部知识选Web；处理内部文档或离线场景选Local。",
+      "id": "agent_compare_008",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "Fast vs Deep MCP Strategy",
+      "summary": "MCP执行策略：快速与深度权衡。",
+      "points": [
+        "执行次数:Fast只运行一次MCP / Deep对每个子问题运行MCP",
+        "性能:Fast速度快、成本低 / Deep更全面但耗时",
+        "适用场景:Fast适合简单查询 / Deep适合复杂、多维度研究",
+        "配置:Fast为默认 / Deep需显式设置mcp_strategy='deep'"
+      ],
+      "tip": "追求效率选Fast；对结果完整性要求极高时选Deep。",
+      "id": "agent_compare_009",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "GPT Researcher vs 传统手动研究",
+      "summary": "AI Agent自动化研究 vs 人工研究。",
+      "points": [
+        "速度:GPT Researcher数分钟完成 / 手动研究需数天至数周",
+        "客观性:GPT Researcher多源聚合减少偏见 / 手动研究易受主观影响",
+        "成本:GPT Researcher仅需API费用 / 手动研究需大量人力时间",
+        "深度:GPT Researcher可生成2000+字报告 / 手动研究可更深入定制"
+      ],
+      "tip": "快速获取客观、全面报告用GPT Researcher；需要深度领域专家分析时仍建议手动。",
+      "id": "agent_compare_010",
+      "card_type": "compare",
+      "type_zh": "对比卡"
+    },
+    {
+      "title": "GPT Researcher 只做 Web 搜索",
+      "summary": "支持 Web 和本地文档双源研究，可混合使用。",
+      "points": [
+        "容易错以为它仅爬取网页，忽略了本地文档、向量库和 MCP 数据源。",
+        "正确理解：report_source 参数可设为 'web'、'local' 或 'web,local'，同时支持文档 URL 和向量存储。",
+        "MCP 集成允许连接 GitHub、数据库等，扩展了研究来源。"
+      ],
+      "tip": "GPT Researcher 是双源引擎，Web + 本地 + MCP 皆可。",
+      "id": "agent_gotcha_011",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    },
+    {
+      "title": "MCP 策略 'fast' 和 'deep' 效果相同",
+      "summary": "'fast' 只执行一次，'deep' 为所有子查询执行。",
+      "points": [
+        "容易混淆两者，以为都是深度搜索所有子问题。",
+        "正确理解：'fast' 仅用原始查询运行一次 MCP，性能最优；'deep' 为每个子查询运行 MCP，更全面但更慢。",
+        "mcp_strategy 参数控制执行粒度，默认为 'fast'。"
+      ],
+      "tip": "fast 一次查询，deep 逐子查询，性能与深度取舍。",
+      "id": "agent_gotcha_012",
+      "card_type": "gotcha",
+      "type_zh": "易错卡"
+    }
+  ],
+  "card_types": [
+    {
+      "id": "concept",
+      "name_zh": "概念卡",
+      "target": 6
+    },
+    {
+      "id": "compare",
+      "name_zh": "对比卡",
+      "target": 4
+    },
+    {
+      "id": "formula",
+      "name_zh": "公式卡",
+      "target": 3
+    },
+    {
+      "id": "code",
+      "name_zh": "代码卡",
+      "target": 3
+    },
+    {
+      "id": "gotcha",
+      "name_zh": "易错卡",
+      "target": 2
+    }
+  ]
+}
